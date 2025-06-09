@@ -1,6 +1,7 @@
 import React from "react";
 import { Container, Row, Col, Button, Card, ListGroup } from "react-bootstrap";
-
+import Explore from '../components/Explore'
+import Ready from '../components/Ready'
 const featuresData = [
   {
     title: "Influencer Discovery",
@@ -71,7 +72,7 @@ const featuresData = [
 const Features = () => {
   return (
     <section style={{ background: "linear-gradient(to right, #f7f7f7, #f0f0f0)", padding: "4rem 0", fontFamily: "Poppins, sans-serif" }}>
-      <Container>
+      <Container className="mb-4">
         <div className="text-center mb-5">
           <h2 className="fw-bold mb-3" style={{ fontSize: "2.5rem", color: "#111" }}>
             Powerful Features for Influencer Marketing
@@ -119,6 +120,8 @@ const Features = () => {
           ))}
         </Row>
       </Container>
+      <Explore/>
+      <Ready/>
     </section>
   );
 };

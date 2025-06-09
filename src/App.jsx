@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Contact from "./pages/Contact";
 import Features from "./pages/Features";
+import Price from "./pages/Price";
 
 function App() {
   return (
@@ -20,7 +21,8 @@ function App() {
           <Route exact path="/login" element={<Login />} />
           <Route exact path="/signup" element={<Signup />} />
           <Route exact path="/contact" element={<Contact />} />
-           <Route exact path="/features" element={<Features />} />
+          <Route exact path="/pricing" element={<Price />} />
+          <Route exact path="/features" element={<Features />} />
         </Routes>
       </Router>
       <Footer />
