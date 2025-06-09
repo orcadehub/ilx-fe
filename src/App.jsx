@@ -1,0 +1,32 @@
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Home from "./pages/Home";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Contact from "./pages/Contact";
+import Features from "./pages/Features";
+
+function App() {
+  return (
+    <div>
+      <Router>
+        <Header />
+        <Routes>
+          <Route exact path="/" element={<Home />} />
+          <Route exact path="/login" element={<Login />} />
+          <Route exact path="/signup" element={<Signup />} />
+          <Route exact path="/contact" element={<Contact />} />
+           <Route exact path="/features" element={<Features />} />
+        </Routes>
+      </Router>
+      <Footer />
+      <ToastContainer position="top-center" autoClose={3000} />
+    </div>
+  );
+}
+
+export default App;
