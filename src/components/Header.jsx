@@ -25,7 +25,8 @@ const navLinks = [
   { label: 'Features', path: '/features' },
   { label: 'Pricing', path: '/pricing' },
   { label: 'Contact', path: '/contact' },
-  { label: 'About', path: '/about' }
+  { label: 'About', path: '/about' },
+  { label: 'Dashboard', path: '/dashboard' }
 ];
 
 const Header = () => {
