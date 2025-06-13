@@ -1,0 +1,13 @@
+.custom-orders-wrapper {
+  width: 100%;
+  background: #f6f5f3;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+  .custom-orders-wrapper {
+    width: 100vw;
+    overflow-x: auto;
+  }
+}
