@@ -1,4 +1,4 @@
-/*Business Report*/
+/*BusinessREport*/
 import React, { useState } from 'react';
 import { 
   Container, Row, Col, Card, Button, Form, 
@@ -8,6 +8,9 @@ import {
   FaSearch, FaDownload, FaFileExcel, FaCalendarAlt, 
   FaFilter, FaTimes, FaCheckCircle, FaClock 
 } from 'react-icons/fa';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import './Reports.css'; // Create this CSS file
 
 function Reports() {
   const [showRequestModal, setShowRequestModal] = useState(false);
@@ -39,17 +42,36 @@ function Reports() {
   const handleRequestChange = e => setRequestForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
   
   const handleRequestSubmit = () => {
-    alert(`Report request submitted!\nOrder: ${requestForm.orderName}\nDate Range: ${requestForm.fromDate} to ${requestForm.toDate}`);
+    toast.success('Report request submitted!', {
+      position: "top-right",
+      autoClose: 3000,
+      theme: "light",
+    });
     setRequestForm({ orderName: '', fromDate: '', toDate: '' });
     setShowRequestModal(false);
   };
 
   const handleDownload = (report, pay = false) => {
     if (pay) {
-      alert(`Processing payment for ${report.reportName}...`);
-      setTimeout(() => alert(`Payment successful! Downloading ${report.reportName}`), 1500);
+      toast.info(`Processing payment for ${report.reportName}...`, {
+        position: "top-right",
+        autoClose: 2000,
+        theme: "light",
+      });
+      
+      setTimeout(() => {
+        toast.success(`Payment successful! Downloading ${report.reportName}`, {
+          position: "top-right",
+          autoClose: 3000,
+          theme: "light",
+        });
+      }, 2000);
     } else {
-      alert(`Downloading ${report.reportName}`);
+      toast.success(`Downloading ${report.reportName}`, {
+        position: "top-right",
+        autoClose: 3000,
+        theme: "light",
+      });
     }
   };
 
@@ -66,8 +88,21 @@ function Reports() {
 
   return (
     <div className="d-flex flex-column min-vh-100" style={{ backgroundColor: '#f8f9fa' }}>
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+      
       {/* Header */}
-      <header className="bg-white shadow-sm py-3">
+      <header className="bg-white shadow-sm py-3 elegant-entrance">
         <Container fluid>
           <Row className="align-items-center">
             <Col>
@@ -82,7 +117,7 @@ function Reports() {
       <main className="flex-grow-1 py-4">
         <Container fluid>
           {/* Filters Section */}
-          <Card className="mb-4 shadow-sm border-0">
+          <Card className="mb-4 shadow-sm border-0 elegant-float">
             <Card.Body className="p-3">
               <Row className="g-3 align-items-end">
                 <Col xs={12} md={6} lg={3}>
@@ -149,10 +184,13 @@ function Reports() {
           <Row className="g-4">
             {filteredReports.length > 0 ? filteredReports.map((report, index) => (
               <Col key={index} xs={12} md={6} lg={4} xl={3}>
-                <Card className="shadow-sm h-100 border-0">
+                <Card 
+                  className="shadow-sm h-100 border-0 luxury-card" 
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
                   <Card.Body className="p-3 d-flex flex-column">
                     <div className="d-flex align-items-center mb-3">
-                      <div className="bg-primary bg-opacity-10 text-primary p-2 rounded me-3">
+                      <div className="bg-primary bg-opacity-10 text-primary p-2 rounded me-3 luxury-shine">
                         <FaFileExcel className="fs-4" />
                       </div>
                       <div>
@@ -186,12 +224,12 @@ function Reports() {
                     
                     <div className="mt-3">
                       {report.paymentStatus === 'Completed' ? (
-                        <Button variant="outline-success" className="w-100 d-flex align-items-center justify-content-center rounded-pill py-2"
+                        <Button variant="outline-success" className="w-100 d-flex align-items-center justify-content-center rounded-pill py-2 luxury-hover"
                           onClick={() => handleDownload(report)}>
                           <FaDownload className="me-2" />Download
                         </Button>
                       ) : (
-                        <Button variant="warning" className="w-100 d-flex align-items-center justify-content-center rounded-pill py-2"
+                        <Button variant="warning" className="w-100 d-flex align-items-center justify-content-center rounded-pill py-2 luxury-hover"
                           onClick={() => handleDownload(report, true)}>
                           <FaDownload className="me-2" />Pay & Download
                         </Button>
@@ -202,12 +240,12 @@ function Reports() {
               </Col>
             )) : (
               <Col className="text-center py-5">
-                <div className="bg-light rounded-circle p-4 d-inline-block mb-3">
+                <div className="bg-light rounded-circle p-4 d-inline-block mb-3 luxury-shine">
                   <FaFileExcel className="text-muted fs-1" />
                 </div>
                 <h4 className="fw-bold">No reports found</h4>
                 <p className="text-muted mb-4">Try adjusting your search or filter criteria</p>
-                <Button variant="primary" className="rounded-pill px-4 py-2" onClick={() => {
+                <Button variant="primary" className="rounded-pill px-4 py-2 luxury-pulse" onClick={() => {
                   setSearchTerm(''); setFromDate(''); setToDate(''); setActiveTab('all');
                 }}>Clear Filters</Button>
               </Col>
@@ -217,7 +255,7 @@ function Reports() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-top py-3">
+      <footer className="bg-white border-top py-3 elegant-entrance">
         <Container fluid>
           <div className="text-center text-muted small">
             &copy; {new Date().getFullYear()} Business Reports. All rights reserved.

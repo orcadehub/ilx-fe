@@ -1,469 +1,495 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { Offcanvas, Dropdown } from "react-bootstrap";
 import {
-  Card,
-  Button,
-  Form,
-  Row,
-  Col,
-  Image,
-  Offcanvas,
-  Modal,
-} from "react-bootstrap";
-import { FaInstagram, FaFacebook, FaYoutube, FaTwitter } from "react-icons/fa";
-import InfluencerProfile from "./InfluencerProfile";
-const influencersData = [
-  {
-    id: 1,
-    name: "Stephanie Nicol",
-    tags: ["Fitness", "Life Style", "Gym", "Crossfit"],
-    stats: {
-      instagram: "450K",
-      facebook: "210K",
-      youtube: "350K",
-      twitter: "95K",
-    },
-    age: 24,
-    rating: 5,
-    followers: {
-      instagram: "95K",
-      facebook: "50K",
-      twitter: "30K",
-      youtube: "20K",
-    },
-    image: "https://randomuser.me/api/portraits/women/44.jpg",
-  },
-  {
-    id: 2,
-    name: "Alex Buckmaster",
-    tags: ["Fitness", "Life Style"],
-    age: 45,
-    rating: 3,
-    platforms: ["Instagram"],
-    stats: { instagram: "320K" },
-    followers: { instagram: "95k" },
-    image: "https://randomuser.me/api/portraits/men/45.jpg",
-  },
-  {
-    id: 3,
-    name: "James Taylor",
-    tags: ["Business", "Entrepreneur"],
-    age: 78,
-    rating: 2,
-    followers: {
-      instagram: "95K",
-      facebook: "50K",
-      twitter: "30K",
-      youtube: "20K",
-    },
-    image: "https://randomuser.me/api/portraits/men/45.jpg",
-  },
-  {
-    id: 4,
-    name: "Sophia Lee",
-    tags: ["Beauty & Makeup", "Fashion"],
-    age: 24,
-    rating: 5,
-    followers: {
-      instagram: "150K",
-      facebook: "60K",
-      twitter: "22K",
-      youtube: "110K",
-    },
-    image: "https://randomuser.me/api/portraits/women/65.jpg",
-  },
-  {
-    id: 5,
-    name: "Daniel Chen",
-    tags: ["Technology", "Gadgets", "Reviews"],
-    age: 48,
-    rating: 3,
-    followers: {
-      instagram: "30K",
-      facebook: "45K",
-      twitter: "70K",
-      youtube: "140K",
-    },
-    image: "https://randomuser.me/api/portraits/men/33.jpg",
-  },
-  {
-    id: 6,
-    name: "Emily Brown",
-    tags: ["Lifestyle", "Travel", "Photography"],
-    age: 19,
-    rating: 5,
-    followers: {
-      instagram: "180K",
-      facebook: "90K",
-      twitter: "35K",
-      youtube: "55K",
-    },
-    image: "https://randomuser.me/api/portraits/women/48.jpg",
-  },
-  {
-    id: 7,
-    name: "Michael Johnson",
-    tags: ["Fitness", "Motivation"],
-    followers: {
-      instagram: "250K",
-      facebook: "120K",
-      twitter: "50K",
-      youtube: "200K",
-    },
-    image: "https://randomuser.me/api/portraits/men/12.jpg",
-  },
-  {
-    id: 8,
-    name: "Ava Wilson",
-    tags: ["Cooking", "Home Recipes"],
-    followers: {
-      instagram: "60K",
-      facebook: "70K",
-      twitter: "15K",
-      youtube: "90K",
-    },
-    image: "https://randomuser.me/api/portraits/women/22.jpg",
-  },
-  {
-    id: 9,
-    name: "Liam Martinez",
-    tags: ["Gaming", "Live Streams"],
-    followers: {
-      instagram: "40K",
-      facebook: "25K",
-      twitter: "85K",
-      youtube: "300K",
-    },
-    image: "https://randomuser.me/api/portraits/men/22.jpg",
-  },
-  {
-    id: 10,
-    name: "Olivia Anderson",
-    tags: ["Pets & Animals", "Vlogs"],
-    followers: {
-      instagram: "110K",
-      facebook: "40K",
-      twitter: "18K",
-      youtube: "170K",
-    },
-    image: "https://randomuser.me/api/portraits/women/18.jpg",
-  },
-  {
-    id: 11,
-    name: "Noah Thompson",
-    tags: ["Education", "Motivational Talks"],
-    followers: {
-      instagram: "70K",
-      facebook: "60K",
-      twitter: "55K",
-      youtube: "100K",
-    },
-    image: "https://randomuser.me/api/portraits/men/55.jpg",
-  },
-];
-const pricingData = {
-  Instagram: {
-    "Post Image/Video": "499₹",
-    "Reels/Shorts": "499₹",
-    "Story (Image/Video)": "499₹",
-    "Short Video (<10m)": "499₹",
-    "Video (>10m)": "499₹",
-    Polls: "499₹",
-    "Combo Package": "999₹",
-  },
-  Facebook: {
-    "Post Image/Video": "399₹",
-    "Video (>10m)": "499₹",
-    "Combo Package": "899₹",
-  },
-};
+  FaInstagram,
+  FaFacebook,
+  FaTwitter,
+  FaYoutube,
+  FaHeart,
+  FaEye,
+  FaComment,
+  FaShare,
+} from "react-icons/fa";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from "recharts";
+import influencersData from "../components/influencersData";
+import { Card, Row, Col } from "react-bootstrap";
+import services from "../components/services";
+import "./Influencers.css";
 
-const Influencers = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+function Influencers() {
+  const [selected, setSelected] = useState(influencersData[0]);
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedInfluencer, setSelectedInfluencer] = useState(null);
-  const [showPrices, setShowPrices] = useState(false);
-  const [selectedPlatform, setSelectedPlatform] = useState("Instagram");
-
-  const [tempFilters, setTempFilters] = useState({
-    rating: "",
-    platforms: [],
-    categories: [],
-    age: "",
-  });
-  const [appliedFilters, setAppliedFilters] = useState({
-    rating: "",
-    platforms: [],
-    categories: [],
-    age: "",
-  });
-  const handleSearch = (e) => setSearchTerm(e.target.value);
-  const handleRatingChange = (e) => {
-    setTempFilters({ ...tempFilters, rating: e.target.value });
-  };
-
-  const handleCheckboxChange = (e, key) => {
-    const value = e.target.value;
-    const checked = e.target.checked;
-    setTempFilters((prev) => {
-      const updated = checked
-        ? [...prev[key], value]
-        : prev[key].filter((item) => item !== value);
-      return { ...prev, [key]: updated };
-    });
-  };
-  const handleAgeChange = (e) => {
-    setTempFilters({ ...tempFilters, age: e.target.value });
-  };
-  const handleSubmit = () => {
-    setAppliedFilters(tempFilters);
-    setShowFilters(false);
-  };
-  const handleReset = () => {
-    const reset = { rating: "", platforms: [], categories: [], age: "" };
-    setTempFilters(reset);
-    setAppliedFilters(reset);
-  };
-
-  const filteredInfluencers = influencersData.filter((influencer) => {
-    const matchesSearch = influencer.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const { platforms, categories, rating, age } = appliedFilters;
-    const hasPlatforms =
-      platforms.length === 0 ||
-      platforms.some((p) =>
-        Object.keys(influencer.followers).some(
-          (f) => f.toLowerCase() === p.toLowerCase()
-        )
-      );
-    const hasCategories =
-      categories.length === 0 ||
-      categories.some((c) =>
-        influencer.tags.some((tag) =>
-          tag.toLowerCase().includes(c.toLowerCase())
-        )
-      );
-    const hasRating = rating === "" || influencer.rating === parseInt(rating);
-    const hasAge =
-      age === "" ||
-      (age === "18-25" && influencer.age >= 18 && influencer.age <= 25) ||
-      (age === "26-35" && influencer.age >= 26 && influencer.age <= 35) ||
-      (age === "36-45" && influencer.age >= 36 && influencer.age <= 45);
-
-    return (
-      matchesSearch && hasPlatforms && hasCategories && hasRating && hasAge
-    );
-  });
+  const [activeTab, setActiveTab] = useState("services");
+  const [selectedService, setSelectedService] = useState("Platform Based");
+  const [platformDropdownOpen, setPlatformDropdownOpen] = useState(false);
 
   return (
-    <div
-      className="container py-4"
-      style={{ backgroundColor: "#f3f6f9", minHeight: "100vh" }}
-    >
-      {selectedInfluencer ? (
-        <InfluencerProfile
-          influencer={selectedInfluencer}
-          onBack={() => setSelectedInfluencer(null)}
-          onShowPrices={() => setShowPrices(true)}
-        />
-      ) : (
-        <>
-          <Row className="align-items-center justify-content-between mb-4">
-            <Col xs={12} md={6}>
-              <Form.Control
-                type="text"
-                placeholder="Search influencers..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </Col>
-            <Col xs="auto">
-              <Button variant="primary" onClick={() => setShowFilters(true)}>
-                {" "}
-                Filters
-              </Button>
-            </Col>
-          </Row>
+    <div className="d-flex flex-column flex-md-row h-100">
+      {/* Left Panel */}
+      <div className="p-3 border-end col-12 col-lg-4 bg-light custom-height-panel">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h5 className="fw-bold text-primary">Top Influencers</h5>
+          <button
+            className="btn btn-outline-primary btn-sm shadow-sm"
+            onClick={() => setShowFilters(true)}
+          >
+            Filters
+          </button>
+        </div>
 
-          <Row>
-            {filteredInfluencers.map((influencer) => (
-              <Col key={influencer.id} md={4} className="mb-4">
-                <Card className="shadow-sm p-3 border rounded-3">
-                  <div className="d-flex align-items-center mb-2">
-                    <Image
-                      src={influencer.image}
-                      roundedCircle
-                      width={60}
-                      height={60}
-                      className="me-3"
-                    />
+        <input
+          className="form-control mb-3 shadow-sm"
+          placeholder="Search influencers..."
+        />
+
+        <div className="overflow-auto" style={{ height: "calc(90vh - 110px)" }}>
+          {influencersData.map((inf, index) => (
+            <div
+              key={inf.id}
+              className={`d-flex align-items-center gap-2 p-2 rounded-4 mb-3 bg-white border shadow-sm transition ${
+                index >= 5 ? "opacity-100 blur-lg" : "hover-shadow-lg"
+              }`}
+              onClick={() => setSelected(inf)}
+              style={{
+                cursor: index >= 5 ? "default" : "pointer",
+                height: "80px",
+                overflow: "hidden",
+                pointerEvents: index >= 5 ? "none" : "auto",
+              }}
+            >
+              <img
+                src={inf.profilePic}
+                alt="profile"
+                className="rounded-circle border border-2 border-primary"
+                width="45"
+                height="45"
+              />
+              <div className="flex-grow-1">
+                <div className="fw-semibold text-dark">{inf.username}</div>
+                <div className="text-muted small">{inf.category}</div>
+                <div className="d-flex flex-wrap gap-2 mt-1 small text-secondary">
+                  <span className="d-flex align-items-center">
+                    <FaInstagram
+                      className="me-1"
+                      style={{ color: "#E1306C" }}
+                    />{" "}
+                    {inf.stats.instagram}
+                  </span>
+                  <span className="d-flex align-items-center">
+                    <FaFacebook className="me-1" style={{ color: "#1877F2" }} />{" "}
+                    {inf.stats.facebook}
+                  </span>
+                  <span className="d-flex align-items-center">
+                    <FaTwitter className="me-1" style={{ color: "#1DA1F2" }} />{" "}
+                    {inf.stats.twitter}
+                  </span>
+                  <span className="d-flex align-items-center">
+                    <FaYoutube className="me-1" style={{ color: "#FF0000" }} />{" "}
+                    {inf.stats.youtube}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Right Panel */}
+      <div
+        className="right-panel p-3 bg-white overflow-auto"
+        style={{ borderRadius: "1rem" }}
+      >
+        {selected && (
+          <>
+            {/* Profile Header */}
+            <h4 className="mb-4 fw-bold text-primary">Influencer Profile</h4>
+            <div className="d-flex align-items-center mb-4 flex-wrap shadow-sm p-3 bg-light rounded-3">
+              <img
+                src={selected.profilePic}
+                className="rounded-circle me-3 border border-3 border-primary"
+                width="70"
+                height="70"
+                alt="Profile"
+              />
+              <div>
+                <h5 className="mb-0 fw-semibold">{selected.name}</h5>
+                <div className="text-muted">@{selected.username}</div>
+              </div>
+              <div className="ms-md-auto mt-3 mt-md-0 d-flex gap-3 flex-wrap justify-content-end">
+                <div className="text-center">
+                  <FaInstagram color="#E1306C" />
+                  <div className="small">{selected.stats.instagram}</div>
+                </div>
+                <div className="text-center">
+                  <FaFacebook color="#1877F2" />
+                  <div className="small">{selected.stats.facebook}</div>
+                </div>
+                <div className="text-center">
+                  <FaYoutube color="#FF0000" />
+                  <div className="small">{selected.stats.youtube}</div>
+                </div>
+                <div className="text-center">
+                  <FaTwitter color="#1DA1F2" />
+                  <div className="small">{selected.stats.twitter}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <ul className="nav nav-tabs border-0 mb-4">
+              {["services", "prices", "data"].map((tab) => (
+                <li className="nav-item" key={tab}>
+                  <button
+                    className={`nav-link rounded-pill px-4 me-2 fw-semibold ${
+                      activeTab === tab
+                        ? "btn btn-info text-warning"
+                        : "btn btn-outline-secondary"
+                    }`}
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            {/* Services */}
+            {activeTab === "services" && (
+              <Row className="g-4">
+                {services.map((service) => (
+                  <Col xs={12} sm={6} md={4} key={service.id}>
+                    <Card className="shadow-sm h-100 border-0">
+                      <Card.Img
+                        variant="top"
+                        src={service.image}
+                        className="card-img-top rounded-top"
+                        height="140"
+                      />
+                      <Card.Body className="p-3">
+                        <Card.Title className="fs-6 text-center mb-2 fw-semibold">
+                          {service.title}
+                        </Card.Title>
+                        <div className="d-flex justify-content-around text-muted small">
+                          <div>
+                            <FaHeart className="text-danger" /> {service.likes}
+                          </div>
+                          <div>
+                            <FaEye /> {service.views}
+                          </div>
+                          <div>
+                            <FaComment /> {service.comments}
+                          </div>
+                          <div>
+                            <FaShare /> {service.shares}
+                          </div>
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            )}
+
+            {/* Prices */}
+            {activeTab === "prices" && (
+              <div className="border rounded p-4 bg-light shadow-sm">
+                <div className="form-check mb-2">
+                  <input
+                    className="form-check-input"
+                    type="radio"
+                    name="serviceType"
+                    checked={selectedService === "Platform Based"}
+                    onChange={() => setSelectedService("Platform Based")}
+                  />
+                  <label className="form-check-label">Platform Based</label>
+                </div>
+                <Dropdown
+                  show={platformDropdownOpen}
+                  onToggle={() =>
+                    setPlatformDropdownOpen(!platformDropdownOpen)
+                  }
+                  className="my-2"
+                >
+                  <Dropdown.Toggle
+                    variant="outline-secondary"
+                    className="rounded-pill shadow-sm"
+                  >
+                    Select Platforms
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    <Dropdown.Item>Instagram</Dropdown.Item>
+                    <Dropdown.Item>Facebook</Dropdown.Item>
+                    <Dropdown.Item>Twitter</Dropdown.Item>
+                    <Dropdown.Item>YouTube</Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+
+                {Object.entries(selected.prices).map(([key, value], idx) => (
+                  <div
+                    className="form-check d-flex justify-content-between align-items-center border-bottom py-2"
+                    key={idx}
+                  >
                     <div>
-                      <h6 className="mb-0 fw-bold">{influencer.name}</h6>
-                      <div className="d-flex gap-3 mt-2">
-                        {Object.entries(influencer.followers).map(
-                          ([platform, count]) => {
-                            const iconMap = {
-                              instagram: <FaInstagram color="#E1306C" />,
-                              facebook: <FaFacebook color="#1877F2" />,
-                              twitter: <FaTwitter color="#1DA1F2" />,
-                              youtube: <FaYoutube color="#FF0000" />,
-                            };
-                            return (
-                              <div
-                                key={platform}
-                                className="d-flex align-items-center gap-1"
-                              >
-                                {iconMap[platform.toLowerCase()]}{" "}
-                                <span style={{ fontSize: "0.9rem" }}>
-                                  {count}
-                                </span>
-                              </div>
-                            );
-                          }
-                        )}
+                      <input
+                        className="form-check-input me-2"
+                        type="radio"
+                        name="serviceType"
+                        onChange={() => setSelectedService(key)}
+                      />
+                      <label className="form-check-label">{key}</label>
+                    </div>
+                    <div className="fw-semibold">{value}</div>
+                  </div>
+                ))}
+                <div className="form-check mt-3">
+                  <input
+                    className="form-check-input"
+                    type="radio"
+                    name="serviceType"
+                    onChange={() => setSelectedService("Combo Package")}
+                  />
+                  <label className="form-check-label">Combo Package</label>
+                </div>
+                <div className="text-end mt-3">
+                  <button className="btn btn-success px-4 rounded-pill shadow">
+                    Book
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Data */}
+            {activeTab === "data" && (
+              <div className="row g-4">
+                {Object.entries(selected.data).map(([label, value]) => (
+                  <div className="col-6 col-md-3" key={label}>
+                    <div className="bg-light border rounded p-3 text-center shadow-sm">
+                      <div className="fw-bold fs-5">{value}</div>
+                      <div className="text-muted small">
+                        {label
+                          .replace(/([A-Z])/g, " $1")
+                          .replace(/^./, (str) => str.toUpperCase())}
                       </div>
                     </div>
                   </div>
-                  <Card.Text>
-                    <strong>Tags:</strong> {influencer.tags.join(", ")}
-                  </Card.Text>
-                  <Button
-                    variant="outline-primary"
-                    size="sm"
-                    className="me-2"
-                    style={{
-                      padding: "2px 10px",
-                      fontSize: "0.9rem",
-                      width: "90px",
-                      borderRadius: "10px",
-                    }}
-                    onClick={() => setSelectedInfluencer(influencer)}
-                  >
-                    {" "}
-                    View Profile
-                  </Button>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        </>
-      )}
+                ))}
 
-      {/* Filter Modal */}
+                {/* Area Chart */}
+                <div className="col-md-6">
+                  <div className="border rounded p-3 shadow-sm bg-white">
+                    <h6 className="fw-bold mb-3">Engagement Rate Over Time</h6>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <AreaChart
+                        data={[
+                          { month: "Feb", rate: 52 },
+                          { month: "Mar", rate: 56 },
+                          { month: "Apr", rate: 59 },
+                          { month: "May", rate: 62 },
+                          { month: "Jun", rate: 65 },
+                        ]}
+                      >
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Tooltip />
+                        <Area
+                          type="monotone"
+                          dataKey="rate"
+                          stroke="#4c75f2"
+                          fill="#aecbfa"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Pie Chart */}
+                <div className="col-md-6">
+                  <div className="border rounded p-3 shadow-sm bg-white">
+                    <h6 className="fw-bold mb-3">
+                      Content Performance by Platform
+                    </h6>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: "Instagram", value: 40 },
+                            { name: "Facebook", value: 30 },
+                            { name: "Twitter", value: 15 },
+                            { name: "YouTube", value: 15 },
+                          ]}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={60}
+                          label
+                        >
+                          <Cell fill="#4c75f2" />
+                          <Cell fill="#90ee90" />
+                          <Cell fill="#ffa500" />
+                          <Cell fill="#ffcccb" />
+                        </Pie>
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Filters Offcanvas */}
       <Offcanvas
         show={showFilters}
         onHide={() => setShowFilters(false)}
         placement="end"
+        backdrop={true}
+        style={{ zIndex: 1100 }}
       >
         <Offcanvas.Header closeButton>
-          <Offcanvas.Title>Filters</Offcanvas.Title>
+          <Offcanvas.Title className="fw-bold">Filters</Offcanvas.Title>
+          <button className="btn btn-outline-secondary btn-sm ms-auto">
+            Reset Filters
+          </button>
         </Offcanvas.Header>
-        <Offcanvas.Body>
-          <h6>Rating</h6>
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Form.Check
-              type="radio"
-              name="rating"
-              label={<span style={{ color: "gold" }}>{"★".repeat(star)}</span>}
-              value={star}
-              key={star}
-              onChange={handleRatingChange}
-              checked={tempFilters.rating === `${star}`}
-            />
-          ))}
 
-          <h6 className="mt-3">Platforms</h6>
-          {["Facebook", "Instagram", "Pinterest", "Twitter"].map((p) => (
-            <Form.Check
-              type="checkbox"
-              label={p}
-              value={p}
-              key={p}
-              checked={tempFilters.platforms.includes(p)}
-              onChange={(e) => handleCheckboxChange(e, "platforms")}
-            />
-          ))}
-          <h6 className="mt-3">Categories</h6>
-          {[
-            "Business",
-            "Lifestyle",
-            "Fitness",
-            "Pets & Animals",
-            "Beauty & Makeup",
-          ].map((c) => (
-            <Form.Check
-              type="checkbox"
-              label={c}
-              value={c}
-              key={c}
-              checked={tempFilters.categories.includes(c)}
-              onChange={(e) => handleCheckboxChange(e, "categories")}
-            />
-          ))}
+        <Offcanvas.Body className="px-4 py-3 bg-light">
+          {/* Location Section */}
+          <div className="mb-3">
+            <label className="form-label fw-semibold text-dark">Location</label>
+            <div className="d-flex gap-2">
+              <select className="form-select border-2 shadow-sm">
+                <option>Select Country</option>
+              </select>
+              <select className="form-select border-2 shadow-sm">
+                <option>Select State</option>
+              </select>
+              <select className="form-select border-2 shadow-sm">
+                <option>Select City</option>
+              </select>
+            </div>
+          </div>
 
-          <h6 className="mt-3">Age</h6>
-          <Form.Select onChange={handleAgeChange} value={tempFilters.age}>
-            <option value="">Select Age</option>
-            <option value="18-25">18–25</option>
-            <option value="26-35">26–35</option>
-            <option value="36-45">36–45</option>
-          </Form.Select>
-          <Button variant="info" className="mt-3 w-100" onClick={handleSubmit}>
-            {" "}
-            Submit
-          </Button>
-          <Button
-            variant="secondary"
-            className="mt-2 w-100"
-            onClick={handleReset}
-          >
-            {" "}
-            Reset
-          </Button>
+          {/* Niche & Content Type */}
+          <div className="d-flex gap-2 mb-3">
+            <div className="w-50">
+              <label className="form-label fw-semibold text-dark">Niche</label>
+              <select className="form-select border-2 shadow-sm">
+                <option>Select Niche</option>
+              </select>
+            </div>
+            <div className="w-50">
+              <label className="form-label fw-semibold text-dark">
+                Content Type
+              </label>
+              <select className="form-select border-2 shadow-sm">
+                <option>Select Type</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Engagement Rate */}
+          <div className="mb-3">
+            <label className="form-label fw-semibold text-dark">
+              Engagement Rate
+            </label>
+            <input type="range" className="form-range" />
+            <div className="d-flex justify-content-between small">
+              <span>0%</span>
+              <span>10%</span>
+            </div>
+          </div>
+
+          {/* Follower Count */}
+          <div className="mb-3">
+            <label className="form-label fw-semibold text-dark">
+              Follower Count
+            </label>
+            <input type="range" className="form-range" />
+            <div className="d-flex justify-content-between small">
+              <span>0</span>
+              <span>1.5M</span>
+            </div>
+          </div>
+
+          {/* Platform */}
+          <div className="mb-3">
+            <label className="form-label fw-semibold text-dark">Platform</label>
+            <select className="form-select border-2 shadow-sm">
+              <option>Select platforms</option>
+            </select>
+          </div>
+
+          {/* Price Range */}
+          <div className="mb-3">
+            <label className="form-label fw-semibold text-dark">
+              Price Range
+            </label>
+            <div className="d-flex gap-2">
+              <input
+                type="number"
+                className="form-control border-2 shadow-sm"
+                placeholder="0"
+              />
+              <input
+                type="number"
+                className="form-control border-2 shadow-sm"
+                placeholder="5000"
+              />
+            </div>
+          </div>
+
+          {/* Hashtags */}
+          <div className="mb-3">
+            <label className="form-label fw-semibold text-dark">Hashtags</label>
+            <input
+              type="text"
+              className="form-control border-2 shadow-sm"
+              placeholder="Enter hashtags"
+            />
+          </div>
+
+          {/* Age & Gender */}
+          <div className="d-flex gap-2 mb-3">
+            <div className="w-50">
+              <label className="form-label fw-semibold text-dark">Age</label>
+              <select className="form-select border-2 shadow-sm">
+                <option>Select Age</option>
+              </select>
+            </div>
+            <div className="w-50">
+              <label className="form-label fw-semibold text-dark">Gender</label>
+              <select className="form-select border-2 shadow-sm">
+                <option>Select Gender</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="d-flex justify-content-between mt-4">
+            <button className="btn btn-outline-secondary px-4 py-2">
+              Cancel
+            </button>
+            <button className="btn btn-primary px-4 py-2">Update</button>
+          </div>
         </Offcanvas.Body>
       </Offcanvas>
-      {/* Pricing Modal */}
-      <Modal show={showPrices} onHide={() => setShowPrices(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Pricing - {selectedPlatform}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedInfluencer &&
-            Object.keys(selectedInfluencer.followers).map((platform) => (
-              <div key={platform} className="mb-3">
-                <h6 className="text-primary text-capitalize">{platform}</h6>
-                {pricingData[
-                  platform.charAt(0).toUpperCase() + platform.slice(1)
-                ] ? (
-                  <ul className="list-unstyled">
-                    {Object.entries(
-                      pricingData[
-                        platform.charAt(0).toUpperCase() + platform.slice(1)
-                      ]
-                    ).map(([service, price]) => (
-                      <li
-                        key={service}
-                        className="d-flex justify-content-between border-bottom py-1"
-                      >
-                        <span>{service}</span>
-                        <strong>{price}</strong>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No pricing data available for {platform}</p>
-                )}
-              </div>
-            ))}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowPrices(false)}>
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal>
     </div>
   );
-};
+}
+
 export default Influencers;

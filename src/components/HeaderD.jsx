@@ -31,10 +31,13 @@ import {
   Close,
 } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
+import { useNavigate } from "react-router-dom";
+
 
 const HeaderD = ({ handleDrawerToggle, userName = "Ajith" }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [showSearch, setShowSearch] = useState(false);
+  const navigate = useNavigate();
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -44,21 +47,31 @@ const HeaderD = ({ handleDrawerToggle, userName = "Ajith" }) => {
   const handleMenuClose = () => setAnchorEl(null);
   const toggleSearch = () => setShowSearch((prev) => !prev);
 
+  const handleNavigate = (path) => {
+    handleMenuClose();
+    navigate(path);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("currentUser");
+    handleMenuClose();
+    navigate("/login");
+  };
+
   return (
     <AppBar
       sx={{
-        position:'fixed',
-        width: { sm: `calc(100% - 240px)` },
+        position: "fixed",
+        width: '100%',
         ml: { sm: `240px` },
         bgcolor: "white",
         color: "black",
         boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
         borderBottom: "1px solid #eee",
-        zIndex: 1201,
       }}
-     >
+    >
       <Toolbar sx={{ justifyContent: "space-between", px: 1 }}>
-        {/* Left: Drawer toggle on mobile */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <IconButton
             edge="start"
@@ -69,7 +82,6 @@ const HeaderD = ({ handleDrawerToggle, userName = "Ajith" }) => {
           </IconButton>
         </Box>
 
-        {/* Center or floating search bar (conditionally shown) */}
         {isMobile && showSearch && (
           <ClickAwayListener onClickAway={() => setShowSearch(false)}>
             <Box
@@ -109,9 +121,7 @@ const HeaderD = ({ handleDrawerToggle, userName = "Ajith" }) => {
           </ClickAwayListener>
         )}
 
-        {/* Right section */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          {/* Search Box: Desktop only OR icon only in mobile */}
           {!isMobile ? (
             <Box
               sx={{
@@ -121,7 +131,7 @@ const HeaderD = ({ handleDrawerToggle, userName = "Ajith" }) => {
                 px: 2,
                 py: 0.5,
                 borderRadius: 3,
-                '&:hover': { boxShadow: "0 0 5px #ccc" },
+                "&:hover": { boxShadow: "0 0 5px #ccc" },
               }}
             >
               <Search />
@@ -135,7 +145,6 @@ const HeaderD = ({ handleDrawerToggle, userName = "Ajith" }) => {
             </Tooltip>
           )}
 
-          {/* Promo Box */}
           <Box
             sx={{
               px: 2,
@@ -147,8 +156,9 @@ const HeaderD = ({ handleDrawerToggle, userName = "Ajith" }) => {
               gap: 1,
               cursor: "pointer",
               border: "1px solid #ffe0b2",
-              '&:hover': { boxShadow: "0 0 5px #ffd54f" },
+              "&:hover": { boxShadow: "0 0 5px #ffd54f" },
             }}
+            onClick={() => navigate("/dashboard/offers")}
           >
             <CardGiftcard sx={{ color: "#ff9800" }} />
             {!isMobile && (
@@ -159,13 +169,13 @@ const HeaderD = ({ handleDrawerToggle, userName = "Ajith" }) => {
           </Box>
 
           <Tooltip title="Wallet">
-            <IconButton>
+            <IconButton onClick={() => navigate("/dashboard/wallet")}>
               <AccountBalanceWallet />
             </IconButton>
           </Tooltip>
 
           <Tooltip title="Notifications">
-            <IconButton>
+            <IconButton onClick={() => navigate("/dashboard/notifications")}>
               <Notifications />
             </IconButton>
           </Tooltip>
@@ -188,7 +198,7 @@ const HeaderD = ({ handleDrawerToggle, userName = "Ajith" }) => {
         </Box>
       </Toolbar>
 
-      {/* Avatar Dropdown Menu */}
+      {/* Dropdown */}
       <Menu
         anchorEl={anchorEl}
         open={open}
@@ -205,29 +215,41 @@ const HeaderD = ({ handleDrawerToggle, userName = "Ajith" }) => {
           },
         }}
       >
-        <MenuItem onClick={handleMenuClose}>
-          <ListItemIcon><Person fontSize="small" /></ListItemIcon>
+        <MenuItem onClick={() => handleNavigate("/dashboard/profile")}>
+          <ListItemIcon>
+            <Person fontSize="small" />
+          </ListItemIcon>
           Profile
         </MenuItem>
-        <MenuItem onClick={handleMenuClose}>
-          <ListItemIcon><Receipt fontSize="small" /></ListItemIcon>
+        <MenuItem onClick={() => handleNavigate("/dashboard/billing")}>
+          <ListItemIcon>
+            <Receipt fontSize="small" />
+          </ListItemIcon>
           Billing
         </MenuItem>
-        <MenuItem onClick={handleMenuClose}>
-          <ListItemIcon><Settings fontSize="small" /></ListItemIcon>
+        <MenuItem onClick={() => handleNavigate("/dashboard/settings")}>
+          <ListItemIcon>
+            <Settings fontSize="small" />
+          </ListItemIcon>
           Settings
         </MenuItem>
-        <MenuItem onClick={handleMenuClose}>
-          <ListItemIcon><Payment fontSize="small" /></ListItemIcon>
+        <MenuItem onClick={() => handleNavigate("/dashboard/payments")}>
+          <ListItemIcon>
+            <Payment fontSize="small" />
+          </ListItemIcon>
           Payments
         </MenuItem>
-        <MenuItem onClick={handleMenuClose}>
-          <ListItemIcon><SupportAgent fontSize="small" /></ListItemIcon>
+        <MenuItem onClick={() => handleNavigate("/dashboard/support")}>
+          <ListItemIcon>
+            <SupportAgent fontSize="small" />
+          </ListItemIcon>
           Support
         </MenuItem>
         <Divider />
-        <MenuItem onClick={handleMenuClose}>
-          <ListItemIcon><Logout fontSize="small" /></ListItemIcon>
+        <MenuItem onClick={handleLogout}>
+          <ListItemIcon>
+            <Logout fontSize="small" />
+          </ListItemIcon>
           Logout
         </MenuItem>
       </Menu>

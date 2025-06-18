@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   AppBar,
   Box,
@@ -10,35 +10,41 @@ import {
   List,
   ListItem,
   ListItemText,
-  useMediaQuery
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import MenuIcon from '@mui/icons-material/Menu';
-import { useTheme } from '@mui/material/styles';
-import { Link } from 'react-router-dom';
+  useMediaQuery,
+} from "@mui/material";
+import { useLocation } from "react-router-dom";
+import CloseIcon from "@mui/icons-material/Close";
+import MenuIcon from "@mui/icons-material/Menu";
+import { useTheme } from "@mui/material/styles";
+import { Link } from "react-router-dom";
 
 // Google Fonts import via style tag (insert in your HTML or main App)
 const fontFamily = `'Playfair Display', serif`;
 
 const navLinks = [
-  { label: 'Home', path: '/' },
-  { label: 'Features', path: '/features' },
-  { label: 'Pricing', path: '/pricing' },
-  { label: 'Contact', path: '/contact' },
-  { label: 'About', path: '/about' },
-  { label: 'Dashboard', path: '/dashboard' }
+  { label: "Home", path: "/" },
+  { label: "Features", path: "/features" },
+  { label: "Pricing", path: "/pricing" },
+  { label: "Contact", path: "/contact" },
+  { label: "About", path: "/about" },
+  { label: "Dashboard", path: "/dashboard" },
 ];
 
 const Header = () => {
+  const location = useLocation();
+  const isDashboard = location.pathname.startsWith("/dashboard");
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const toggleDrawer = (open) => () => setDrawerOpen(open);
 
   const drawerList = (
-    <Box sx={{ width: 250, p: 2 }} role="presentation" onClick={toggleDrawer(false)}>
-      <Box >
+    <Box
+      sx={{ width: 250, p: 2 }}
+      role="presentation"
+      onClick={toggleDrawer(false)}
+    >
+      <Box>
         <IconButton onClick={toggleDrawer(false)}>
           <CloseIcon />
         </IconButton>
@@ -57,11 +63,11 @@ const Header = () => {
             variant="outlined"
             sx={{
               mr: 1,
-              borderColor: '#bfa046',
-              color: '#bfa046',
-              borderRadius: '20px',
+              borderColor: "#bfa046",
+              color: "#bfa046",
+              borderRadius: "20px",
               fontFamily,
-              fontWeight: 600
+              fontWeight: 600,
             }}
             component={Link}
             to="/login"
@@ -71,12 +77,12 @@ const Header = () => {
           <Button
             variant="contained"
             sx={{
-              backgroundColor: '#002366',
-              color: '#fff8dc',
-              borderRadius: '20px',
+              backgroundColor: "#002366",
+              color: "#fff8dc",
+              borderRadius: "20px",
               fontFamily,
               fontWeight: 600,
-              '&:hover': { backgroundColor: '#00194d' }
+              "&:hover": { backgroundColor: "#00194d" },
             }}
             component={Link}
             to="/signup"
@@ -92,29 +98,31 @@ const Header = () => {
     <AppBar
       position="sticky"
       sx={{
-        backgroundColor: 'white',
-        color: 'black',
-        boxShadow: '0px 4px 10px rgba(0,0,0,0.05)',
-        px: 2
+        backgroundColor: isDashboard ? "transparent" : "white",
+        color: "black",
+        boxShadow: isDashboard ? "none" : "0px 4px 10px rgba(0,0,0,0.05)",
+        px: 2,
+        visibility: isDashboard ? "hidden" : "visible", // 👈 Invisible but keeps space
+        pointerEvents: isDashboard ? "none" : "auto",
       }}
     >
-      <Toolbar sx={{ justifyContent: 'space-between' }}>
+      <Toolbar sx={{ justifyContent: "space-between" }}>
         <Typography
           variant="h5"
           component={Link}
           to="/"
           sx={{
-            fontWeight: 'bold',
-            textDecoration: 'none',
-            color: 'black',
-            fontFamily
+            fontWeight: "bold",
+            textDecoration: "none",
+            color: "black",
+            fontFamily,
           }}
         >
           InfluexKonnect
         </Typography>
 
         {!isMobile && (
-          <Box sx={{ display: 'flex', gap: 4 }}>
+          <Box sx={{ display: "flex", gap: 4 }}>
             {navLinks.map(({ label, path }) => (
               <Typography
                 key={label}
@@ -122,12 +130,12 @@ const Header = () => {
                 component={Link}
                 to={path}
                 sx={{
-                  cursor: 'pointer',
-                  textDecoration: 'none',
-                  color: 'black',
+                  cursor: "pointer",
+                  textDecoration: "none",
+                  color: "black",
                   fontFamily,
-                  transition: 'color 0.3s',
-                  '&:hover': { color: '#002366' }
+                  transition: "color 0.3s",
+                  "&:hover": { color: "#002366" },
                 }}
               >
                 {label}
@@ -141,11 +149,11 @@ const Header = () => {
             <Button
               sx={{
                 mr: 1,
-                color: '#bfa046',
-                borderColor: '#bfa046',
-                borderRadius: '20px',
+                color: "#bfa046",
+                borderColor: "#bfa046",
+                borderRadius: "20px",
                 fontFamily,
-                fontWeight: 600
+                fontWeight: 600,
               }}
               variant="outlined"
               component={Link}
@@ -156,12 +164,12 @@ const Header = () => {
             <Button
               variant="contained"
               sx={{
-                backgroundColor: '#002366',
-                color: '#fff8dc',
-                borderRadius: '20px',
+                backgroundColor: "#002366",
+                color: "#fff8dc",
+                borderRadius: "20px",
                 fontFamily,
                 fontWeight: 600,
-                '&:hover': { backgroundColor: '#00194d' }
+                "&:hover": { backgroundColor: "#00194d" },
               }}
               component={Link}
               to="/signup"
@@ -176,7 +184,11 @@ const Header = () => {
             <IconButton onClick={toggleDrawer(true)}>
               <MenuIcon />
             </IconButton>
-            <Drawer anchor="top" open={drawerOpen} onClose={toggleDrawer(false)}>
+            <Drawer
+              anchor="top"
+              open={drawerOpen}
+              onClose={toggleDrawer(false)}
+            >
               {drawerList}
             </Drawer>
           </>

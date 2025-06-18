@@ -1,0 +1,116 @@
+
+.blurred {
+  filter: blur(3px);
+  opacity: 0.6;
+  transition: filter 0.3s ease;
+}
+.custom-height-panel {
+  height: 90vh;
+}
+
+@media (max-width: 576px) {
+  .custom-height-panel {
+    height: 50vh;
+  }
+}
+.nav-tabs .nav-link {
+  border: none;
+  margin-right: 8px;
+}
+
+/* Left Panel */
+.left-panel {
+  width: 300px;
+  max-height: 100vh;
+  overflow-y: auto;
+  background-color: #fff;
+  border-right: 1px solid #dee2e6;
+}
+
+/* Influencer Card (List) */
+.influencer-card {
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.influencer-card:hover {
+  background-color: #f1f3f5;
+}
+
+/* Avatar */
+.influencer-card img,
+.profile-header img {
+  object-fit: cover;
+  border: 2px solid #dee2e6;
+}
+
+/* Right Panel */
+.right-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+/* Services Tab Cards */
+.card-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* Social Icons */
+.social-icon-group > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.75rem;
+  gap: 4px;
+}
+
+/* Tabs */
+.nav-tabs .nav-link.active {
+  background-color: #0d6efd !important;
+  color: #fff !important;
+  border-radius: 4px;
+}
+
+/* Charts and Data Cards */
+.data-card {
+  background-color: #fff;
+  border-radius: 6px;
+  padding: 12px;
+  text-align: center;
+  border: 1px solid #dee2e6;
+}
+
+/* Filters (Offcanvas) */
+.offcanvas-body .form-label {
+  font-weight: 500;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .left-panel {
+    width: 100%;
+    max-height: none;
+    border-right: none;
+  }
+
+  .right-panel {
+    padding: 12px;
+  }
+
+  .influencer-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .nav-tabs .nav-link {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+  }
+
+  .social-icon-group {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}

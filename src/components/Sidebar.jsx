@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Drawer,
   List,
@@ -9,7 +9,9 @@ import {
   Typography,
   IconButton,
   useTheme,
+  useMediaQuery,
   Box,
+  Divider,
 } from '@mui/material';
 import {
   Dashboard,
@@ -20,10 +22,13 @@ import {
   Assessment,
   ShoppingCart,
   Close,
+  Menu as MenuIcon,
+  ChevronLeft,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 
-const drawerWidth = 240;
+const fullDrawerWidth = 240;
+const collapsedDrawerWidth = 70;
 
 const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
@@ -38,6 +43,10 @@ const menuItems = [
 const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
   const theme = useTheme();
   const location = useLocation();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [open, setOpen] = useState(true); // Desktop sidebar toggle
+
+  const handleSidebarToggle = () => setOpen(!open);
 
   const drawerContent = (
     <Box
@@ -51,20 +60,22 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
       <Toolbar
         sx={{
           display: 'flex',
-          justifyContent: 'space-between',
+          justifyContent: open ? 'space-between' : 'center',
           alignItems: 'center',
           px: 1,
         }}
       >
-        <Typography variant="h6" noWrap>
-          InfluexKonnect
-        </Typography>
-        <Box sx={{ display: { sm: 'none' } }}>
-          <IconButton onClick={handleDrawerToggle} sx={{ color: 'white' }}>
-            <Close />
-          </IconButton>
-        </Box>
+        {open && (
+          <Typography variant="h6" noWrap>
+            InfluexKonnect
+          </Typography>
+        )}
+        <IconButton onClick={handleSidebarToggle} sx={{ color: 'white' }}>
+          {open ? <ChevronLeft /> : <MenuIcon />}
+        </IconButton>
       </Toolbar>
+
+      <Divider sx={{ borderColor: 'rgba(255,255,255,0.2)', mb: 1 }} />
 
       <List>
         {menuItems.map((item) => {
@@ -80,12 +91,13 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
                 color: 'white',
                 borderRadius: 1,
                 mt: 1,
-                transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                px: open ? 2 : 1,
+                justifyContent: open ? 'flex-start' : 'center',
                 backgroundColor: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
-                transition: 'all 0.3s ease',
                 boxShadow: isActive ? 'inset 4px 0px 0px #ffcc00' : 'none',
+                transition: 'all 0.3s ease',
                 '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  backgroundColor: 'rgba(255,255,255,0.1)',
                   transform: 'scale(1.03)',
                 },
               }}
@@ -93,21 +105,22 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
               <ListItemIcon
                 sx={{
                   color: 'white',
-                  minWidth: 36,
-                  ml: isActive ? '-4px' : 0,
-                  transition: 'all 0.3s ease',
-                  transform: isActive ? 'translateX(2px)' : 'none',
+                  minWidth: 0,
+                  mr: open ? 2 : 0,
+                  justifyContent: 'center',
                 }}
               >
                 {item.icon}
               </ListItemIcon>
-              <ListItemText
-                primary={item.text}
-                primaryTypographyProps={{
-                  fontWeight: isActive ? 'bold' : 'normal',
-                  color: isActive ? '#fff' : '#ccc',
-                }}
-              />
+              {open && (
+                <ListItemText
+                  primary={item.text}
+                  primaryTypographyProps={{
+                    fontWeight: isActive ? 'bold' : 'normal',
+                    color: isActive ? '#fff' : '#ccc',
+                  }}
+                />
+              )}
             </ListItem>
           );
         })}
@@ -117,43 +130,48 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
 
   return (
     <>
-      {/* Mobile drawer */}
-      <Drawer
-        variant="temporary"
-        open={mobileOpen}
-        onClose={handleDrawerToggle}
-        ModalProps={{ keepMounted: true }}
-        sx={{
-          display: { xs: 'block', sm: 'none' },
-          '& .MuiDrawer-paper': {
-            width: drawerWidth,
-            boxSizing: 'border-box',
-            transition: theme.transitions.create('transform', {
-              easing: theme.transitions.easing.easeOut,
-              duration: theme.transitions.duration.enteringScreen,
-            }),
-          },
-        }}
-      >
-        {drawerContent}
-      </Drawer>
+      {/* Mobile Drawer */}
+      {isMobile && (
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            display: { xs: 'block', sm: 'none' },
+            '& .MuiDrawer-paper': {
+              width: fullDrawerWidth,
+              boxSizing: 'border-box',
+            },
+          }}
+        >
+          {drawerContent}
+        </Drawer>
+      )}
 
-      {/* Desktop drawer */}
-      <Drawer
-        variant="permanent"
-        sx={{
-          display: { xs: 'none', sm: 'block' },
-          width: drawerWidth,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: drawerWidth,
-            boxSizing: 'border-box',
-          },
-        }}
-        open
-      >
-        {drawerContent}
-      </Drawer>
+      {/* Desktop Drawer - Hide on mobile */}
+      {!isMobile && (
+        <Drawer
+          variant="permanent"
+          open={open}
+          sx={{
+            display: { xs: 'none', sm: 'block' },
+            width: open ? fullDrawerWidth : collapsedDrawerWidth,
+            flexShrink: 0,
+            '& .MuiDrawer-paper': {
+              width: open ? fullDrawerWidth : collapsedDrawerWidth,
+              boxSizing: 'border-box',
+              overflowX: 'hidden',
+              transition: theme.transitions.create('width', {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.enteringScreen,
+              }),
+            },
+          }}
+        >
+          {drawerContent}
+        </Drawer>
+      )}
     </>
   );
 };

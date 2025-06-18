@@ -1,12 +1,20 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import DashboardContent from '../pages/DashboardContent';
-import Influencers from '../pages/Influencers';
-import Chats from '../pages/Chats';
-import Reach from '../pages/Reach';
-import Services from '../pages/Services';
-import Reports from '../pages/Reports';
-import Orders from '../pages/Orders';
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import DashboardContent from "../pages/DashboardContent";
+import Influencers from "../pages/Influencers";
+import Chats from "../pages/Chats";
+import Reach from "../pages/Reach";
+import Services from "../pages/Services";
+import Reports from "../pages/Reports";
+import Orders from "../pages/Orders";
+import Wallet from "../pages/Wallet";
+import Profile from "../pages/Profile";
+import NotificationsTab from "../pages/NotificationsTab";
+import Settings from "../pages/Settings";
+import Notifications from "../pages/Notifications";
+import Billing from "../pages/Billing";
+import OffersPage from "../pages/OffersPage";
+import Support from "../pages/Support";
 
 const Content = () => {
   return (
@@ -18,6 +26,14 @@ const Content = () => {
       <Route path="services" element={<Services />} />
       <Route path="reports" element={<Reports />} />
       <Route path="orders" element={<Orders />} />
+      <Route path="wallet" element={<Wallet />} />
+      <Route path="payments" element={<Wallet />} />
+      <Route path="support" element={<Support />} />
+      <Route path="offers" element={<OffersPage />} />
+      <Route path="profile" element={<Profile />} />
+      <Route path="settings" element={<Settings />} />
+      <Route path="billing" element={<Billing />} />
+      <Route path="notifications" element={<Notifications />} />
     </Routes>
   );
 };

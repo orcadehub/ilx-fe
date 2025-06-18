@@ -1,5 +1,10 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -17,11 +22,11 @@ import Checkout from "./pages/Checkout";
 const AppContent = () => {
   const location = useLocation();
   const isDashboard = location.pathname.startsWith("/dashboard");
-   const isCheck = location.pathname.startsWith("/checkout");
+  const isCheck = location.pathname.startsWith("/checkout");
 
   return (
     <>
-     {!isCheck && <Header />}
+      {!isCheck && <Header />}
       <Routes>
         <Route exact path="/" element={<Home />} />
         <Route exact path="/login" element={<Login />} />
@@ -29,7 +34,7 @@ const AppContent = () => {
         <Route exact path="/contact" element={<Contact />} />
         <Route exact path="/pricing" element={<Price />} />
         <Route exact path="/features" element={<Features />} />
-         <Route exact path="/checkout" element={<Checkout />} />
+        <Route exact path="/checkout" element={<Checkout />} />
         <Route path="/dashboard/*" element={<DashboardPage />} />
       </Routes>
       {!isDashboard && !isCheck && <Footer />}
