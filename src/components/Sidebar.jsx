@@ -12,70 +12,72 @@ import {
   useMediaQuery,
   Box,
   Divider,
+  Switch,
 } from '@mui/material';
 import {
   Dashboard,
   People,
   Chat,
-  TrendingUp,
-  Build,
-  Assessment,
-  ShoppingCart,
-  Close,
+  BarChart,
+  Settings,
+  InsertChartOutlined,
+  ShoppingBag,
   Menu as MenuIcon,
   ChevronLeft,
+  Brightness4,
+  Brightness7,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 
 const fullDrawerWidth = 240;
-const collapsedDrawerWidth = 70;
+const collapsedDrawerWidth = 80;
 
 const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
   { text: 'Influencers', icon: <People />, path: '/dashboard/influencers' },
   { text: 'Chats', icon: <Chat />, path: '/dashboard/chats' },
-  { text: 'Reach', icon: <TrendingUp />, path: '/dashboard/reach' },
-  { text: 'Services', icon: <Build />, path: '/dashboard/services' },
-  { text: 'Reports', icon: <Assessment />, path: '/dashboard/reports' },
-  { text: 'Orders', icon: <ShoppingCart />, path: '/dashboard/orders' },
+  { text: 'Reach', icon: <BarChart />, path: '/dashboard/reach' },
+  { text: 'Services', icon: <Settings />, path: '/dashboard/services' },
+  { text: 'Reports', icon: <InsertChartOutlined />, path: '/dashboard/reports' },
+  { text: 'Orders', icon: <ShoppingBag />, path: '/dashboard/orders' },
 ];
 
-const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
+const Sidebar = ({ mobileOpen, handleDrawerToggle, darkMode, setDarkMode }) => {
   const theme = useTheme();
   const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [open, setOpen] = useState(true); // Desktop sidebar toggle
+  const [open, setOpen] = useState(true);
 
   const handleSidebarToggle = () => setOpen(!open);
 
   const drawerContent = (
     <Box
       sx={{
-        background: 'linear-gradient(to bottom right, #0f2027, #203a43, #2c5364)',
+        background: darkMode ? '#121212' : '#ffffff',
         height: '100%',
-        color: '#fff',
-        px: 1,
+        color: darkMode ? '#fff' : '#000',
+      
+        borderRight: '1px solid #ccc',
       }}
     >
       <Toolbar
         sx={{
           display: 'flex',
-          justifyContent: open ? 'space-between' : 'center',
+          justifyContent: 'space-between',
           alignItems: 'center',
-          px: 1,
+          px: open ? 2 : 1,
         }}
       >
-        {open && (
-          <Typography variant="h6" noWrap>
-            InfluexKonnect
-          </Typography>
-        )}
-        <IconButton onClick={handleSidebarToggle} sx={{ color: 'white' }}>
+        <Box display="flex" alignItems="center" gap={1}>
+          {/* <img src="/logo192.png" alt="logo" style={{ width: 30, height: 30 }} /> */}
+          {open && <Typography variant="h6" className='fs-4'>InfluexKonnect</Typography>}
+        </Box>
+        <IconButton onClick={handleSidebarToggle}>
           {open ? <ChevronLeft /> : <MenuIcon />}
         </IconButton>
       </Toolbar>
 
-      <Divider sx={{ borderColor: 'rgba(255,255,255,0.2)', mb: 1 }} />
+      <Divider />
 
       <List>
         {menuItems.map((item) => {
@@ -88,23 +90,20 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
               to={item.path}
               onClick={handleDrawerToggle}
               sx={{
-                color: 'white',
+                color: isActive ? theme.palette.primary.main : darkMode ? '#fff' : '#000',
                 borderRadius: 1,
                 mt: 1,
                 px: open ? 2 : 1,
                 justifyContent: open ? 'flex-start' : 'center',
-                backgroundColor: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
-                boxShadow: isActive ? 'inset 4px 0px 0px #ffcc00' : 'none',
-                transition: 'all 0.3s ease',
+                backgroundColor: isActive ? 'rgba(0,0,0,0.08)' : 'transparent',
                 '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.1)',
-                  transform: 'scale(1.03)',
+                  backgroundColor: 'rgba(0,0,0,0.04)',
                 },
               }}
             >
               <ListItemIcon
                 sx={{
-                  color: 'white',
+                  color: 'inherit',
                   minWidth: 0,
                   mr: open ? 2 : 0,
                   justifyContent: 'center',
@@ -112,25 +111,23 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
               >
                 {item.icon}
               </ListItemIcon>
-              {open && (
-                <ListItemText
-                  primary={item.text}
-                  primaryTypographyProps={{
-                    fontWeight: isActive ? 'bold' : 'normal',
-                    color: isActive ? '#fff' : '#ccc',
-                  }}
-                />
-              )}
+              {open && <ListItemText primary={item.text} />}
             </ListItem>
           );
         })}
       </List>
+
+      {/* <Box mt="auto" mb={2} px={2} display="flex" alignItems="center" justifyContent="space-between">
+        {open && <Typography variant="body2">Theme</Typography>}
+        <IconButton onClick={() => setDarkMode(!darkMode)}>
+          {darkMode ? <Brightness7 /> : <Brightness4 />}
+        </IconButton>
+      </Box> */}
     </Box>
   );
 
   return (
     <>
-      {/* Mobile Drawer */}
       {isMobile && (
         <Drawer
           variant="temporary"
@@ -149,7 +146,6 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
         </Drawer>
       )}
 
-      {/* Desktop Drawer - Hide on mobile */}
       {!isMobile && (
         <Drawer
           variant="permanent"

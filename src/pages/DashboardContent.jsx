@@ -137,65 +137,6 @@ const top = [
     value: "75%",
     link: "/orders/brand-partnership",
   },
-  {
-    title: "Summer Collection",
-    platform: [
-      <FaInstagram className="text-danger me-1" />,
-      <FaInstagram className="text-danger" />,
-    ],
-    type: [
-      <Badge bg="info" className="me-1">
-        reel
-      </Badge>,
-      <Badge bg="primary">story</Badge>,
-    ],
-    value: "92%",
-    link: "/orders/summer-collection",
-  },
-  {
-    title: "Product Launch",
-    platform: [<FaYoutube className="text-danger" />],
-    type: [<Badge bg="warning">video</Badge>],
-    value: "89%",
-    link: "/orders/product-launch",
-  },
-  {
-    title: "Brand Promotion",
-    platform: [
-      <FaInstagram className="text-danger me-1" />,
-      <FaTiktok className="text-dark" />,
-    ],
-    type: [
-      <Badge bg="success" className="me-1">
-        post
-      </Badge>,
-      <Badge bg="info">reel</Badge>,
-    ],
-    value: "85%",
-    link: "/orders/brand-promotion",
-  },
-  {
-    title: "Tutorial Series",
-    platform: [
-      <FaYoutube className="text-danger me-1" />,
-      <FaTiktok className="text-dark" />,
-    ],
-    type: [
-      <Badge bg="warning" className="me-1">
-        video
-      </Badge>,
-      <Badge bg="info">short</Badge>,
-    ],
-    value: "82%",
-    link: "/orders/tutorial-series",
-  },
-  {
-    title: "Brand Partnership",
-    platform: [<FaFacebook className="text-primary" />],
-    type: [<Badge bg="success">post</Badge>],
-    value: "75%",
-    link: "/orders/brand-partnership",
-  },
 ];
 
 function DashboardContent() {
@@ -212,15 +153,33 @@ function DashboardContent() {
   };
 
   return (
-    <div className="bg-light py-5" style={{ minHeight: "100vh" }}>
+    <div
+      className="py-5"
+      style={{ minHeight: "100vh", backgroundColor: "white" }}
+    >
       <Container fluid>
         {/* Dashboard Title */}
         <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-          <div className="mb-5 text-center">
-            <h2 className="fw-bold">📊 Business Dashboard</h2>
-            <p className="text-muted">
-              Monitor performance, orders, influencers, and more.
-            </p>
+          <div className="d-flex justify-content-between align-items-center mb-5 px-3">
+            {/* Left Side: Heading and Subheading */}
+            <div>
+              <h4 className="fw-bold mb-1" style={{ color: "#1A237E" }}>
+                Business Dashboard
+              </h4>
+              <p className="text-muted mb-0" style={{ fontSize: "0.9rem" }}>
+                Monitor performance, orders, influencers, and more.
+              </p>
+            </div>
+
+            {/* Right Side: Button */}
+            <div>
+              <button
+                className="btn btn-primary rounded-pill px-4 shadow-sm"
+                onClick={() => navigate("/dashboard/influencers")}
+              >
+                Find Influencers
+              </button>
+            </div>
           </div>
         </motion.div>
 
@@ -235,13 +194,33 @@ function DashboardContent() {
                 custom={index}
               >
                 <Card
-                  className="shadow-sm border-0 h-100 cursor-pointer"
                   onClick={() => navigate(card.path)}
+                  className="shadow-sm border-0 premium-card"
+                  style={{
+                    background: "linear-gradient(to bottom, #ffffff, #f8f9fa)",
+                    borderRadius: "1rem",
+                    transition: "transform 0.3s ease",
+                    cursor: "pointer",
+                    height: "120px",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.transform = "scale(1.03)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.transform = "scale(1)")
+                  }
                 >
-                  <Card.Body className="d-flex flex-column align-items-start justify-content-between">
-                    <div className="mb-3">{card.icon}</div>
-                    <h6 className="fw-semibold text-muted">{card.title}</h6>
-                    <h3 className="fw-bold">
+                  <Card.Body className="d-flex flex-column justify-content-between p-3">
+                    {/* Icon + Title in One Row */}
+                    <div className="d-flex align-items-center gap-2 mb-2">
+                      <div style={{ fontSize: "1.3rem" }}>{card.icon}</div>
+                      <h6 className="fw-semibold text-muted mb-0">
+                        {card.title}
+                      </h6>
+                    </div>
+
+                    {/* Value */}
+                    <h5 className="fw-bold text-dark mb-0">
                       <CountUp
                         start={0}
                         end={parseInt(card.value.replace(/[^0-9]/g, ""))}
@@ -250,10 +229,7 @@ function DashboardContent() {
                         prefix={card.value.includes("$") ? "$" : ""}
                         suffix={card.value.includes("%") ? "%" : ""}
                       />
-                    </h3>
-                    {/* <div className="mt-3 w-100 d-flex align-items-center text-primary">
-                      View Details <FaArrowRight className="ms-2" size={12} />
-                    </div> */}
+                    </h5>
                   </Card.Body>
                 </Card>
               </motion.div>
@@ -272,7 +248,7 @@ function DashboardContent() {
             >
               <Card className="shadow-sm border-0 h-100 scrollable-equal-height">
                 <Card.Body>
-                  <div className="d-flex justify-content-between align-items-center mb-4">
+                  <div className="d-flex justify-content-between align-items-center mb-5">
                     <h5 className="fw-bold mb-0">Top Performed Orders</h5>
                     <Badge
                       bg="light"
@@ -324,7 +300,7 @@ function DashboardContent() {
               <Card className="shadow-sm border-0 h-100 scrollable-equal-height">
                 <Card.Body>
                   <div className="d-flex justify-content-between align-items-center mb-4 w-100">
-                    <h5 className="fw-bold mb-0">Top Business Users</h5>
+                    <h5 className="fw-bold mb-0">Top Influencers</h5>
                     <Badge
                       bg="light"
                       text="dark"
@@ -373,7 +349,7 @@ function DashboardContent() {
                       ].map((user, index) => (
                         <div
                           key={index}
-                          className="w-100 d-flex justify-content-between align-items-center border-bottom py-2 cursor-pointer"
+                          className="w-100 d-flex justify-content-between align-items-center border-bottom py-1 cursor-pointer"
                           onClick={() =>
                             navigate(
                               `/business/${user.handle.replace("@", "")}`

@@ -6,7 +6,31 @@ import { toast } from "react-toastify";
 import GoogleIcon from "@mui/icons-material/Google";
 import FacebookIcon from "@mui/icons-material/Facebook";
 
+const COLORS = {
+  primary: "#000",
+  primaryHover: "#6D28D9",
+  primaryActive: "#5B21B6",
+  primaryDisabled: "#A78BFA",
+  secondary: "#EC4899",
+  secondaryHover: "#DB2777",
+  secondaryActive: "#BE185D",
+  secondaryDisabled: "#F9A8D4",
+  background: "#FFFFFF",
+  card: "#F8FAFC",
+  surface: "#F1F5F9",
+  border: "#E2E8F0",
+  textPrimary: "#0F172A",
+  textSecondary: "#475569",
+  muted: "#94A3B8",
+  placeholder: "#CBD5E1",
+  success: "#10B981",
+  error: "#EF4444",
+  info: "#3B82F6",
+};
+
 const Signup = () => {
+  const [step, setStep] = useState(1);
+  const [userType, setUserType] = useState("");
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -14,324 +38,168 @@ const Signup = () => {
     password: "",
     confirmPassword: "",
   });
-
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const { username, email, phone, password, confirmPassword } = formData;
-
-    if (password !== confirmPassword) {
-      return toast.info("Passwords do not match.");
-    }
+    if (password !== confirmPassword) return toast.info("Passwords do not match.");
 
     try {
-      const response = await axios.post(
-        "http://localhost:4000/api/auth/signup",
-        {
-          username,
-          email,
-          phone,
-          password,
-        }
-      );
-
+      await axios.post("http://localhost:4000/api/signup", {
+        fullname: username,
+        email,
+        phone,
+        password,
+        role: userType,
+      });
       toast.success("Signup successful!");
       navigate("/login");
     } catch (error) {
-      console.error(error);
       toast.error(error.response?.data?.message || "Signup failed!");
     }
   };
 
+  const inputStyle = {
+    borderRadius: "10px",
+    borderColor: COLORS.border,
+    padding: "12px 14px",
+    fontSize: "1rem",
+    backgroundColor: COLORS.surface,
+    fontFamily: "'Open Sans', sans-serif",
+    color: COLORS.textPrimary,
+  };
+
+  const renderUserTypeButtons = () => (
+    ["business", "influencer", "admin"].map((type) => (
+      <Button
+        key={type}
+        variant="outline-info"
+        className="w-100 mb-3"
+        onClick={() => {
+          setUserType(type);
+          setStep(2);
+        }}
+        style={{
+          fontWeight: "600",
+          borderRadius: "12px",
+          padding: "12px",
+          borderColor: COLORS.primary,
+          color: COLORS.primary,
+        }}
+      >
+        {type.charAt(0).toUpperCase() + type.slice(1)} User
+      </Button>
+    ))
+  );
+
+  const renderInputField = (name, label, type = "text") => (
+    <Form.Group className="mb-3" controlId={name} key={name}>
+      <Form.Label style={{ fontWeight: "600", color: COLORS.textSecondary }}>
+        {label}
+      </Form.Label>
+      <Form.Control
+        type={type}
+        name={name}
+        value={formData[name]}
+        onChange={handleChange}
+        required
+        placeholder={`Enter ${label.toLowerCase()}`}
+        style={inputStyle}
+      />
+    </Form.Group>
+  );
+
   return (
-    <Container
-      fluid
-      className="d-flex flex-column align-items-center justify-content-center"
-      style={{ backgroundColor: "#ffffff", paddingTop: "50px", paddingBottom: "50px" }}
-    >
+    <Container fluid className="py-5 d-flex align-items-center justify-content-center" style={{ backgroundColor: COLORS.background }}>
       <Row className="w-100 justify-content-center">
         <Col xs={11} sm={8} md={6} lg={5} xl={4}>
-          <div
-            style={{
-              background: "#ffffff",
-              borderRadius: "20px",
-              boxShadow: "0 12px 30px rgba(0, 0, 0, 0.08)",
-              padding: "40px 30px",
-              fontFamily: "'Playfair Display', serif",
-              color: "#1B263B",
-            }}
-          >
-            <h2
-              className="mb-4 text-center fw-bold"
-              style={{
-                fontWeight: "700",
-                letterSpacing: "0.05em",
-                color: "#1B263B",
-              }}
-            >
-              Create Account
+          <div className="p-4 shadow rounded-4" style={{ backgroundColor: COLORS.card }}>
+            <h2 className="text-center fw-bold mb-4" style={{ color: COLORS.textPrimary }}>
+              {step === 1 ? "Choose User Type" : "Create Account"}
             </h2>
 
-            <Form onSubmit={handleSubmit}>
-              <Form.Group className="mb-4" controlId="formUsername">
-                <Form.Label
-                  style={{
-                    fontWeight: "600",
-                    color: "#415A77",
-                    fontFamily: "'Open Sans', sans-serif",
-                  }}
-                >
-                  Username
-                </Form.Label>
-                <Form.Control
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  placeholder="Enter username"
-                  required
-                  style={{
-                    borderRadius: "12px",
-                    borderColor: "#90caf9",
-                    padding: "12px 15px",
-                    fontSize: "1rem",
-                    backgroundColor: "#f9f9f9",
-                    fontFamily: "'Open Sans', sans-serif",
-                    color: "#1B263B",
-                  }}
-                />
-              </Form.Group>
+            {step === 1 ? renderUserTypeButtons() : (
+              <>
+                <Form onSubmit={handleSubmit}>
+                  {renderInputField("username", "FullName")}
+                  {renderInputField("email", "Email", "email")}
+                  {renderInputField("phone", "Phone")}
+                  {renderInputField("password", "Password", "password")}
+                  {renderInputField("confirmPassword", "Confirm Password", "password")}
 
-              <Form.Group className="mb-4" controlId="formEmail">
-                <Form.Label
-                  style={{
-                    fontWeight: "600",
-                    color: "#415A77",
-                    fontFamily: "'Open Sans', sans-serif",
-                  }}
-                >
-                  Email
-                </Form.Label>
-                <Form.Control
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="Enter email"
-                  required
-                  style={{
-                    borderRadius: "12px",
-                    borderColor: "#90caf9",
-                    padding: "12px 15px",
-                    fontSize: "1rem",
-                    backgroundColor: "#f9f9f9",
-                    fontFamily: "'Open Sans', sans-serif",
-                    color: "#1B263B",
-                  }}
-                />
-              </Form.Group>
+                  <Button
+                    type="submit"
+                    className="w-100 mb-3"
+                    style={{
+                      borderRadius: "30px",
+                      padding: "12px 0",
+                      backgroundColor: COLORS.primary,
+                      border: "none",
+                      color: "#fff",
+                      fontWeight: "700",
+                      fontSize: "1.1rem",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = COLORS.primaryHover)}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = COLORS.primary)}
+                  >
+                    Signup
+                  </Button>
 
-              <Form.Group className="mb-4" controlId="formPhone">
-                <Form.Label
-                  style={{
-                    fontWeight: "600",
-                    color: "#415A77",
-                    fontFamily: "'Open Sans', sans-serif",
-                  }}
-                >
-                  Phone
-                </Form.Label>
-                <Form.Control
-                  type="text"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="Enter phone"
-                  required
-                  style={{
-                    borderRadius: "12px",
-                    borderColor: "#90caf9",
-                    padding: "12px 15px",
-                    fontSize: "1rem",
-                    backgroundColor: "#f9f9f9",
-                    fontFamily: "'Open Sans', sans-serif",
-                    color: "#1B263B",
-                  }}
-                />
-              </Form.Group>
+                  {/* <Button variant="outline-secondary" className="w-100 mb-3" onClick={() => setStep(1)}>
+                    ← Back
+                  </Button> */}
+                </Form>
 
-              <Form.Group className="mb-4" controlId="formPassword">
-                <Form.Label
-                  style={{
-                    fontWeight: "600",
-                    color: "#415A77",
-                    fontFamily: "'Open Sans', sans-serif",
-                  }}
-                >
-                  Password
-                </Form.Label>
-                <Form.Control
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Create a password"
-                  required
-                  style={{
-                    borderRadius: "12px",
-                    borderColor: "#90caf9",
-                    padding: "12px 15px",
-                    fontSize: "1rem",
-                    backgroundColor: "#f9f9f9",
-                    fontFamily: "'Open Sans', sans-serif",
-                    color: "#1B263B",
-                  }}
-                />
-              </Form.Group>
+                <div className="text-center mt-3" style={{ fontSize: "0.9rem", color: COLORS.textSecondary }}>
+                  Already have an account?{' '}
+                  <Link to="/login" style={{ color: COLORS.primary, fontWeight: "600" }}>Login</Link>
+                </div>
 
-              <Form.Group className="mb-4" controlId="formConfirmPassword">
-                <Form.Label
-                  style={{
-                    fontWeight: "600",
-                    color: "#415A77",
-                    fontFamily: "'Open Sans', sans-serif",
-                  }}
-                >
-                  Confirm Password
-                </Form.Label>
-                <Form.Control
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="Confirm your password"
-                  required
-                  style={{
-                    borderRadius: "12px",
-                    borderColor: "#90caf9",
-                    padding: "12px 15px",
-                    fontSize: "1rem",
-                    backgroundColor: "#f9f9f9",
-                    fontFamily: "'Open Sans', sans-serif",
-                    color: "#1B263B",
-                  }}
-                />
-              </Form.Group>
+                <div className="text-center mt-4 mb-2 text-muted">— or signup with —</div>
 
-              <Button
-                variant="primary"
-                type="submit"
-                className="w-100"
-                style={{
-                  borderRadius: "30px",
-                  padding: "12px 0",
-                  fontWeight: "700",
-                  fontSize: "1.1rem",
-                  backgroundColor: "#1B263B",
-                  boxShadow: "0 6px 15px rgba(27, 38, 59, 0.3)",
-                  border: "none",
-                  fontFamily: "'Playfair Display', serif",
-                  transition: "background-color 0.3s ease",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#415A77")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#1B263B")}
-              >
-                Signup
-              </Button>
-            </Form>
-
-            <div
-              className="text-center mt-3"
-              style={{
-                fontSize: "0.9rem",
-                color: "#415A77",
-                fontFamily: "'Open Sans', sans-serif",
-              }}
-            >
-              Already have an account?{" "}
-              <Link
-                to="/login"
-                style={{
-                  color: "#2575fc",
-                  fontWeight: "600",
-                  textDecoration: "none",
-                }}
-              >
-                Login
-              </Link>
-            </div>
-
-            <div
-              className="text-center mt-5 mb-3"
-              style={{
-                color: "#757575",
-                fontFamily: "'Open Sans', sans-serif",
-              }}
-            >
-              — or signup with —
-            </div>
-
-            <Row className="g-3">
-              <Col xs={12} sm={6}>
-                <Button
-                  href="http://localhost:4000/auth/google"
-                  className="w-100 d-flex align-items-center justify-content-center gap-2"
-                  style={{
-                    backgroundColor: "#db4437",
-                    borderRadius: "30px",
-                    padding: "10px 0",
-                    fontWeight: "600",
-                    fontSize: "1rem",
-                    border: "none",
-                    color: "#fff",
-                    boxShadow: "0 5px 10px rgba(219, 68, 55, 0.4)",
-                    fontFamily: "'Open Sans', sans-serif",
-                    transition: "background-color 0.3s ease",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#c33d2f")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#db4437")}
-                >
-                  <GoogleIcon style={{ fontSize: 22 }} />
-                  Google
-                </Button>
-              </Col>
-              <Col xs={12} sm={6}>
-                <Button
-                  href="http://localhost:4000/auth/facebook"
-                  className="w-100 d-flex align-items-center justify-content-center gap-2"
-                  style={{
-                    backgroundColor: "#1877f2",
-                    borderRadius: "30px",
-                    padding: "10px 0",
-                    fontWeight: "600",
-                    fontSize: "1rem",
-                    border: "none",
-                    color: "#fff",
-                    boxShadow: "0 5px 10px rgba(24, 119, 242, 0.4)",
-                    fontFamily: "'Open Sans', sans-serif",
-                    transition: "background-color 0.3s ease",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#1565c0")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#1877f2")}
-                >
-                  <FacebookIcon style={{ fontSize: 22 }} />
-                  Facebook
-                </Button>
-              </Col>
-            </Row>
+                <Row className="g-3">
+                  <Col xs={12} sm={6}>
+                    <Button
+                      href="http://localhost:4000/auth/google"
+                      className="w-100 d-flex align-items-center justify-content-center gap-2"
+                      style={{ ...socialBtnStyle(COLORS.info), color: "#fff" }}
+                    >
+                      <GoogleIcon style={{ fontSize: 22 }} /> Google
+                    </Button>
+                  </Col>
+                  <Col xs={12} sm={6}>
+                    <Button
+                      href="http://localhost:4000/auth/facebook"
+                      className="w-100 d-flex align-items-center justify-content-center gap-2"
+                      style={{ ...socialBtnStyle(COLORS.secondary), color: "#fff" }}
+                    >
+                      <FacebookIcon style={{ fontSize: 22 }} /> Facebook
+                    </Button>
+                  </Col>
+                </Row>
+              </>
+            )}
           </div>
         </Col>
       </Row>
     </Container>
   );
 };
+
+const socialBtnStyle = (bg) => ({
+  backgroundColor: bg,
+  borderRadius: "30px",
+  padding: "10px 0",
+  fontWeight: "600",
+  fontSize: "1rem",
+  border: "none",
+  boxShadow: `0 5px 10px ${bg}66`,
+  fontFamily: "'Open Sans', sans-serif",
+  transition: "background-color 0.3s ease",
+});
 
 export default Signup;

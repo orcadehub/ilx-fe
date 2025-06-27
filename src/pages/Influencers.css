@@ -74,7 +74,7 @@
 
 /* Charts and Data Cards */
 .data-card {
-  background-color: #fff;
+  background-color: #ffffff;
   border-radius: 6px;
   padding: 12px;
   text-align: center;
@@ -90,6 +90,7 @@
 @media (max-width: 768px) {
   .left-panel {
     width: 100%;
+    height: 50vh;
     max-height: none;
     border-right: none;
   }
@@ -114,3 +115,6 @@
     gap: 12px;
   }
 }
+
+
+

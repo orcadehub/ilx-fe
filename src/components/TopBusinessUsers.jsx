@@ -12,12 +12,7 @@ const TopBusinessUsers = () => {
     { name: 'Beauty Essentials', handle: '@beautyessentials', orders: 20, img: 'https://picsum.photos/seed/beauty/100' },
     { name: 'Health First', handle: '@healthfirst', orders: 16, img: 'https://picsum.photos/seed/health/100' },
     { name: 'Fitness Hub', handle: '@fitnesshub', orders: 14, img: 'https://picsum.photos/seed/fitness/100' },
-    { name: 'Fashion Forward', handle: '@fashionforward', orders: 28, img: 'https://picsum.photos/seed/fashion/100' },
-    { name: 'Tech Haven', handle: '@techhaven', orders: 24, img: 'https://picsum.photos/seed/tech/100' },
-    { name: 'Beauty Essentials', handle: '@beautyessentials', orders: 20, img: 'https://picsum.photos/seed/beauty/100' },
-    { name: 'Health First', handle: '@healthfirst', orders: 16, img: 'https://picsum.photos/seed/health/100' },
-    { name: 'Fitness Hub', handle: '@fitnesshub', orders: 14, img: 'https://picsum.photos/seed/fitness/100' },
-  ];
+    ];
 
   return (
     <Card className="shadow-sm border-0 scrollable-equal-height pending-orders-card">
@@ -30,7 +25,7 @@ const TopBusinessUsers = () => {
           {users.map((user, index) => (
             <div
               key={index}
-              className="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom cursor-pointer"
+              className="d-flex align-items-center justify-content-between mb-1 pb-2 border-bottom cursor-pointer"
               onClick={() => navigate(`/business/${user.handle.replace('@', '')}`)}
             >
               <div className="d-flex align-items-center">

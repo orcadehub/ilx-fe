@@ -1,14 +1,28 @@
-
 import React, { useState, useMemo } from "react";
 import {
-  Container, Row, Col, Table, Form, Button, Badge, Collapse, Modal
+  Container,
+  Row,
+  Col,
+  Table,
+  Form,
+  Button,
+  Badge,
+  Collapse,
+  Modal,
 } from "react-bootstrap";
 import {
-  FunnelFill, ArrowCounterclockwise, Eye, XCircle, CreditCard,
-  Calendar, Clock, BoxSeam, Tag
+  FunnelFill,
+  ArrowCounterclockwise,
+  Eye,
+  XCircle,
+  CreditCard,
+  Calendar,
+  Clock,
+  BoxSeam,
+  Tag,
 } from "react-bootstrap-icons";
 import { useNavigate } from "react-router-dom";
-import './Orders.css'
+import "./Orders.css";
 
 const customStyles = `
   .custom-select {
@@ -52,18 +66,18 @@ const customStyles = `
 // Scheduled Information Component
 const ScheduledInfo = ({ date, time }) => (
   <div className="info-section">
-    <h6 className="fw-bold mb-3" style={{ color: '#5c4d7d' }}>
+    <h6 className="fw-bold mb-3" style={{ color: "#5c4d7d" }}>
       Scheduled Information
     </h6>
     <div className="info-item">
       <Calendar className="info-icon" />
       <span className="me-2 fw-medium">Date:</span>
-      <span style={{ color: '#495057' }}>{date || "Not scheduled"}</span>
+      <span style={{ color: "#495057" }}>{date || "Not scheduled"}</span>
     </div>
     <div className="info-item">
       <Clock className="info-icon" />
       <span className="me-2 fw-medium">Time:</span>
-      <span style={{ color: '#495057' }}>{time || "Not scheduled"}</span>
+      <span style={{ color: "#495057" }}>{time || "Not scheduled"}</span>
     </div>
   </div>
 );
@@ -71,18 +85,18 @@ const ScheduledInfo = ({ date, time }) => (
 // Product Information Component
 const ProductInfo = ({ type, product, category }) => (
   <div className="info-section">
-    <h6 className="fw-bold mb-3" style={{ color: '#5c4d7d' }}>
+    <h6 className="fw-bold mb-3" style={{ color: "#5c4d7d" }}>
       Product Details
     </h6>
     <div className="info-item">
       <Tag className="info-icon" />
       <span className="me-2 fw-medium">Type:</span>
-      <span style={{ color: '#495057' }}>{type}</span>
+      <span style={{ color: "#495057" }}>{type}</span>
     </div>
     <div className="info-item">
       <BoxSeam className="info-icon" />
       <span className="me-2 fw-medium">Product:</span>
-      <span style={{ color: '#495057' }}>{product}</span>
+      <span style={{ color: "#495057" }}>{product}</span>
     </div>
     <div className="info-item">
       <Tag className="info-icon" />
@@ -98,168 +112,191 @@ function Orders() {
   const navigate = useNavigate();
 
   const initialOrders = [
-  {
-    id: 1001,
-    username: "fashionista_ella",
-    orderDate: "2024-06-05T09:15:00",
-    scheduledDate: "18/06/2024",
-    scheduledTime: "11:30",
-    type: "Reel",
-    product: "Luxury Handbag Unboxing",
-    amount: 8500,
-    status: "Pending"
-  },
-  {
-    id: 1002,
-    username: "techguru_max",
-    orderDate: "2024-06-07T14:20:00",
-    scheduledDate: "20/06/2024",
-    scheduledTime: "16:45",
-    type: "Long Video",
-    product: "Smartphone Review",
-    amount: 12000,
-    status: "Completed"
-  },
-  {
-    id: 1003,
-    username: "beautyqueen_lydia",
-    orderDate: "2024-06-08T16:30:00",
-    scheduledDate: "22/06/2024",
-    scheduledTime: "10:00",
-    type: "Post",
-    product: "Skincare Routine",
-    amount: 6500,
-    status: "Pending"
-  },
-  {
-    id: 1004,
-    username: "travelwithdiego",
-    orderDate: "2024-06-09T11:45:00",
-    scheduledDate: "25/06/2024",
-    scheduledTime: "09:15",
-    type: "Short Video",
-    product: "Hotel Tour",
-    amount: 9500,
-    status: "Pending"
-  },
-  {
-    id: 1005,
-    username: "fitnesstrainer_sam",
-    orderDate: "2024-06-10T08:00:00",
-    scheduledDate: "28/06/2024",
-    scheduledTime: "07:30",
-    type: "Combo Package",
-    product: "Workout Plan Promo",
-    amount: 15000,
-    status: "Completed"
-  },
-  {
-    id: 1006,
-    username: "foodexplorer_anna",
-    orderDate: "2024-06-11T13:10:00",
-    scheduledDate: "30/06/2024",
-    scheduledTime: "12:45",
-    type: "Reel",
-    product: "Restaurant Review",
-    amount: 7200,
-    status: "Pending"
-  },
-  {
-    id: 1007,
-    username: "gaming_wizard",
-    orderDate: "2024-06-12T17:25:00",
-    scheduledDate: "02/07/2024",
-    scheduledTime: "20:00",
-    type: "Long Video",
-    product: "Gameplay Walkthrough",
-    amount: 11000,
-    status: "Pending"
-  },
-  {
-    id: 1008,
-    username: "luxuryhomes_tv",
-    orderDate: "2024-06-13T10:50:00",
-    scheduledDate: "05/07/2024",
-    scheduledTime: "14:15",
-    type: "Short Video",
-    product: "Mansion Tour",
-    amount: 18000,
-    status: "Completed"
-  },
-  {
-    id: 1009,
-    username: "petlover_jess",
-    orderDate: "2024-06-14T15:35:00",
-    scheduledDate: "08/07/2024",
-    scheduledTime: "13:30",
-    type: "Post",
-    product: "Pet Product Demo",
-    amount: 4800,
-    status: "Pending"
-  },
-  {
-    id: 1010,
-    username: "business_mogul",
-    orderDate: "2024-06-15T12:05:00",
-    scheduledDate: "10/07/2024",
-    scheduledTime: "08:45",
-    type: "Combo Package",
-    product: "Entrepreneur Story",
-    amount: 22000,
-    status: "Completed"
-  },
-  {
-    id: 1011,
-    username: "artistry_by_mei",
-    orderDate: "2024-06-16T14:55:00",
-    scheduledDate: "12/07/2024",
-    scheduledTime: "17:30",
-    type: "Reel",
-    product: "Painting Tutorial",
-    amount: 6800,
-    status: "Pending"
-  },
-  {
-    id: 1012,
-    username: "automotive_expert",
-    orderDate: "2024-06-17T09:40:00",
-    scheduledDate: "15/07/2024",
-    scheduledTime: "10:00",
-    type: "Long Video",
-    product: "Car Review",
-    amount: 16500,
-    status: "Pending"
-  }
-];
-  const types = ["Post", "Reel", "Short Video", "Long Video", "Polls", "Combo Package"];
+    {
+      id: 1001,
+      username: "fashionista_ella",
+      orderDate: "2024-06-05T09:15:00",
+      scheduledDate: "18/06/2024",
+      scheduledTime: "11:30",
+      type: "Reel",
+      product: "Luxury Handbag Unboxing",
+      amount: 8500,
+      status: "Pending",
+    },
+    {
+      id: 1002,
+      username: "techguru_max",
+      orderDate: "2024-06-07T14:20:00",
+      scheduledDate: "20/06/2024",
+      scheduledTime: "16:45",
+      type: "Long Video",
+      product: "Smartphone Review",
+      amount: 12000,
+      status: "Completed",
+    },
+    {
+      id: 1003,
+      username: "beautyqueen_lydia",
+      orderDate: "2024-06-08T16:30:00",
+      scheduledDate: "22/06/2024",
+      scheduledTime: "10:00",
+      type: "Post",
+      product: "Skincare Routine",
+      amount: 6500,
+      status: "Pending",
+    },
+    {
+      id: 1004,
+      username: "travelwithdiego",
+      orderDate: "2024-06-09T11:45:00",
+      scheduledDate: "25/06/2024",
+      scheduledTime: "09:15",
+      type: "Short Video",
+      product: "Hotel Tour",
+      amount: 9500,
+      status: "Pending",
+    },
+    {
+      id: 1005,
+      username: "fitnesstrainer_sam",
+      orderDate: "2024-06-10T08:00:00",
+      scheduledDate: "28/06/2024",
+      scheduledTime: "07:30",
+      type: "Combo Package",
+      product: "Workout Plan Promo",
+      amount: 15000,
+      status: "Completed",
+    },
+    {
+      id: 1006,
+      username: "foodexplorer_anna",
+      orderDate: "2024-06-11T13:10:00",
+      scheduledDate: "30/06/2024",
+      scheduledTime: "12:45",
+      type: "Reel",
+      product: "Restaurant Review",
+      amount: 7200,
+      status: "Pending",
+    },
+    {
+      id: 1007,
+      username: "gaming_wizard",
+      orderDate: "2024-06-12T17:25:00",
+      scheduledDate: "02/07/2024",
+      scheduledTime: "20:00",
+      type: "Long Video",
+      product: "Gameplay Walkthrough",
+      amount: 11000,
+      status: "Pending",
+    },
+    {
+      id: 1008,
+      username: "luxuryhomes_tv",
+      orderDate: "2024-06-13T10:50:00",
+      scheduledDate: "05/07/2024",
+      scheduledTime: "14:15",
+      type: "Short Video",
+      product: "Mansion Tour",
+      amount: 18000,
+      status: "Completed",
+    },
+    {
+      id: 1009,
+      username: "petlover_jess",
+      orderDate: "2024-06-14T15:35:00",
+      scheduledDate: "08/07/2024",
+      scheduledTime: "13:30",
+      type: "Post",
+      product: "Pet Product Demo",
+      amount: 4800,
+      status: "Pending",
+    },
+    {
+      id: 1010,
+      username: "business_mogul",
+      orderDate: "2024-06-15T12:05:00",
+      scheduledDate: "10/07/2024",
+      scheduledTime: "08:45",
+      type: "Combo Package",
+      product: "Entrepreneur Story",
+      amount: 22000,
+      status: "Completed",
+    },
+    {
+      id: 1011,
+      username: "artistry_by_mei",
+      orderDate: "2024-06-16T14:55:00",
+      scheduledDate: "12/07/2024",
+      scheduledTime: "17:30",
+      type: "Reel",
+      product: "Painting Tutorial",
+      amount: 6800,
+      status: "Pending",
+    },
+    {
+      id: 1012,
+      username: "automotive_expert",
+      orderDate: "2024-06-17T09:40:00",
+      scheduledDate: "15/07/2024",
+      scheduledTime: "10:00",
+      type: "Long Video",
+      product: "Car Review",
+      amount: 16500,
+      status: "Pending",
+    },
+  ];
+
+  const types = [
+    "Post",
+    "Reel",
+    "Short Video",
+    "Long Video",
+    "Polls",
+    "Combo Package",
+  ];
+
   const [orders, setOrders] = useState(initialOrders);
-  const [filters, setFilters] = useState({ from: "", to: "", status: "", type: "" });
+  const [filters, setFilters] = useState({
+    from: "",
+    to: "",
+    status: "",
+    type: "",
+  });
   const [showFilters, setShowFilters] = useState(false);
   const [tabKey, setTabKey] = useState("All");
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  const parseDate = dt =>
-    dt ? new Date(dt).toLocaleString("default", {
-      month: "short", day: "numeric", year: "numeric",
-      hour: "2-digit", minute: "2-digit"
-    }) : "—";
+  const parseDate = (dt) =>
+    dt
+      ? new Date(dt).toLocaleString("default", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "—";
 
-  const filteredOrders = useMemo(() =>
-    orders.filter(o =>
-      (!filters.from || new Date(o.orderDate) >= new Date(filters.from)) &&
-      (!filters.to || new Date(o.orderDate) <= new Date(filters.to)) &&
-      (!filters.status || o.status === filters.status) &&
-      (!filters.type || o.type === filters.type)
-    ), [filters, orders]);
+  const filteredOrders = useMemo(
+    () =>
+      orders.filter(
+        (o) =>
+          (!filters.from || new Date(o.orderDate) >= new Date(filters.from)) &&
+          (!filters.to || new Date(o.orderDate) <= new Date(filters.to)) &&
+          (!filters.status || o.status === filters.status) &&
+          (!filters.type || o.type === filters.type)
+      ),
+    [filters, orders]
+  );
 
   const getFilteredByStatus = () => {
     if (tabKey === "All") return filteredOrders;
-    return filteredOrders.filter(o => o.status === tabKey);
+    return filteredOrders.filter((o) => o.status === tabKey);
   };
 
-  const onChange = e => {
+  const onChange = (e) => {
     const { id, value } = e.target;
-    setFilters(f => ({ ...f, [id]: value }));
+    setFilters((f) => ({ ...f, [id]: value }));
     if (id === "status" && value) setTabKey(value);
   };
 
@@ -268,13 +305,13 @@ function Orders() {
     setTabKey("Pending");
   };
 
-  const handleReject = id => {
-    setOrders(prev => prev.filter(order => order.id !== id));
+  const handleReject = (id) => {
+    setOrders((prev) => prev.filter((order) => order.id !== id));
   };
 
   const handleCheckout = (order) => {
-    navigate("/checkout", { 
-      state: { 
+    navigate("/checkout", {
+      state: {
         order: {
           orderId: order.id,
           scheduledDate: order.scheduledDate,
@@ -283,9 +320,9 @@ function Orders() {
           product: order.product,
           businessStatus: "Verified",
           subtotal: order.amount,
-          total: order.amount
-        }
-      } 
+          total: order.amount,
+        },
+      },
     });
   };
 
@@ -293,26 +330,43 @@ function Orders() {
     <div className="custom-orders-wrapper">
       <style>{customStyles}</style>
 
-      <Container fluid className="px-md-5 py-5">
-        <Row className="align-items-center mb-4">
-          <Col>
-            <h2 className="fw-bold" style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: "2.8rem",
-              color: "#5c4d7d"
-            }}>
-              Orders
-            </h2>
-          </Col>
-          <Col xs="auto">
-            <Button
+      <Container fluid className="px-md-5 py-5 ">
+        <Row className="align-items-center justify-content-center  mb-5">
+          <Col xs={12} md={8}>
+            <h2
+              className="fw-bold mb-2"
               style={{
-                backgroundColor: "#c1b2d9",
+                fontSize: "1.5rem",
+                letterSpacing: "-0.5px",
+              }}
+            >
+              Orders Dashboard
+            </h2>
+            <p
+              className="text-muted"
+              style={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: "1.05rem",
+                color: "#6c757d",
+              }}
+            >
+              View, filter and manage all your influencer orders
+            </p>
+          </Col>
+
+          <Col xs={12} md={4} className="text-md-end mt-3 mt-md-0">
+            <Button
+              onClick={() => setShowFilters((s) => !s)}
+              style={{
+                background: "linear-gradient(135deg,rgb(87, 52, 226), #7d68c3)",
                 border: "none",
                 color: "#fff",
-                borderRadius: "50px"
+                borderRadius: "50px",
+                padding: "0.6rem 1.5rem",
+                fontWeight: 600,
+                fontSize: "0.95rem",
+                boxShadow: "0 4px 14px rgba(125, 104, 195, 0.25)",
               }}
-              onClick={() => setShowFilters(s => !s)}
             >
               <FunnelFill className="me-2" /> Filters
             </Button>
@@ -325,15 +379,30 @@ function Orders() {
               <Row className="gx-4 gy-3">
                 <Col md={3}>
                   <Form.Label>From</Form.Label>
-                  <Form.Control type="date" id="from" value={filters.from} onChange={onChange} />
+                  <Form.Control
+                    type="date"
+                    id="from"
+                    value={filters.from}
+                    onChange={onChange}
+                  />
                 </Col>
                 <Col md={3}>
                   <Form.Label>To</Form.Label>
-                  <Form.Control type="date" id="to" value={filters.to} onChange={onChange} />
+                  <Form.Control
+                    type="date"
+                    id="to"
+                    value={filters.to}
+                    onChange={onChange}
+                  />
                 </Col>
                 <Col md={3}>
                   <Form.Label>Status</Form.Label>
-                  <Form.Select id="status" value={filters.status} onChange={onChange} className="custom-select">
+                  <Form.Select
+                    id="status"
+                    value={filters.status}
+                    onChange={onChange}
+                    className="custom-select"
+                  >
                     <option value="">All</option>
                     <option value="Pending">Pending</option>
                     <option value="Completed">Completed</option>
@@ -341,16 +410,27 @@ function Orders() {
                 </Col>
                 <Col md={3}>
                   <Form.Label>Order Type</Form.Label>
-                  <Form.Select id="type" value={filters.type} onChange={onChange}>
+                  <Form.Select
+                    id="type"
+                    value={filters.type}
+                    onChange={onChange}
+                  >
                     <option value="">All</option>
-                    {types.map(t => <option key={t}>{t}</option>)}
+                    {types.map((t) => (
+                      <option key={t}>{t}</option>
+                    ))}
                   </Form.Select>
                 </Col>
               </Row>
               <Row className="pt-3">
                 <Col md={3}>
                   <Button
-                    style={{ backgroundColor: "#aaa", border: "none", color: "#fff", borderRadius: "50px" }}
+                    style={{
+                      backgroundColor: "#aaa",
+                      border: "none",
+                      color: "#fff",
+                      borderRadius: "50px",
+                    }}
                     onClick={resetFilters}
                     className="w-100"
                   >
@@ -361,19 +441,24 @@ function Orders() {
             </Form>
           </div>
         </Collapse>
-
         <div className="d-flex justify-content-between gap-3 mb-4">
-          {["All", "Pending", "Completed"].map(key => (
+          {["All", "Pending", "Completed"].map((key) => (
             <Button
               key={key}
               onClick={() => setTabKey(key)}
               className="flex-fill"
               style={{
-                backgroundColor: tabKey === key ? "#5c4d7d" : "#e7e3f1",
-                color: tabKey === key ? "#fff" : "#5c4d7d",
+                backgroundColor: "#fff",
+                color: tabKey === key ? "#000" : "#5c4d7d",
                 border: "none",
-                borderRadius: "30px",
-                fontWeight: "600"
+                borderBottom:
+                  tabKey === key
+                    ? "3px solid #1A237E"
+                    : "3px solid transparent",
+                width: "100%",
+                borderRadius: "10px",
+                fontWeight: "600",
+                paddingBottom: "10px",
               }}
             >
               {key}
@@ -385,13 +470,24 @@ function Orders() {
           <Table responsive className="mb-0">
             <thead className="table-light">
               <tr>
-                {["Username", "Order Date", "Scheduled Date", "Scheduled Time", "Order Type",
-                  "Product/Service", "Amount", "Status", "Actions"].map(h => <th key={h}>{h}</th>)}
+                {[
+                  "Username",
+                  "Order Date",
+                  "Scheduled Date",
+                  "Scheduled Time",
+                  "Order Type",
+                  "Product/Service",
+                  "Amount",
+                  "Status",
+                  "Actions",
+                ].map((h) => (
+                  <th key={h}>{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {getFilteredByStatus().length > 0 ? (
-                getFilteredByStatus().map(o => (
+                getFilteredByStatus().map((o) => (
                   <tr key={o.id}>
                     <td>{o.username}</td>
                     <td>{parseDate(o.orderDate)}</td>
@@ -400,17 +496,37 @@ function Orders() {
                     <td>{o.type}</td>
                     <td>{o.product}</td>
                     <td>₹{o.amount.toLocaleString()}</td>
-                    <td><Badge bg={o.status === "Completed" ? "success" : "warning"}>{o.status}</Badge></td>
+                    <td>
+                      <Badge
+                        bg={o.status === "Completed" ? "success" : "warning"}
+                      >
+                        {o.status}
+                      </Badge>
+                    </td>
                     <td className="d-flex gap-2">
-                      <Button size="sm" style={{ backgroundColor: "#8e7cc3", border: "none" }} onClick={() => setSelectedOrder(o)}>
+                      <Button
+                        size="sm"
+                        style={{ backgroundColor: "#8e7cc3", border: "none" }}
+                        onClick={() => setSelectedOrder(o)}
+                      >
                         <Eye />
                       </Button>
-                      <Button size="sm" style={{ backgroundColor: "#c94c4c", border: "none" }} onClick={() => handleReject(o.id)}>
+                      <Button
+                        size="sm"
+                        style={{ backgroundColor: "#c94c4c", border: "none" }}
+                        onClick={() => handleReject(o.id)}
+                      >
                         <XCircle />
                       </Button>
-                      <Button size="sm" style={{ backgroundColor: "#4bb543", border: "none" }} onClick={() => handleCheckout(o)}>
-                        <CreditCard />
-                      </Button>
+                      {o.status !== "Completed" && (
+                        <Button
+                          size="sm"
+                          style={{ backgroundColor: "#4bb543", border: "none" }}
+                          onClick={() => handleCheckout(o)}
+                        >
+                          <CreditCard />
+                        </Button>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -426,13 +542,22 @@ function Orders() {
         </div>
       </Container>
 
-      <Modal show={!!selectedOrder} onHide={() => setSelectedOrder(null)} centered>
-        <Modal.Header closeButton style={{ backgroundColor: "#f3eefc", borderBottom: "none" }}>
-          <Modal.Title style={{
-            fontFamily: "'Playfair Display', serif",
-            color: "#5c4d7d",
-            fontWeight: "600"
-          }}>
+      <Modal
+        show={!!selectedOrder}
+        onHide={() => setSelectedOrder(null)}
+        centered
+      >
+        <Modal.Header
+          closeButton
+          style={{ backgroundColor: "#f3eefc", borderBottom: "none" }}
+        >
+          <Modal.Title
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              color: "#5c4d7d",
+              fontWeight: "600",
+            }}
+          >
             Order Details
           </Modal.Title>
         </Modal.Header>
@@ -440,47 +565,66 @@ function Orders() {
           {selectedOrder && (
             <div className="px-1 py-2">
               <Row className="mb-3">
-                <Col xs={5}><strong>Order ID</strong></Col>
+                <Col xs={5}>
+                  <strong>Order ID</strong>
+                </Col>
                 <Col>: {selectedOrder.id || "4292424244"}</Col>
               </Row>
               <Row className="mb-3">
-                <Col xs={5}><strong>Status</strong></Col>
+                <Col xs={5}>
+                  <strong>Status</strong>
+                </Col>
                 <Col>
-                  <Badge bg={selectedOrder.status === "Completed" ? "success" : "warning"}>
+                  <Badge
+                    bg={
+                      selectedOrder.status === "Completed"
+                        ? "success"
+                        : "warning"
+                    }
+                  >
                     {selectedOrder.status}
                   </Badge>
                 </Col>
               </Row>
               <Row className="mb-3">
-                <Col xs={5}><strong>Username</strong></Col>
+                <Col xs={5}>
+                  <strong>Username</strong>
+                </Col>
                 <Col>: {selectedOrder.username}</Col>
               </Row>
               <Row className="mb-3">
-                <Col xs={5}><strong>Amount</strong></Col>
+                <Col xs={5}>
+                  <strong>Amount</strong>
+                </Col>
                 <Col>: ₹{selectedOrder.amount.toLocaleString()}</Col>
               </Row>
               <Row className="mb-3">
-                <Col xs={5}><strong>Order Date</strong></Col>
+                <Col xs={5}>
+                  <strong>Order Date</strong>
+                </Col>
                 <Col>: {parseDate(selectedOrder.orderDate)}</Col>
               </Row>
-              
+
               {/* Scheduled Information Component */}
-              <ScheduledInfo 
-                date={selectedOrder.scheduledDate} 
-                time={selectedOrder.scheduledTime} 
+              <ScheduledInfo
+                date={selectedOrder.scheduledDate}
+                time={selectedOrder.scheduledTime}
               />
-              
+
               {/* Product Information Component */}
-              <ProductInfo 
-                type={selectedOrder.type} 
-                product={selectedOrder.product} 
-                category={selectedOrder.category || "General"} 
+              <ProductInfo
+                type={selectedOrder.type}
+                product={selectedOrder.product}
+                category={selectedOrder.category || "General"}
               />
             </div>
           )}
         </Modal.Body>
         <Modal.Footer className="d-flex justify-content-between">
-          <Button variant="danger" onClick={() => handleReject(selectedOrder?.id)}>
+          <Button
+            variant="danger"
+            onClick={() => handleReject(selectedOrder?.id)}
+          >
             Reject
           </Button>
           <Button
