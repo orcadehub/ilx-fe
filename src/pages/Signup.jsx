@@ -5,6 +5,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import GoogleIcon from "@mui/icons-material/Google";
 import FacebookIcon from "@mui/icons-material/Facebook";
+import config from "../config";
 
 const COLORS = {
   primary: "#000",
@@ -40,6 +41,11 @@ const Signup = () => {
   });
   const navigate = useNavigate();
 
+  const baseURL =
+    import.meta.env.MODE === "development"
+      ? config.LOCAL_BASE_URL
+      : config.BASE_URL;
+
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -49,7 +55,7 @@ const Signup = () => {
     if (password !== confirmPassword) return toast.info("Passwords do not match.");
 
     try {
-      await axios.post("http://localhost:4000/api/signup", {
+      await axios.post(`${baseURL}/api/signup`, {
         fullname: username,
         email,
         phone,

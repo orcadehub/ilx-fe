@@ -5,7 +5,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import GoogleIcon from '@mui/icons-material/Google';
 import FacebookIcon from '@mui/icons-material/Facebook';
-
+import config from '../config';
 const Login = () => {
   const [step, setStep] = useState(1);
   const [userType, setUserType] = useState('');
@@ -14,12 +14,17 @@ const Login = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
 
+  const baseURL =
+    import.meta.env.MODE === "development"
+      ? config.LOCAL_BASE_URL
+      : config.BASE_URL;
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMsg('');
 
     try {
-      const res = await axios.post('http://localhost:4000/api/login', {
+      const res = await axios.post(`${baseURL}/api/login`, {
         "email":userInput,
         password,
         "role":userType
