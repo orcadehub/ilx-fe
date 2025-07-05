@@ -24,14 +24,24 @@ import {
   FaImage,
   FaVideo,
   FaFilm,
+  FaRupeeSign
 } from "react-icons/fa";
 
+const user = JSON.parse(localStorage.getItem("user"));
+const isInfluencer = user?.role === "influencer";
+debugger
 const metrics = [
-  {
+  !isInfluencer && {
     title: "Campaign Impact Score",
     value: "10/100",
     icon: <FaBullseye className="text-danger fs-3" />,
     path: "/impact-score",
+  },
+  isInfluencer && {
+    title: "Earnings",
+    value: "₹0",
+    icon: <FaRupeeSign className="text-success fs-3" />,
+    path: "/earnings",
   },
   {
     title: "Total Orders",
@@ -70,12 +80,13 @@ const metrics = [
     path: "/videos",
   },
   {
-    title: "Shorts",
+    title: "Stories",
     value: "0",
     icon: <FaVideo className="text-danger fs-3" />,
     path: "/shorts",
   },
-];
+].filter(Boolean); // removes false entries
+
 
 const top = [
   {
@@ -142,6 +153,8 @@ const top = [
 function DashboardContent() {
   const navigate = useNavigate();
 
+  const user = JSON.parse(localStorage.getItem("user"));
+
   // Animation variant for fade-up
   const fadeUp = {
     hidden: { opacity: 0, y: 30 },
@@ -164,8 +177,11 @@ function DashboardContent() {
             {/* Left Side: Heading and Subheading */}
             <div>
               <h4 className="fw-bold mb-1" style={{ color: "#1A237E" }}>
-                Business Dashboard
+                {user?.role === "business"
+                  ? "Business Dashboard"
+                  : "Influencer Dashboard"}
               </h4>
+
               <p className="text-muted mb-0" style={{ fontSize: "0.9rem" }}>
                 Monitor performance, orders, influencers, and more.
               </p>

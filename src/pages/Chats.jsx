@@ -11,7 +11,13 @@ import {
   Dropdown,
 } from "react-bootstrap";
 import io from "socket.io-client";
-const socket = io("http://localhost:4000");
+import config from "../config";
+const baseURL =
+  import.meta.env.MODE === "development"
+    ? config.LOCAL_BASE_URL
+    : config.BASE_URL;
+
+const socket = io(baseURL);
 
 function Chats() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -70,7 +76,7 @@ function Chats() {
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const response = await fetch("http://localhost:4000/api/chats", {
+        const response = await fetch(`${baseURL}/api/chats`, {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("token"),
           },
@@ -108,7 +114,7 @@ function Chats() {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/api/chat/${contact.id}`,
+        `${baseURL}/api/chat/${contact.id}`,
         {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("token"),
@@ -142,8 +148,6 @@ function Chats() {
       text: message,
     };
 
-    // Add message optimistically to UI
-    // setMessages((prev) => [...prev, newMessage]);
     setMessage("");
 
     socket.emit("send_message", {
