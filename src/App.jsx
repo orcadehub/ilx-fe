@@ -18,6 +18,8 @@ import Features from "./pages/Features";
 import Price from "./pages/Price";
 import DashboardPage from "./pages/Dashboard";
 import Checkout from "./pages/Checkout";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 
 const AppContent = () => {
   const location = useLocation();
@@ -35,6 +37,8 @@ const AppContent = () => {
         <Route exact path="/pricing" element={<Price />} />
         <Route exact path="/features" element={<Features />} />
         <Route exact path="/checkout" element={<Checkout />} />
+        <Route exact path="/privacy-policy" element={<Privacy />} />
+         <Route exact path="/terms-of-service" element={<Terms />} />
         <Route path="/dashboard/*" element={<DashboardPage />} />
       </Routes>
       {!isDashboard && !isCheck && <Footer />}

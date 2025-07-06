@@ -31,10 +31,10 @@ const SocialTab = () => {
 
   const handleConnectClick = (platform) => {
     const oauthUrlMap = {
-      instagram: 'http://localhost:4000/api/autth/instagram',
-      youtube: 'http://localhost:5000/auth/youtube',
-      facebook: 'http://localhost:5000/auth/facebook',
-      twitter: 'http://localhost:5000/auth/twitter'
+      instagram: 'http://localhost:4000/api/auth/instagram',
+      youtube: 'http://localhost:4000/auth/youtube',
+      facebook: 'http://localhost:4000/api/auth/facebook',
+      twitter: 'http://localhost:4000/auth/twitter'
     };
 
     const redirectUrl = oauthUrlMap[platform];
