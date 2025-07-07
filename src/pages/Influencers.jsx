@@ -28,14 +28,26 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import influencersData from "../components/influencersData";
 import { Card, Row, Col } from "react-bootstrap";
-import services from "../components/services";
 import "./Influencers.css";
 import { useNavigate } from "react-router-dom";
+import getInfluencersData from "../components/InfluencersData";
 
 function Influencers() {
-  const [selected, setSelected] = useState(influencersData[0]);
+  const [data, setData] = useState([]);
+  const [selected, setSelected] = useState(null);
+
+  useEffect(() => {
+    const loadInfluencers = async () => {
+      const InfluencersData = await getInfluencersData();
+      setData(InfluencersData);
+      console.log(InfluencersData);
+      setSelected(InfluencersData[0]); // Set selected after data is available
+    };
+
+    loadInfluencers();
+  }, []);
+
   const [showFilters, setShowFilters] = useState(false);
   const [activeTab, setActiveTab] = useState("services");
   const [engagementRate, setEngagementRate] = useState(0);
@@ -43,7 +55,6 @@ function Influencers() {
   const [platformDropdownOpen, setPlatformDropdownOpen] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(true);
   const navigate = useNavigate();
-  // const [selectedService, setSelectedService] = useState("Platform Based");
   const [selectedPlatforms, setSelectedPlatforms] = useState([]);
   const [selectedCombos, setSelectedCombos] = useState([]);
   const [country, setCountry] = useState(null);
@@ -53,20 +64,14 @@ function Influencers() {
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
-  // const [countryCode, setCountryCode] = useState('');
-  // const [stateCode, setStateCode] = useState('');
-  // const [selectedCity, setSelectedCity] = useState('');
   const [niche, setNiche] = useState("");
   const [contentType, setContentType] = useState("");
-  // const [engagementRate, setEngagementRate] = useState(0);
-  // const [followers, setFollowers] = useState(0);
   const [platform, setPlatform] = useState("");
   const [priceRange, setPriceRange] = useState({ min: 0, max: 5000 });
   const [hashtags, setHashtags] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
   const [audienceCountry, setAudienceCountry] = useState("");
-  // const [selectedLang, setSelectedLang] = useState('');
 
   // Store all selected filters
   const getSelectedFilters = () => ({
@@ -289,7 +294,7 @@ function Influencers() {
         />
 
         <div className="overflow-auto" style={{ height: "calc(90vh - 120px)" }}>
-          {influencersData.map((inf, index) => (
+          {data.map((inf, index) => (
             <div
               key={inf.id}
               className="d-flex align-items-start p-2"
@@ -454,34 +459,37 @@ function Influencers() {
             {/* Services */}
             {activeTab === "services" && (
               <Row className="g-4">
-                {services.map((service) => (
-                  <Col xs={12} sm={6} md={4} key={service.id}>
-                    <Card className="h-100 shadow-sm border-0">
-                      <Card.Img
-                        variant="top"
-                        src={service.image}
-                        height="140"
-                        className="rounded-top"
-                      />
-                      <Card.Body className="p-3">
-                        <div className="d-flex justify-content-around small text-muted">
-                          <div>
-                            <FaHeart className="text-danger" /> {service.likes}
+                {data
+                  .flatMap((influencer) => influencer.posts || [])
+                  .map((post, index) => (
+                    <Col xs={12} sm={6} md={4} key={index}>
+                      <Card className="h-100 shadow-sm border-0">
+                        <Card.Img
+                          variant="top"
+                          src={post.image}
+                          height="140"
+                          className="rounded-top"
+                        />
+                        <Card.Body className="p-3">
+                          <div className="d-flex justify-content-around small text-muted">
+                            <div>
+                              <FaHeart className="text-danger" />{" "}
+                              {post.likes || 0}
+                            </div>
+                            <div>
+                              <FaEye /> {post.views || 0}
+                            </div>
+                            <div>
+                              <FaComment /> {post.comments || 0}
+                            </div>
+                            <div>
+                              <FaShare /> {post.shares || 0}
+                            </div>
                           </div>
-                          <div>
-                            <FaEye /> {service.views}
-                          </div>
-                          <div>
-                            <FaComment /> {service.comments}
-                          </div>
-                          <div>
-                            <FaShare /> {service.shares}
-                          </div>
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                ))}
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  ))}
               </Row>
             )}
 
