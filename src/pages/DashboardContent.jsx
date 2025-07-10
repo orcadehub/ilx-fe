@@ -18,75 +18,139 @@ import PendingOrders from "../components/PendingOrders";
 import TopBusinessUsers from "../components/TopBusinessUsers";
 import {
   FaBullseye,
+  FaRupeeSign,
   FaShoppingCart,
   FaChartPie,
   FaUserFriends,
   FaImage,
   FaVideo,
   FaFilm,
-  FaRupeeSign
+  FaUserTie,
+  FaUsers,
+  FaHeadset,
+  FaHandshake,
+  FaMoneyCheckAlt,
+  FaHourglassHalf,
+  FaTasks,
 } from "react-icons/fa";
+import AdminBusinUsers from "../components/AdminBusinUsers";
 
 const user = JSON.parse(localStorage.getItem("user"));
-const isInfluencer = user?.role === "influencer";
-debugger
-const metrics = [
-  !isInfluencer && {
-    title: "Campaign Impact Score",
-    value: "10/100",
-    icon: <FaBullseye className="text-danger fs-3" />,
-    path: "/impact-score",
-  },
-  isInfluencer && {
-    title: "Earnings",
-    value: "₹0",
-    icon: <FaRupeeSign className="text-success fs-3" />,
-    path: "/earnings",
-  },
-  {
-    title: "Total Orders",
-    value: "0",
-    icon: <FaShoppingCart className="text-primary fs-3" />,
-    path: "/orders",
-  },
-  {
-    title: "Active/Total Campaigns",
-    value: "0/0",
-    icon: <FaChartPie className="text-success fs-3" />,
-    path: "/campaigns",
-  },
-  {
-    title: "Connected Influencers",
-    value: "0",
-    icon: <FaUserFriends className="text-info fs-3" />,
-    path: "/influencers",
-  },
-  {
-    title: "Total Posts",
-    value: "0",
-    icon: <FaImage className="text-warning fs-3" />,
-    path: "/posts",
-  },
-  {
-    title: "Reels",
-    value: "0",
-    icon: <FaVideo className="text-secondary fs-3" />,
-    path: "/reels",
-  },
-  {
-    title: "Videos",
-    value: "0",
-    icon: <FaFilm className="text-primary fs-3" />,
-    path: "/videos",
-  },
-  {
-    title: "Stories",
-    value: "0",
-    icon: <FaVideo className="text-danger fs-3" />,
-    path: "/shorts",
-  },
-].filter(Boolean); // removes false entries
+const role = user?.role || "business"; // default to business
 
+const metrics = (() => {
+  if (role === "admin") {
+    return [
+      {
+        title: "Total Influencers",
+        value: "1,245",
+        icon: <FaUserFriends className="text-info fs-3" />,
+        path: "/influencers",
+      },
+      {
+        title: "Business Users",
+        value: "873",
+        icon: <FaUserTie className="text-primary fs-3" />,
+        path: "/business-users",
+      },
+      {
+        title: "Team Members",
+        value: "14",
+        icon: <FaUsers className="text-warning fs-3" />,
+        path: "/team",
+      },
+      {
+        title: "Active Support Tickets",
+        value: "32",
+        icon: <FaHeadset className="text-danger fs-3" />,
+        path: "/support",
+      },
+      {
+        title: "Total Campaigns",
+        value: "326",
+        icon: <FaHandshake className="text-success fs-3" />,
+        path: "/campaigns",
+      },
+      {
+        title: "Total Transactions",
+        value: "2,143",
+        icon: <FaMoneyCheckAlt className="text-secondary fs-3" />,
+        path: "/transactions",
+      },
+      {
+        title: "Pending Withdrawals",
+        value: "12",
+        icon: <FaHourglassHalf className="text-danger fs-3" />,
+        path: "/withdrawals",
+      },
+      {
+        title: "Service Orders",
+        value: "487",
+        icon: <FaTasks className="text-primary fs-3" />,
+        path: "/service-orders",
+      },
+    ];
+  }
+
+  const isInfluencer = role === "influencer";
+
+  return [
+    !isInfluencer && {
+      title: "Campaign Impact Score",
+      value: "10/100",
+      icon: <FaBullseye className="text-danger fs-3" />,
+      path: "/impact-score",
+    },
+    isInfluencer && {
+      title: "Earnings",
+      value: "₹0",
+      icon: <FaRupeeSign className="text-success fs-3" />,
+      path: "/earnings",
+    },
+    {
+      title: "Total Orders",
+      value: "0",
+      icon: <FaShoppingCart className="text-primary fs-3" />,
+      path: "/orders",
+    },
+    {
+      title: "Active/Total Campaigns",
+      value: "0/0",
+      icon: <FaChartPie className="text-success fs-3" />,
+      path: "/campaigns",
+    },
+    {
+      title: "Connected Influencers",
+      value: "0",
+      icon: <FaUserFriends className="text-info fs-3" />,
+      path: "/influencers",
+    },
+    {
+      title: "Total Posts",
+      value: "0",
+      icon: <FaImage className="text-warning fs-3" />,
+      path: "/posts",
+    },
+    {
+      title: "Reels",
+      value: "0",
+      icon: <FaVideo className="text-secondary fs-3" />,
+      path: "/reels",
+    },
+    {
+      title: "Videos",
+      value: "0",
+      icon: <FaFilm className="text-primary fs-3" />,
+      path: "/videos",
+    },
+    {
+      title: "Stories",
+      value: "0",
+      icon: <FaVideo className="text-danger fs-3" />,
+      path: "/shorts",
+    },
+  ].filter(Boolean); // filter out any `false` entries
+})();
 
 const top = [
   {
@@ -177,9 +241,11 @@ function DashboardContent() {
             {/* Left Side: Heading and Subheading */}
             <div>
               <h4 className="fw-bold mb-1" style={{ color: "#1A237E" }}>
-                {user?.role === "business"
-                  ? "Business Dashboard"
-                  : "Influencer Dashboard"}
+                {user?.role === "admin"
+                  ? "Admin Dashboard"
+                  : user?.role === "influencer"
+                  ? "Influencer Dashboard"
+                  : "Business Dashboard"}
               </h4>
 
               <p className="text-muted mb-0" style={{ fontSize: "0.9rem" }}>
@@ -188,9 +254,10 @@ function DashboardContent() {
             </div>
 
             {/* Right Side: Button */}
-            <div>
+            <div className="text-center my-2">
               <button
-                className="btn btn-primary rounded-pill px-4 shadow-sm"
+                className="btn btn-primary btn-sm rounded-pill px-3 py-2 shadow-sm w-100 d-sm-inline d-md-inline d-lg-inline"
+                style={{ maxWidth: "200px" }}
                 onClick={() => navigate("/dashboard/influencers")}
               >
                 Find Influencers
@@ -254,7 +321,7 @@ function DashboardContent() {
         </Row>
 
         {/* Top Content Section */}
-        <Row className="g-4 px-3 mb-5">
+      {role!=="admin" && (  <Row className="g-4 px-3 mb-5">
           <Col md={6}>
             <motion.div
               initial="hidden"
@@ -398,16 +465,20 @@ function DashboardContent() {
               </Card>
             </motion.div>
           </Col>
-        </Row>
+        </Row>)}
 
-        <Row className="g-4 px-3">
+       {role!=="admin" &&( <Row className="g-4 px-3">
           <Col md={8}>
             <PendingOrders />
           </Col>
           <Col md={4}>
             <TopBusinessUsers />
           </Col>
-        </Row>
+        </Row>)}
+
+        {role==="admin" && (<div>
+          <AdminBusinUsers/>
+        </div>)}
       </Container>
     </div>
   );

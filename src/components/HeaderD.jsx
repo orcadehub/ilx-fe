@@ -29,7 +29,10 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 
-const HeaderD = ({handleDrawerToggle}) => {
+const user = JSON.parse(localStorage.getItem("user"));
+const role = user?.role || "business"; // default to business
+
+const HeaderD = ({ handleDrawerToggle }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const [user, setUser] = useState({
@@ -56,11 +59,11 @@ const HeaderD = ({handleDrawerToggle}) => {
     navigate("/login");
   };
 
-  useEffect(()=>{
-    const data=JSON.parse(localStorage.getItem('user'))
-    setUser(data)
-  },[])
-  
+  useEffect(() => {
+    const data = JSON.parse(localStorage.getItem("user"));
+    setUser(data);
+  }, []);
+
   return (
     <AppBar
       sx={{
@@ -88,35 +91,37 @@ const HeaderD = ({handleDrawerToggle}) => {
         {/* Right Section */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           {/* Offers */}
-          <Box
-            sx={{
-              px: 2,
-              py: 0.8,
-              bgcolor: "#fff8e1",
-              borderRadius: 3,
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              cursor: "pointer",
-              border: "1px solid #ffe0b2",
-              "&:hover": { boxShadow: "0 0 5px #ffd54f" },
-            }}
-            onClick={() => navigate("/dashboard/offers")}
-          >
-            <CardGiftcard sx={{ color: "#ff9800" }} />
-            {!isMobile && (
-              <Typography variant="body2" fontWeight={500}>
-                3 Offers
-              </Typography>
-            )}
-          </Box>
+          {role !== "admin" && (
+            <Box
+              sx={{
+                px: 2,
+                py: 0.8,
+                bgcolor: "#fff8e1",
+                borderRadius: 3,
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                cursor: "pointer",
+                border: "1px solid #ffe0b2",
+                "&:hover": { boxShadow: "0 0 5px #ffd54f" },
+              }}
+              onClick={() => navigate("/dashboard/offers")}
+            >
+              <CardGiftcard sx={{ color: "#ff9800" }} />
+              {!isMobile && (
+                <Typography variant="body2" fontWeight={500}>
+                  3 Offers
+                </Typography>
+              )}
+            </Box>
+          )}
 
           {/* Wallet */}
-          <Tooltip title="Wallet">
+         {role !== "admin" &&( <Tooltip title="Wallet">
             <IconButton onClick={() => navigate("/dashboard/wallet")}>
               <AccountBalanceWallet />
             </IconButton>
-          </Tooltip>
+          </Tooltip>)}
 
           {/* Notifications */}
           <Tooltip title="Notifications">

@@ -41,7 +41,7 @@ function Influencers() {
     const loadInfluencers = async () => {
       const InfluencersData = await getInfluencersData();
       setData(InfluencersData);
-      console.log(InfluencersData);
+      // console.log(InfluencersData);
       setSelected(InfluencersData[0]); // Set selected after data is available
     };
 
@@ -401,7 +401,7 @@ function Influencers() {
                     <FaComment
                       className="text-primary cursor-pointer"
                       title="Chat"
-                      onClick={() => navigate("/dashboard/chats")}
+                      onClick={() => navigate(`/dashboard/chats/${selected.id}`)}
                     />
                     <FaShareAlt
                       className="text-secondary cursor-pointer"

@@ -11,7 +11,9 @@ import {
   Dropdown,
 } from "react-bootstrap";
 import io from "socket.io-client";
+import { useParams } from "react-router-dom";
 import config from "../config";
+
 const baseURL =
   import.meta.env.MODE === "development"
     ? config.LOCAL_BASE_URL
@@ -19,7 +21,29 @@ const baseURL =
 
 const socket = io(baseURL);
 
+const formatDateLabel = (dateStr) => {
+  const today = new Date();
+  const date = new Date(dateStr);
+  const diffTime = today - date;
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7)
+    return date.toLocaleDateString("en-IN", {
+      weekday: "long",
+    });
+
+  return date.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
+
 function Chats() {
+  const { id: selectedId } = useParams();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [active, setActive] = useState(null);
   const [message, setMessage] = useState("");
@@ -54,7 +78,6 @@ function Chats() {
     socket.on("new_message", (msg) => {
       console.log("📩 Received new message:", msg);
 
-      // Only push message if it’s for the currently active chat
       if (active && (msg.from === active.id || msg.to === active.id)) {
         setMessages((prev) => [
           ...prev,
@@ -106,21 +129,66 @@ function Chats() {
     fetchChats();
   }, []);
 
-  // Fetch messages between logged-in user and selected contact
+  // Auto-open chat from route param
+  useEffect(() => {
+    const trySelectOrFetchUser = async () => {
+      if (!selectedId) return;
+
+      const existingContact = contacts.find(
+        (c) => c.id.toString() === selectedId
+      );
+
+      if (existingContact) {
+        handleContactSelect(existingContact);
+      } else {
+        try {
+          const res = await fetch(`${baseURL}/api/users/${selectedId}`, {
+            headers: {
+              Authorization: "Bearer " + localStorage.getItem("token"),
+            },
+          });
+
+          const data = await res.json();
+
+          if (res.ok) {
+            const newContact = {
+              id: data.id,
+              name: data.name,
+              avatar: `https://picsum.photos/seed/${data.id}/100`,
+              preview: "",
+              timestamp: new Date(),
+            };
+
+            setContacts((prev) => {
+              const alreadyExists = prev.some((c) => c.id === newContact.id);
+              return alreadyExists ? prev : [...prev, newContact];
+            });
+
+            handleContactSelect(newContact);
+          } else {
+            console.error("User not found:", data.message);
+          }
+        } catch (err) {
+          console.error("Error fetching new user:", err);
+        }
+      }
+    };
+
+    trySelectOrFetchUser();
+  }, [contacts, selectedId]);
+
+  // Fetch messages for selected contact
   const handleContactSelect = async (contact) => {
     setActive(contact);
-    setMessages([]); // clear previous
+    setMessages([]);
     if (isMobile) setShowChat(true);
 
     try {
-      const response = await fetch(
-        `${baseURL}/api/chat/${contact.id}`,
-        {
-          headers: {
-            Authorization: "Bearer " + localStorage.getItem("token"),
-          },
-        }
-      );
+      const response = await fetch(`${baseURL}/api/chat/${contact.id}`, {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
 
       const data = await response.json();
 
@@ -129,7 +197,9 @@ function Chats() {
           id: msg.id,
           fromMe: msg.sender_id !== contact.id,
           text: msg.content,
+          timestamp: new Date(msg.timestamp), // ✅ include timestamp
         }));
+
         setMessages(mappedMessages);
       } else {
         console.error("Failed to fetch messages:", data.message);
@@ -142,12 +212,16 @@ function Chats() {
   const sendMessage = async () => {
     if (!message.trim() || !active) return;
 
+    const now = new Date();
+
     const newMessage = {
       id: Date.now(),
       fromMe: true,
       text: message,
+      timestamp: now.toISOString(), // ✅ Ensure timestamp exists
     };
 
+    // setMessages((prev) => [...prev, newMessage]);
     setMessage("");
 
     socket.emit("send_message", {
@@ -253,7 +327,6 @@ function Chats() {
                     />
                     <div>
                       <div className="fw-semibold text-dark">{active.name}</div>
-                      {/* <div className="small text-muted">Online</div> */}
                     </div>
                   </>
                 )}
@@ -283,26 +356,81 @@ function Chats() {
               style={{
                 backgroundColor: "#F8FAFC",
                 overflowY: "auto",
-                height: "calc(100vh - 250px)", // adjust based on your layout
+                height: "calc(100vh - 250px)",
               }}
             >
-              {messages.map((m) => (
-                <div
-                  key={m.id}
-                  className={`d-flex mb-3 ${
-                    m.fromMe ? "justify-content-end" : "justify-content-start"
-                  }`}
-                >
-                  <div
-                    className={`p-3 rounded-4 shadow-sm ${
-                      m.fromMe ? "bg-primary text-white" : "bg-white border"
-                    }`}
-                    style={{ maxWidth: "70%" }}
-                  >
-                    {m.text}
+              {(() => {
+                const grouped = {};
+                messages.forEach((msg) => {
+                  const rawTimestamp = msg.timestamp
+                    ? new Date(msg.timestamp)
+                    : new Date();
+                  const dateKey = rawTimestamp.toDateString();
+                  if (!grouped[dateKey]) grouped[dateKey] = [];
+                  grouped[dateKey].push({ ...msg, timestamp: rawTimestamp });
+                });
+
+                return Object.entries(grouped).map(([dateKey, msgs]) => (
+                  <div key={dateKey}>
+                    <div className="text-center my-3">
+                      <span
+                        style={{
+                          background: "#e5e7eb",
+                          padding: "6px 16px",
+                          borderRadius: "20px",
+                          fontSize: "0.9rem",
+                          fontWeight: "500",
+                          color: "#374151",
+                        }}
+                      >
+                        {formatDateLabel(dateKey)}
+                      </span>
+                    </div>
+                    {msgs.map((m) => (
+                      <div
+                        key={m.id}
+                        className={`d-flex ${
+                          m.fromMe
+                            ? "justify-content-end"
+                            : "justify-content-start"
+                        }`}
+                        style={{ marginBottom: "6px" }}
+                      >
+                        <div
+                          className={`rounded-4 shadow-sm d-inline-block ${
+                            m.fromMe
+                              ? "bg-primary text-white"
+                              : "bg-white border"
+                          }`}
+                          style={{ maxWidth: "70%", padding: "8px 12px" }}
+                        >
+                          <div>{m.text}</div>
+                          <div
+                            style={{
+                              fontSize: "0.7rem",
+                              color: m.fromMe ? "#e5e7eb" : "#6b7280",
+                              textAlign: "right",
+                              marginTop: "2px",
+                            }}
+                          >
+                            {m.timestamp &&
+                              new Date(m.timestamp).toLocaleTimeString(
+                                "en-IN",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                  timeZone: "Asia/Kolkata",
+                                }
+                              )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              ))}
+                ));
+              })()}
+
               <div ref={messagesEndRef}></div>
             </div>
 

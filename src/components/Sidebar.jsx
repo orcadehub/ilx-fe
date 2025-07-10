@@ -12,7 +12,6 @@ import {
   useMediaQuery,
   Box,
   Divider,
-  Switch,
 } from '@mui/material';
 import {
   Dashboard,
@@ -24,29 +23,54 @@ import {
   ShoppingBag,
   Menu as MenuIcon,
   ChevronLeft,
-  Brightness4,
-  Brightness7,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 
 const fullDrawerWidth = 240;
 const collapsedDrawerWidth = 80;
 
-const menuItems = [
-  { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
-  { text: 'Influencers', icon: <People />, path: '/dashboard/influencers' },
-  { text: 'Chats', icon: <Chat />, path: '/dashboard/chats' },
-  { text: 'Reach', icon: <BarChart />, path: '/dashboard/reach' },
-  { text: 'Services', icon: <Settings />, path: '/dashboard/services' },
-  { text: 'Reports', icon: <InsertChartOutlined />, path: '/dashboard/reports' },
-  { text: 'Orders', icon: <ShoppingBag />, path: '/dashboard/orders' },
-];
-
 const Sidebar = ({ mobileOpen, handleDrawerToggle, darkMode, setDarkMode }) => {
   const theme = useTheme();
   const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [open, setOpen] = useState(true);
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  const role = user?.role || "business";
+
+  let menuItems = [];
+
+  if (role === "business") {
+    menuItems = [
+      { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
+      { text: 'Influencers', icon: <People />, path: '/dashboard/influencers' },
+      { text: 'Chats', icon: <Chat />, path: '/dashboard/chats' },
+      { text: 'Reach', icon: <BarChart />, path: '/dashboard/reach' },
+      { text: 'Services', icon: <Settings />, path: '/dashboard/services' },
+      { text: 'Reports', icon: <InsertChartOutlined />, path: '/dashboard/reports' },
+      { text: 'Orders', icon: <ShoppingBag />, path: '/dashboard/orders' },
+    ];
+  } else if (role === "influencer") {
+    menuItems = [
+      { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
+      { text: 'Campaigns', icon: <InsertChartOutlined />, path: '/dashboard/campaigns' },
+      { text: 'Earnings', icon: <ShoppingBag />, path: '/dashboard/earnings' },
+    ];
+  } else if (role === "admin") {
+    menuItems = [
+      { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
+      { text: 'Business Users', icon: <People />, path: '/dashboard/business-users' },
+      { text: 'Influencers', icon: <People />, path: '/dashboard/influencers' },
+      { text: 'Analytics', icon: <BarChart />, path: '/dashboard/analytics' },
+      { text: 'Team Management', icon: <Settings />, path: '/dashboard/team' },
+      { text: 'Reports', icon: <InsertChartOutlined />, path: '/dashboard/reports' },
+      { text: 'Support', icon: <Chat />, path: '/dashboard/support' },
+      { text: 'Marketing', icon: <BarChart />, path: '/dashboard/marketing' },
+      { text: 'Service Orders', icon: <ShoppingBag />, path: '/dashboard/service-orders' },
+      { text: 'Wallet Settings', icon: <Settings />, path: '/dashboard/wallet-settings' },
+      { text: 'Site Settings', icon: <Settings />, path: '/dashboard/site-settings' },
+    ];
+  }
 
   const handleSidebarToggle = () => setOpen(!open);
 
@@ -56,7 +80,6 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, darkMode, setDarkMode }) => {
         background: darkMode ? '#121212' : '#ffffff',
         height: '100%',
         color: darkMode ? '#fff' : '#000',
-      
         borderRight: '1px solid #ccc',
       }}
     >
@@ -69,7 +92,6 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, darkMode, setDarkMode }) => {
         }}
       >
         <Box display="flex" alignItems="center" gap={1}>
-          {/* <img src="/logo192.png" alt="logo" style={{ width: 30, height: 30 }} /> */}
           {open && <Typography variant="h6" className='fs-4'>InfluexKonnect</Typography>}
         </Box>
         <IconButton onClick={handleSidebarToggle}>
@@ -116,13 +138,6 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, darkMode, setDarkMode }) => {
           );
         })}
       </List>
-
-      {/* <Box mt="auto" mb={2} px={2} display="flex" alignItems="center" justifyContent="space-between">
-        {open && <Typography variant="body2">Theme</Typography>}
-        <IconButton onClick={() => setDarkMode(!darkMode)}>
-          {darkMode ? <Brightness7 /> : <Brightness4 />}
-        </IconButton>
-      </Box> */}
     </Box>
   );
 

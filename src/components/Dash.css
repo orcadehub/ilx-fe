@@ -5,7 +5,7 @@
 
 @media (max-width: 768px) {
   .pending-orders-card {
-    width: 80vw;
+    width: 90vw;
     font-size: 13px;
     margin: 0 auto; /* optional: center the card horizontally */
   }

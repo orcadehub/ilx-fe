@@ -22,6 +22,7 @@ const Content = () => {
       <Route path="/" element={<DashboardContent />} />
       <Route path="influencers" element={<Influencers />} />
       <Route path="chats" element={<Chats />} />
+      <Route path="chats/:id" element={<Chats />} />
       <Route path="reach" element={<Reach />} />
       <Route path="services" element={<Services />} />
       <Route path="reports" element={<Reports />} />
