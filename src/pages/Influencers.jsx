@@ -401,7 +401,9 @@ function Influencers() {
                     <FaComment
                       className="text-primary cursor-pointer"
                       title="Chat"
-                      onClick={() => navigate(`/dashboard/chats/${selected.id}`)}
+                      onClick={() =>
+                        navigate(`/dashboard/chats/${selected.id}`)
+                      }
                     />
                     <FaShareAlt
                       className="text-secondary cursor-pointer"
@@ -616,18 +618,30 @@ function Influencers() {
             {/* Data */}
             {activeTab === "data" && (
               <Row className="g-4">
-                {Object.entries(selected.data).map(([label, value]) => (
-                  <Col xs={6} md={3} key={label}>
-                    <div className="bg-light border rounded-4 p-3 text-center shadow-sm">
-                      <div className="fs-5 fw-bold">{value}</div>
-                      <div className="small text-muted">
-                        {label
-                          .replace(/([A-Z])/g, " $1")
-                          .replace(/^./, (str) => str.toUpperCase())}
-                      </div>
+                {Object.entries(selected.data || {}).length === 0 ? (
+                  <Col>
+                    <div className="text-muted text-center">
+                      No data available.
                     </div>
                   </Col>
-                ))}
+                ) : (
+                  Object.entries(selected.data).map(([label, value]) => (
+                    <Col xs={6} md={3} key={label}>
+                      <div className="bg-light border rounded-4 p-3 text-center shadow-sm">
+                        <div className="fs-5 fw-bold">
+                          {typeof value === "object"
+                            ? value?.name || value?.id || JSON.stringify(value)
+                            : value}
+                        </div>
+                        <div className="small text-muted">
+                          {label
+                            .replace(/([A-Z])/g, " $1")
+                            .replace(/^./, (str) => str.toUpperCase())}
+                        </div>
+                      </div>
+                    </Col>
+                  ))
+                )}
 
                 {/* Area Chart */}
                 <Col md={6}>
@@ -1036,6 +1050,7 @@ function Influencers() {
           </div>
         </Offcanvas.Body>
       </Offcanvas>
+      
     </div>
   );
 }
