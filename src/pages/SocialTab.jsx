@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { Instagram, Facebook, Youtube, Twitter } from "react-bootstrap-icons";
 import Spinner from "react-bootstrap/Spinner"; // Optional: if you're using Bootstrap
-
+import config from '../config'
 const icons = {
   instagram: <Instagram className="text-danger me-2" size={22} />,
   facebook: <Facebook className="text-primary me-2" size={22} />,
   youtube: <Youtube className="text-danger me-2" size={22} />,
   twitter: <Twitter className="text-info me-2" size={22} />,
 };
+
+const baseURL =
+    import.meta.env.MODE === "development"
+      ? config.LOCAL_BASE_URL
+      : config.BASE_URL;
 
 const SocialTab = () => {
   const [userType, setUserType] = useState("");
@@ -28,7 +33,7 @@ const SocialTab = () => {
 
     const fetchStatus = async () => {
       try {
-        const res = await fetch(`http://localhost:4000/api/status/${user?.id}`);
+        const res = await fetch(`${baseURL}/api/status/${user?.id}`);
         const data = await res.json();
         setConnectedPlatforms(data);
       } catch (err) {
@@ -50,10 +55,10 @@ const SocialTab = () => {
     const userId = user?.id;
 
     const oauthUrlMap = {
-      facebook: `http://localhost:4000/api/auth/facebook?userId=${userId}`,
-      instagram: `http://localhost:4000/api/auth/instagram?userId=${userId}`,
-      youtube: `http://localhost:4000/auth/youtube?userId=${userId}`,
-      twitter: `http://localhost:4000/auth/twitter?userId=${userId}`,
+      facebook: `${baseURL}/api/auth/facebook?userId=${userId}`,
+      instagram: `${baseURL}/api/auth/instagram?userId=${userId}`,
+      youtube: `${baseURL}/auth/youtube?userId=${userId}`,
+      twitter: `${baseURL}/auth/twitter?userId=${userId}`,
     };
 
     const redirectUrl = oauthUrlMap[platform];
@@ -63,7 +68,7 @@ const SocialTab = () => {
   const handleDisconnect = async (platform) => {
     const user = JSON.parse(localStorage.getItem("user"));
     try {
-      await fetch("http://localhost:4000/api/disconnect", {
+      await fetch(`${baseURL}/api/disconnect`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user?.id, platform }),
