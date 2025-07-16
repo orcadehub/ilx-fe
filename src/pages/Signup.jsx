@@ -16,6 +16,19 @@ const COLORS = {
   card: "#ffffff",
 };
 
+const handleFacebookSignup = (type) => {
+  window.location.href = `${baseURL}/api/auth/facebook?userType=${type}`;
+};
+
+const handleGoogleSignup = (type) => {
+  window.location.href = `${baseURL}/api/auth/google?userType=${type}`;
+};
+
+const baseURL =
+    import.meta.env.MODE === "development"
+      ? config.LOCAL_BASE_URL
+      : config.BASE_URL;
+
 const Signup = () => {
   const [step, setStep] = useState(1);
   const [userType, setUserType] = useState("");
@@ -233,27 +246,51 @@ const Signup = () => {
             {step === 1 && renderUserTypeButtons()}
 
             {step === 2 && (
-              <Form>
-                {renderInputField("username", "Full Name")}
-                {renderInputField("email", "Email", "email")}
-                {renderInputField("phone", "Phone")}
-                {renderInputField("password", "Password", "password")}
-                {renderInputField(
-                  "confirmPassword",
-                  "Confirm Password",
-                  "password"
-                )}
+              <>
+                <Form>
+                  {renderInputField("username", "Full Name")}
+                  {renderInputField("email", "Email", "email")}
+                  {renderInputField("phone", "Phone")}
+                  {renderInputField("password", "Password", "password")}
+                  {renderInputField(
+                    "confirmPassword",
+                    "Confirm Password",
+                    "password"
+                  )}
+
+                  <Button
+                    type="button"
+                    className="w-100 mb-3"
+                    onClick={sendOtp}
+                    disabled={loading}
+                    style={submitBtnStyle(COLORS.primary)}
+                  >
+                    {loading ? (
+                      <Spinner animation="border" size="sm" />
+                    ) : (
+                      "Send OTP"
+                    )}
+                  </Button>
+                </Form>
+
+                <div className="text-center text-muted mb-3">OR</div>
 
                 <Button
-                  type="button"
-                  className="w-100 mb-3"
-                  onClick={sendOtp}
-                  disabled={loading}
-                  style={submitBtnStyle(COLORS.primary)}
+                  variant="outline-primary"
+                  className="w-100 mb-3 d-flex align-items-center justify-content-center gap-2"
+                  onClick={() => handleFacebookSignup(userType)}
                 >
-                  {loading ? <Spinner animation="border" size="sm" /> : "Send OTP"}
+                  <i className="bi bi-facebook fs-5" /> Signup with Facebook
                 </Button>
-              </Form>
+
+                <Button
+                  variant="outline-danger"
+                  className="w-100 mb-3 d-flex align-items-center justify-content-center gap-2"
+                  onClick={() => handleGoogleSignup(userType)}
+                >
+                  <i className="bi bi-google fs-5" /> Signup with Google
+                </Button>
+              </>
             )}
 
             {step === 3 && <Form>{renderOtpField()}</Form>}
