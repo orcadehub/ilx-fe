@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Instagram, Facebook, Youtube, Twitter } from "react-bootstrap-icons";
-import Spinner from "react-bootstrap/Spinner"; // Optional: if you're using Bootstrap
-import config from '../config'
+import Spinner from "react-bootstrap/Spinner";
+import config from "../config";
+
 const icons = {
   instagram: <Instagram className="text-danger me-2" size={22} />,
   facebook: <Facebook className="text-primary me-2" size={22} />,
@@ -10,30 +11,22 @@ const icons = {
 };
 
 const baseURL =
-    import.meta.env.MODE === "development"
-      ? config.LOCAL_BASE_URL
-      : config.BASE_URL;
+  import.meta.env.MODE === "development"
+    ? config.LOCAL_BASE_URL
+    : config.BASE_URL;
 
 const SocialTab = () => {
-  const [userType, setUserType] = useState("");
   const [editing, setEditing] = useState(null);
   const [hovered, setHovered] = useState(null);
   const [connectedPlatforms, setConnectedPlatforms] = useState({});
   const [loading, setLoading] = useState(true);
-  const [socialProfiles, setSocialProfiles] = useState({
-    instagram: "",
-    facebook: "",
-    youtube: "",
-    twitter: "",
-  });
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user")) || {};
-    setUserType(user?.role || "influencer");
 
     const fetchStatus = async () => {
       try {
-        const res = await fetch(`${baseURL}/api/status/${user?.id}`);
+        const res = await fetch(`${baseURL}/api/connect/status/${user?.email}`);
         const data = await res.json();
         setConnectedPlatforms(data);
       } catch (err) {
@@ -46,16 +39,12 @@ const SocialTab = () => {
     fetchStatus();
   }, []);
 
-  const handleChange = (e, platform) => {
-    setSocialProfiles((prev) => ({ ...prev, [platform]: e.target.value }));
-  };
-
   const handleConnectClick = (platform) => {
     const user = JSON.parse(localStorage.getItem("user"));
-    const userId = user?.id;
+    const userId = user?.email;
 
     const oauthUrlMap = {
-      facebook: `${baseURL}/api/auth/facebook?userId=${userId}`,
+      facebook: `${baseURL}/api/connect/auth/facebook?userId=${userId}`,
       instagram: `${baseURL}/api/auth/instagram?userId=${userId}`,
       youtube: `${baseURL}/auth/youtube?userId=${userId}`,
       twitter: `${baseURL}/auth/twitter?userId=${userId}`,
@@ -68,10 +57,10 @@ const SocialTab = () => {
   const handleDisconnect = async (platform) => {
     const user = JSON.parse(localStorage.getItem("user"));
     try {
-      await fetch(`${baseURL}/api/disconnect`, {
+      await fetch(`${baseURL}/api/connect/disconnect`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user?.id, platform }),
+        body: JSON.stringify({ userId: user?.email, platform }),
       });
 
       setConnectedPlatforms((prev) => ({
@@ -82,20 +71,16 @@ const SocialTab = () => {
           profile_pic: null,
         },
       }));
-
-      setSocialProfiles((prev) => ({ ...prev, [platform]: "" }));
     } catch (err) {
       console.error("Error disconnecting:", err);
     }
   };
 
   const renderRow = (platform) => {
-    const isEditing = editing === platform;
     const profile = connectedPlatforms[platform] || {};
     const isConnected = profile.connected;
     const username = profile.username;
     const profilePic = profile.profile_pic;
-    const isInfluencer = userType === "influencer";
 
     return (
       <div
@@ -117,113 +102,52 @@ const SocialTab = () => {
           />
         )}
         {icons[platform]}
-        {isEditing ? (
-          <div className="d-flex flex-grow-1 gap-2">
-            <input
-              type="url"
-              className="form-control form-control-sm"
-              value={socialProfiles[platform]}
-              onChange={(e) => handleChange(e, platform)}
-              placeholder={`https://${platform}.com/username`}
-              style={{
-                border: "1px solid rgba(0, 0, 0, 0.1)",
-                borderRadius: "6px",
-                padding: "8px 12px",
-              }}
+        <div className="d-flex flex-grow-1 align-items-center">
+          <span className={username ? "" : "text-muted"} style={{ fontSize: "0.9rem" }}>
+            {isConnected ? `Connected to ${username || "Unknown"}` : "Not connected"}
+          </span>
+          <button
+            className={`btn btn-sm ms-auto ${
+              isConnected ? "btn-danger" : "btn-success"
+            }`}
+            onClick={() =>
+              isConnected ? handleDisconnect(platform) : handleConnectClick(platform)
+            }
+            onMouseEnter={() => setHovered(platform)}
+            onMouseLeave={() => setHovered(null)}
+            style={{
+              borderRadius: "6px",
+              padding: "6px 12px",
+              boxShadow: hovered === platform ? "0 4px 15px rgba(0, 0, 0, 0.1)" : "none",
+            }}
+          >
+            <i
+              className={`bi ${isConnected ? "bi-unplug" : "bi-plug"} ${
+                hovered === platform ? "text-white" : ""
+              }`}
             />
-            <button
-              className="btn btn-sm btn-success"
-              onClick={() => setEditing(null)}
-            >
-              <i className="bi bi-check" />
-            </button>
-            <button
-              className="btn btn-sm btn-outline-secondary"
-              onClick={() => setEditing(null)}
-            >
-              <i className="bi bi-x" />
-            </button>
-          </div>
-        ) : (
-          <div className="d-flex flex-grow-1 align-items-center">
-            <span className={username ? "" : "text-muted"} style={{ fontSize: "0.9rem" }}>
-              {isConnected
-                ? `Connected to ${username || "Unknown"}`
-                : "Not connected"}
-            </span>
-            <button
-              className="btn btn-sm ms-auto"
-              onClick={() =>
-                isInfluencer
-                  ? isConnected
-                    ? handleDisconnect(platform)
-                    : handleConnectClick(platform)
-                  : setEditing(platform)
-              }
-              onMouseEnter={() => setHovered(platform)}
-              onMouseLeave={() => setHovered(null)}
-              style={{
-                background:
-                  hovered === platform
-                    ? "linear-gradient(135deg, #dc3545, #c82333)"
-                    : "transparent",
-                color: hovered === platform ? "white" : "#d4af37",
-                border: `1px solid ${
-                  hovered === platform ? "#dc3545" : "#d4af37"
-                }`,
-                borderRadius: "6px",
-                padding: "6px 12px",
-                boxShadow:
-                  hovered === platform
-                    ? "0 4px 15px rgba(220, 53, 69, 0.3)"
-                    : "none",
-              }}
-            >
-              <i
-                className={`bi ${
-                  isInfluencer
-                    ? isConnected
-                      ? "bi-unplug"
-                      : "bi-plug"
-                    : "bi-pencil"
-                } ${hovered === platform ? "text-white" : ""}`}
-              />
-              <span className="ms-1">
-                {isInfluencer
-                  ? isConnected
-                    ? "Disconnect"
-                    : "Connect"
-                  : "Edit"}
-              </span>
-            </button>
-          </div>
-        )}
+            <span className="ms-1">{isConnected ? "Disconnect" : "Connect"}</span>
+          </button>
+        </div>
       </div>
     );
   };
 
   return (
-    <div className="container p-4">
+    <div className="container py-4">
       <div
-        className="card shadow-sm"
+        className="card border-0 shadow-sm rounded-4"
         style={{
-          border: "none",
-          borderRadius: "12px",
-          background: "rgba(255, 255, 255, 0.9)",
-          backdropFilter: "blur(8px)",
-          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.05)",
+          background: "#ffffffdd",
+          backdropFilter: "blur(10px)",
         }}
       >
         <div className="card-body">
-          <h2
-            className="h5 mb-3 d-flex align-items-center"
-            style={{ color: "#2c3e50", fontWeight: "600" }}
-          >
-            <i className="bi bi-share me-2" style={{ color: "#9c7c5e" }}></i>{" "}
-            Social Media Profiles
+          <h2 className="h5 mb-3 d-flex align-items-center text-dark fw-bold">
+            <i className="bi bi-share me-2 text-warning"></i> Social Media Profiles
           </h2>
           <p className="text-muted small mb-4">
-            Connect your social media accounts to enhance your profile
+            Connect your social media accounts to enhance your profile visibility.
           </p>
 
           {loading ? (

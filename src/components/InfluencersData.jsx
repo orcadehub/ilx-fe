@@ -12,7 +12,7 @@ const fallbackInfluencer = {
   name: "Default Influencer",
   username: "default_user",
   category: "General",
-  profilePic: "https://via.placeholder.com/100x100",
+  profilePic: "https://picsum.photos/200",
   stats: {
     instagram: "0",
     facebook: "0",

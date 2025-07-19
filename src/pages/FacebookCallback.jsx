@@ -11,13 +11,18 @@ const FacebookCallback = () => {
     const name = params.get("name");
     const email = params.get("email");
     const role = params.get("role");
+    const profilePic = params.get("profilePic");
 
     if (token && email && role) {
       localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify({ name, email, role }));
+      localStorage.setItem(
+        "user",
+        JSON.stringify({ name, email, role, profilePic })
+      );
 
-      // Redirect to dashboard
+      // Redirect to dashboard and reload
       navigate("/dashboard");
+      window.location.reload();
     }
   }, []);
 

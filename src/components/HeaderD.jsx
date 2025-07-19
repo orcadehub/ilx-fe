@@ -117,11 +117,13 @@ const HeaderD = ({ handleDrawerToggle }) => {
           )}
 
           {/* Wallet */}
-         {role !== "admin" &&( <Tooltip title="Wallet">
-            <IconButton onClick={() => navigate("/dashboard/wallet")}>
-              <AccountBalanceWallet />
-            </IconButton>
-          </Tooltip>)}
+          {role !== "admin" && (
+            <Tooltip title="Wallet">
+              <IconButton onClick={() => navigate("/dashboard/wallet")}>
+                <AccountBalanceWallet />
+              </IconButton>
+            </Tooltip>
+          )}
 
           {/* Notifications */}
           <Tooltip title="Notifications">
@@ -145,16 +147,18 @@ const HeaderD = ({ handleDrawerToggle }) => {
             onClick={handleMenuOpen}
           >
             <Avatar
+              src={user.profilePic || ""}
               sx={{
-                bgcolor: "#1976d2",
+                bgcolor: user.profilePic ? "transparent" : "#1976d2",
                 width: 34,
                 height: 34,
                 fontSize: 14,
                 fontWeight: 500,
               }}
             >
-              {user.name[0]}
+              {!user.profilePic && user.name[0]}
             </Avatar>
+
             {!isMobile && (
               <>
                 <Box sx={{ textAlign: "left" }}>
