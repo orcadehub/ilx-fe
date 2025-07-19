@@ -8,7 +8,7 @@ const FacebookCallback = () => {
   useEffect(() => {
     const params = new URLSearchParams(search);
     const token = params.get("token");
-    const name = params.get("name");
+    const fullname = params.get("name");
     const email = params.get("email");
     const role = params.get("role");
     const profilePic = params.get("profilePic");
@@ -17,7 +17,7 @@ const FacebookCallback = () => {
       localStorage.setItem("token", token);
       localStorage.setItem(
         "user",
-        JSON.stringify({ name, email, role, profilePic })
+        JSON.stringify({ fullname, email, role, profilePic })
       );
 
       // Redirect to dashboard and reload

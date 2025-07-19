@@ -156,14 +156,14 @@ const HeaderD = ({ handleDrawerToggle }) => {
                 fontWeight: 500,
               }}
             >
-              {!user.profilePic && user.name[0]}
+              {!user.profilePic && (user.fullname?.[0] || "U")}
             </Avatar>
 
             {!isMobile && (
               <>
                 <Box sx={{ textAlign: "left" }}>
                   <Typography variant="body2" fontWeight="bold">
-                    {user.name}
+                    {user.fullname}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {user.email}

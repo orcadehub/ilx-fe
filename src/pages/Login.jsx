@@ -30,14 +30,13 @@ const Login = () => {
       ? config.LOCAL_BASE_URL
       : config.BASE_URL;
 
+  const handleFacebookLogin = (type) => {
+    window.location.href = `${baseURL}/api/auth/facebook?userType=${type}`;
+  };
 
-const handleFacebookLogin = (type) => {
-  window.location.href = `${baseURL}/api/auth/facebook?userType=${type}`;
-};
-
-const handleGoogleLogin = (type) => {
-  window.location.href = `${baseURL}/api/auth/google?userType=${type}`;
-};
+  const handleGoogleLogin = (type) => {
+    window.location.href = `${baseURL}/api/auth/google?userType=${type}`;
+  };
 
   useEffect(() => {
     if (timer > 0) {
@@ -47,24 +46,48 @@ const handleGoogleLogin = (type) => {
     if (timer === 0) setIsResendEnabled(true);
   }, [timer]);
 
-  const handleSendLoginOtp = async () => {
+  const handleLoginFlow = async () => {
     if (!email || !password || !userType)
       return toast.error("All fields are required");
+
     try {
-      setOtpLoading(true);
-      await axios.post(`${baseURL}/api/send-otp`, { email });
-      toast.success("OTP sent to email");
-      setStep(3);
-      setTimer(60);
-      setIsResendEnabled(false);
-    } catch {
-      toast.error("Failed to send OTP");
+      setLoading(true);
+      // Step 1: Check if 2FA is enabled
+
+      const res = await axios.get(`${baseURL}/api/check-2fa`, {
+        params: { email },
+      });
+      const is2FAEnabled = res.data?.is2FAEnabled;
+
+      if (is2FAEnabled) {
+        // Send OTP and go to OTP step
+        await axios.post(`${baseURL}/api/send-otp`, { email });
+        toast.success("OTP sent to email");
+        setStep(3);
+        setTimer(60);
+        setIsResendEnabled(false);
+      } else {
+        // No 2FA, login directly
+        const loginRes = await axios.post(`${baseURL}/api/login`, {
+          email,
+          password,
+          role: userType,
+        });
+
+        localStorage.setItem("token", loginRes.data.token);
+        localStorage.setItem("user", JSON.stringify(loginRes.data.user));
+        toast.success(loginRes.data.message);
+        navigate("/dashboard");
+        window.location.reload();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Login failed");
     } finally {
-      setOtpLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleLogin = async () => {
+  const handleLoginWithOtp = async () => {
     try {
       setLoading(true);
       const verifyRes = await axios.post(`${baseURL}/api/verify-otp`, {
@@ -221,13 +244,12 @@ const handleGoogleLogin = (type) => {
                     >
                       Forgot Password?
                     </span>
-                    <Button onClick={handleSendLoginOtp} disabled={otpLoading}>
-                      {otpLoading ? <Spinner size="sm" /> : "Send OTP"}
+                    <Button onClick={handleLoginFlow} disabled={loading}>
+                      {loading ? <Spinner size="sm" /> : "Login"}
                     </Button>
                   </div>
                 </Form>
                 <div className="text-center text-muted mb-3">OR</div>
-
                 <Button
                   variant="outline-primary"
                   className="w-100 mb-3 d-flex align-items-center justify-content-center gap-2"
@@ -265,7 +287,7 @@ const handleGoogleLogin = (type) => {
                   ) : (
                     <Button
                       variant="link"
-                      onClick={handleSendLoginOtp}
+                      onClick={handleLoginFlow}
                       disabled={!isResendEnabled || otpLoading}
                     >
                       🔁 Resend OTP
@@ -273,7 +295,7 @@ const handleGoogleLogin = (type) => {
                   )}
                 </div>
                 <Button
-                  onClick={handleLogin}
+                  onClick={handleLoginWithOtp}
                   className="w-100"
                   disabled={loading}
                 >
@@ -282,8 +304,10 @@ const handleGoogleLogin = (type) => {
               </Form>
             )}
 
+            {/* Forgot password section remains unchanged */}
             {isForgot && (
               <Form>
+                {/* forgotStep 1 */}
                 {forgotStep === 1 && (
                   <>
                     <Form.Group className="mb-3">
@@ -304,7 +328,7 @@ const handleGoogleLogin = (type) => {
                     </Button>
                   </>
                 )}
-
+                {/* forgotStep 2 */}
                 {forgotStep === 2 && (
                   <>
                     <Form.Group className="mb-3">
@@ -340,7 +364,7 @@ const handleGoogleLogin = (type) => {
                     </Button>
                   </>
                 )}
-
+                {/* forgotStep 3 */}
                 {forgotStep === 3 && (
                   <>
                     <Form.Group className="mb-3">
