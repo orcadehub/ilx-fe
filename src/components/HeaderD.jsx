@@ -36,7 +36,7 @@ const HeaderD = ({ handleDrawerToggle }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const [user, setUser] = useState({
-    fullname: "Name",
+    name: "Name",
     email: "user@gmail.com",
   });
 
@@ -153,13 +153,13 @@ const HeaderD = ({ handleDrawerToggle }) => {
                 fontWeight: 500,
               }}
             >
-              {user.fullname[0]}
+              {user.name[0]}
             </Avatar>
             {!isMobile && (
               <>
                 <Box sx={{ textAlign: "left" }}>
                   <Typography variant="body2" fontWeight="bold">
-                    {user.fullname}
+                    {user.name}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {user.email}

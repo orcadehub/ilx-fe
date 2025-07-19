@@ -30,6 +30,15 @@ const Login = () => {
       ? config.LOCAL_BASE_URL
       : config.BASE_URL;
 
+
+const handleFacebookLogin = (type) => {
+  window.location.href = `${baseURL}/api/auth/facebook?userType=${type}`;
+};
+
+const handleGoogleLogin = (type) => {
+  window.location.href = `${baseURL}/api/auth/google?userType=${type}`;
+};
+
   useEffect(() => {
     if (timer > 0) {
       const interval = setInterval(() => setTimer((t) => t - 1), 1000);
@@ -182,40 +191,59 @@ const Login = () => {
               ))}
 
             {!isForgot && step === 2 && (
-              <Form>
-                <Form.Group className="mb-3">
-                  <Form.Label>Email</Form.Label>
-                  <Form.Control
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    style={sharedInputStyle}
-                    required
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Password</Form.Label>
-                  <Form.Control
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    style={sharedInputStyle}
-                    required
-                  />
-                </Form.Group>
-                <div className="d-flex justify-content-between">
-                  <span
-                    className="text-primary"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => setIsForgot(true)}
-                  >
-                    Forgot Password?
-                  </span>
-                  <Button onClick={handleSendLoginOtp} disabled={otpLoading}>
-                    {otpLoading ? <Spinner size="sm" /> : "Send OTP"}
-                  </Button>
-                </div>
-              </Form>
+              <>
+                <Form>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Email</Form.Label>
+                    <Form.Control
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      style={sharedInputStyle}
+                      required
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Password</Form.Label>
+                    <Form.Control
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      style={sharedInputStyle}
+                      required
+                    />
+                  </Form.Group>
+                  <div className="d-flex justify-content-between">
+                    <span
+                      className="text-primary"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => setIsForgot(true)}
+                    >
+                      Forgot Password?
+                    </span>
+                    <Button onClick={handleSendLoginOtp} disabled={otpLoading}>
+                      {otpLoading ? <Spinner size="sm" /> : "Send OTP"}
+                    </Button>
+                  </div>
+                </Form>
+                <div className="text-center text-muted mb-3">OR</div>
+
+                <Button
+                  variant="outline-primary"
+                  className="w-100 mb-3 d-flex align-items-center justify-content-center gap-2"
+                  onClick={() => handleFacebookLogin(userType)}
+                >
+                  <i className="bi bi-facebook fs-5" /> Login with Facebook
+                </Button>
+
+                <Button
+                  variant="outline-danger"
+                  className="w-100 mb-3 d-flex align-items-center justify-content-center gap-2"
+                  onClick={() => handleGoogleLogin(userType)}
+                >
+                  <i className="bi bi-google fs-5" /> Login with Google
+                </Button>
+              </>
             )}
 
             {!isForgot && step === 3 && (

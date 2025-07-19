@@ -15,12 +15,14 @@ import Notifications from "../pages/Notifications";
 import Billing from "../pages/Billing";
 import OffersPage from "../pages/OffersPage";
 import Support from "../pages/Support";
+import FacebookCallback from "../pages/FacebookCallback";
 
 const Content = () => {
   return (
     <Routes>
       <Route path="/" element={<DashboardContent />} />
       <Route path="influencers" element={<Influencers />} />
+      <Route path="facebook" element={<FacebookCallback />} />
       <Route path="chats" element={<Chats />} />
       <Route path="chats/:id" element={<Chats />} />
       <Route path="reach" element={<Reach />} />
