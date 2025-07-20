@@ -16,6 +16,7 @@ import Billing from "../pages/Billing";
 import OffersPage from "../pages/OffersPage";
 import Support from "../pages/Support";
 import FacebookCallback from "../pages/FacebookCallback";
+import GoogleCallback from "../pages/GoogleCallback";
 
 const Content = () => {
   return (
@@ -23,6 +24,7 @@ const Content = () => {
       <Route path="/" element={<DashboardContent />} />
       <Route path="influencers" element={<Influencers />} />
       <Route path="facebook" element={<FacebookCallback />} />
+      <Route path="google" element={<GoogleCallback />} />
       <Route path="chats" element={<Chats />} />
       <Route path="chats/:id" element={<Chats />} />
       <Route path="reach" element={<Reach />} />
