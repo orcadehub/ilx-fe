@@ -17,6 +17,7 @@ const plans = [
     ],
     button: 'Get Started',
     variant: 'light',
+    bgColor: '#F9FAFB',
   },
   {
     title: 'Pro',
@@ -32,6 +33,7 @@ const plans = [
     ],
     button: 'Get Started',
     variant: 'primary',
+    bgColor: '#EAF4FF',
   },
   {
     title: 'Advanced',
@@ -48,6 +50,7 @@ const plans = [
     ],
     button: 'Get Started',
     variant: 'light',
+    bgColor: '#F3F4F6',
   },
   {
     title: 'Custom',
@@ -64,6 +67,7 @@ const plans = [
     ],
     button: 'Contact Sales',
     variant: 'light',
+    bgColor: '#F0F9FF',
   },
 ];
 
@@ -75,45 +79,50 @@ function Pricing() {
   };
 
   return (
-    <div style={{ backgroundColor: '#f9fcff', padding: '60px 20px' }}>
-      <Container fluid>
-        <h2 className="fw-bold mb-3 text-center mb-2">Transparent Pricing Plan</h2>
-        <p className="text-muted text-center mb-5">
-          Choose the plan that fits your business needs. No hidden fees, cancel anytime.
-        </p>
+    <section style={{ backgroundColor: '#F9FCFF', padding: '80px 20px', fontFamily: 'Poppins, sans-serif' }}>
+      <Container>
+        <div className="text-center mb-5">
+          <h2 className="fw-bold display-5 text-dark">Transparent Pricing Plan</h2>
+          <p className="text-muted fs-5">Choose the plan that fits your business needs. No hidden fees, cancel anytime.</p>
+        </div>
         <Row className="g-4">
           {plans.map((plan, idx) => (
             <Col md={6} lg={3} key={idx}>
               <Card
-                className="h-100 shadow-sm border-0 text-start"
+                className="h-100 shadow-sm border-0"
                 style={{
                   borderRadius: '20px',
-                  backgroundColor: '#ffffffcc',
-                  transition: 'transform 0.3s ease',
+                  backgroundColor: plan.bgColor,
+                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
                 }}
-                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-10px)'}
-                onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-6px)';
+                  e.currentTarget.style.boxShadow = '0 12px 24px rgba(0, 0, 0, 0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.05)';
+                }}
               >
-                <Card.Body className="d-flex flex-column">
-                  <h5 className="fw-bold">{plan.title}</h5>
-                  <h3 className="fw-bold">
-                    {plan.price}{' '}
-                    <small className="text-muted fs-6">{plan.period}</small>
+                <Card.Body className="d-flex flex-column p-4">
+                  <h5 className="fw-semibold mb-2 text-primary">{plan.title}</h5>
+                  <h3 className="fw-bold mb-1" style={{ color: '#111827' }}>
+                    {plan.price} <small className="text-muted fs-6">{plan.period}</small>
                   </h3>
-                  <p className="text-muted">{plan.description}</p>
-                  <ul className="list-unstyled mt-3 mb-4">
+                  <p className="text-muted mb-4" style={{ minHeight: '60px' }}>{plan.description}</p>
+                  <ul className="list-unstyled mb-4">
                     {plan.features.map((feature, i) => (
-                      <li key={i} className="mb-2">
-                        <FaCheckCircle className="me-2 text-primary" />
-                        {feature}
+                      <li key={i} className="mb-2 d-flex align-items-start">
+                        <FaCheckCircle className="me-2 text-success mt-1" />
+                        <span style={{ fontSize: '0.95rem', color: '#374151' }}>{feature}</span>
                       </li>
                     ))}
                   </ul>
                   <div className="mt-auto">
                     <Button
                       variant={plan.variant === 'primary' ? 'primary' : 'outline-primary'}
-                      className="w-100 fw-bold"
-                      style={{ borderRadius: '10px' }}
+                      className="w-100 fw-semibold"
+                      style={{ borderRadius: '10px', padding: '10px 0' }}
                       onClick={handleClick}
                     >
                       {plan.button}
@@ -125,7 +134,7 @@ function Pricing() {
           ))}
         </Row>
       </Container>
-    </div>
+    </section>
   );
 }
 

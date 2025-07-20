@@ -197,21 +197,72 @@ const Login = () => {
                 : "Verify OTP"}
             </h2>
 
-            {!isForgot &&
-              step === 1 &&
-              ["business", "influencer", "admin"].map((type) => (
-                <Button
-                  key={type}
-                  variant="outline-primary"
-                  className="w-100 mb-3"
-                  onClick={() => {
-                    setUserType(type);
-                    setStep(2);
-                  }}
-                >
-                  {type.charAt(0).toUpperCase() + type.slice(1)} User
-                </Button>
-              ))}
+            {!isForgot && step === 1 && (
+              <Row className="g-3">
+                {[
+                  {
+                    type: "business",
+                    label: "Business",
+                    icon: "bi bi-briefcase",
+                  },
+                  {
+                    type: "influencer",
+                    label: "Influencer",
+                    icon: "bi bi-stars",
+                  },
+                  { type: "admin", label: "Admin", icon: "bi bi-shield-lock" },
+                ].map(({ type, label, icon }) => (
+                  <Col xs={12} md={4} key={type}>
+                    <div
+                      onClick={() => {
+                        setUserType(type);
+                        setStep(2);
+                      }}
+                      style={{
+                        cursor: "pointer",
+                        padding: "32px",
+                        borderRadius: "16px",
+                        boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+                        textAlign: "center",
+                        transition: "all 0.3s ease",
+                        height: "100%",
+                        backgroundColor: "#fff",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "translateY(-5px)";
+                        e.currentTarget.style.boxShadow =
+                          "0 8px 24px rgba(0,0,0,0.08)";
+                        e.currentTarget.style.border = "1px solid #90caf9";
+                        e.currentTarget.style.backgroundColor = "#f8f9fa";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow =
+                          "0 2px 10px rgba(0,0,0,0.1)";
+                        e.currentTarget.style.border = "none";
+                        e.currentTarget.style.backgroundColor = "#fff";
+                      }}
+                    >
+                      <i
+                        className={`${icon}`}
+                        style={{
+                          fontSize: "2rem",
+                          marginBottom: "16px",
+                          color: "#0d6efd",
+                        }}
+                      />
+                      <h5 style={{ margin: 0, fontWeight: 600 }}>
+                        {label} User
+                      </h5>
+                    </div>
+                  </Col>
+                ))}
+              </Row>
+            )}
 
             {!isForgot && step === 2 && (
               <>

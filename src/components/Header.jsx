@@ -12,14 +12,19 @@ import {
   ListItemText,
   useMediaQuery,
 } from "@mui/material";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import CloseIcon from "@mui/icons-material/Close";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useTheme } from "@mui/material/styles";
-import { Link } from "react-router-dom";
 
-// Google Fonts import via style tag (insert in your HTML or main App)
-const fontFamily = `'Playfair Display', serif`;
+// Font families
+const headingFont = `'Playfair Display', serif`;
+const bodyFont = `'Inter', sans-serif`;
+
+// Updated color palette
+const primaryColor = "#0A1A4C"; // Deep navy
+const accentColor = "#bfa046";  // Gold
+const textColor = "#1C1C1C";    // Neutral dark
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -39,22 +44,18 @@ const Header = () => {
   const toggleDrawer = (open) => () => setDrawerOpen(open);
 
   const drawerList = (
-    <Box
-      sx={{ width: 250, p: 2 }}
-      role="presentation"
-      onClick={toggleDrawer(false)}
-    >
+    <Box sx={{ width: 250, p: 2 }} role="presentation" onClick={toggleDrawer(false)}>
       <Box>
-        <IconButton onClick={toggleDrawer(false)}>
-          <CloseIcon />
-        </IconButton>
+        <IconButton onClick={toggleDrawer(false)}><CloseIcon /></IconButton>
       </Box>
       <List>
         {navLinks.map(({ label, path }) => (
           <ListItem button key={label} component={Link} to={path}>
             <ListItemText
               primary={label}
-              primaryTypographyProps={{ sx: { fontFamily, fontWeight: 600 } }}
+              primaryTypographyProps={{
+                sx: { fontFamily: bodyFont, fontWeight: 600, color: textColor },
+              }}
             />
           </ListItem>
         ))}
@@ -63,10 +64,10 @@ const Header = () => {
             variant="outlined"
             sx={{
               mr: 1,
-              borderColor: "#bfa046",
-              color: "#bfa046",
+              borderColor: accentColor,
+              color: accentColor,
               borderRadius: "20px",
-              fontFamily,
+              fontFamily: bodyFont,
               fontWeight: 600,
             }}
             component={Link}
@@ -77,12 +78,12 @@ const Header = () => {
           <Button
             variant="contained"
             sx={{
-              backgroundColor: "#002366",
-              color: "#fff8dc",
+              backgroundColor: primaryColor,
+              color: "#fff",
               borderRadius: "20px",
-              fontFamily,
+              fontFamily: bodyFont,
               fontWeight: 600,
-              "&:hover": { backgroundColor: "#00194d" },
+              "&:hover": { backgroundColor: "#08133a" },
             }}
             component={Link}
             to="/signup"
@@ -99,10 +100,10 @@ const Header = () => {
       position="sticky"
       sx={{
         backgroundColor: isDashboard ? "transparent" : "white",
-        color: "black",
+        color: textColor,
         boxShadow: isDashboard ? "none" : "0px 4px 10px rgba(0,0,0,0.05)",
         px: 2,
-        visibility: isDashboard ? "hidden" : "visible", // 👈 Invisible but keeps space
+        visibility: isDashboard ? "hidden" : "visible",
         pointerEvents: isDashboard ? "none" : "auto",
       }}
     >
@@ -112,10 +113,11 @@ const Header = () => {
           component={Link}
           to="/"
           sx={{
-            fontWeight: "bold",
+            fontWeight: 700,
             textDecoration: "none",
-            color: "black",
-            fontFamily,
+            color: primaryColor,
+            fontFamily: headingFont,
+            letterSpacing: 1,
           }}
         >
           InfluexKonnect
@@ -132,10 +134,11 @@ const Header = () => {
                 sx={{
                   cursor: "pointer",
                   textDecoration: "none",
-                  color: "black",
-                  fontFamily,
-                  transition: "color 0.3s",
-                  "&:hover": { color: "#002366" },
+                  color: textColor,
+                  fontFamily: bodyFont,
+                  fontWeight: 500,
+                  transition: "all 0.3s",
+                  "&:hover": { color: primaryColor },
                 }}
               >
                 {label}
@@ -149,10 +152,10 @@ const Header = () => {
             <Button
               sx={{
                 mr: 1,
-                color: "#bfa046",
-                borderColor: "#bfa046",
+                color: accentColor,
+                borderColor: accentColor,
                 borderRadius: "20px",
-                fontFamily,
+                fontFamily: bodyFont,
                 fontWeight: 600,
               }}
               variant="outlined"
@@ -164,12 +167,12 @@ const Header = () => {
             <Button
               variant="contained"
               sx={{
-                backgroundColor: "#002366",
-                color: "#fff8dc",
+                backgroundColor: primaryColor,
+                color: "#fff",
                 borderRadius: "20px",
-                fontFamily,
+                fontFamily: bodyFont,
                 fontWeight: 600,
-                "&:hover": { backgroundColor: "#00194d" },
+                "&:hover": { backgroundColor: "#08133a" },
               }}
               component={Link}
               to="/signup"
@@ -181,14 +184,8 @@ const Header = () => {
 
         {isMobile && (
           <>
-            <IconButton onClick={toggleDrawer(true)}>
-              <MenuIcon />
-            </IconButton>
-            <Drawer
-              anchor="top"
-              open={drawerOpen}
-              onClose={toggleDrawer(false)}
-            >
+            <IconButton onClick={toggleDrawer(true)}><MenuIcon /></IconButton>
+            <Drawer anchor="top" open={drawerOpen} onClose={toggleDrawer(false)}>
               {drawerList}
             </Drawer>
           </>

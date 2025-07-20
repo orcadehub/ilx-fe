@@ -3,15 +3,34 @@ import { Card, Col, Row } from 'react-bootstrap';
 import { People, Clock, BarChart } from 'react-bootstrap-icons';
 
 function Section1() {
+  const cards = [
+    {
+      icon: <People size={28} />,
+      title: 'Discover Influencers',
+      text: 'Browse thousands of influencers across various niches, demographics, and platforms to find your perfect match.',
+      bg: '#F0F4FF', // Light blue
+    },
+    {
+      icon: <Clock size={28} />,
+      title: 'Connect & Collaborate',
+      text: 'Send requests directly to influencers, negotiate terms, and manage your campaigns all in one place.',
+      bg: '#F9FAFB', // Light gray
+    },
+    {
+      icon: <BarChart size={28} />,
+      title: 'Track Results',
+      text: 'Measure campaign performance with detailed analytics and reporting to optimize your influencer marketing ROI.',
+      bg: '#FFF7ED', // Light warm beige
+    },
+  ];
+
   return (
     <div
       id="how-it-works"
       className="container py-5"
       style={{
         backgroundColor: '#ffffff',
-        padding: '40px 25px',
-        boxSizing: 'border-box',
-        fontFamily: "Alumni Sans SC, sans-serif",
+        fontFamily: 'Alumni Sans SC, sans-serif',
       }}
     >
       <h2
@@ -30,7 +49,7 @@ function Section1() {
       <p
         className="text-center mb-5 mx-auto"
         style={{
-          maxWidth: '700px',
+          maxWidth: '720px',
           color: '#4B5563',
           fontSize: '1.125rem',
           lineHeight: '1.6',
@@ -42,44 +61,31 @@ function Section1() {
       </p>
 
       <Row xs={1} sm={2} md={3} className="g-4 justify-content-center">
-        {[
-          {
-            icon: <People size={24} />,
-            title: 'Discover Influencers',
-            text: 'Browse thousands of influencers across various niches, demographics, and platforms to find your perfect match.',
-          },
-          {
-            icon: <Clock size={24} />,
-            title: 'Connect & Collaborate',
-            text: 'Send requests directly to influencers, negotiate terms, and manage your campaigns all in one place.',
-          },
-          {
-            icon: <BarChart size={24} />,
-            title: 'Track Results',
-            text: 'Measure campaign performance with detailed analytics and reporting to optimize your influencer marketing ROI.',
-          },
-        ].map(({ icon, title, text }, idx) => (
+        {cards.map(({ icon, title, text, bg }, idx) => (
           <Col key={idx} className="d-flex justify-content-center">
             <Card
-              className="shadow-lg"
+              className="shadow-sm"
               style={{
+                backgroundColor: bg,
                 maxWidth: '320px',
                 minHeight: '300px',
                 borderRadius: '20px',
                 border: 'none',
-                padding: '25px 25px',
+                padding: '25px',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 textAlign: 'center',
-                transition: 'transform 0.3s ease',
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
                 cursor: 'default',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-8px)';
+                e.currentTarget.style.transform = 'translateY(-6px)';
+                e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.1)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.05)';
               }}
             >
               <div
@@ -89,8 +95,8 @@ function Section1() {
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  width: '48px',
-                  height: '48px',
+                  width: '56px',
+                  height: '56px',
                   borderRadius: '50%',
                   backgroundColor: '#DBEAFE',
                   boxShadow: '0 4px 10px rgba(59, 130, 246, 0.2)',

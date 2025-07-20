@@ -25,9 +25,9 @@ const handleGoogleSignup = (type) => {
 };
 
 const baseURL =
-    import.meta.env.MODE === "development"
-      ? config.LOCAL_BASE_URL
-      : config.BASE_URL;
+  import.meta.env.MODE === "development"
+    ? config.LOCAL_BASE_URL
+    : config.BASE_URL;
 
 const Signup = () => {
   const [step, setStep] = useState(1);
@@ -197,27 +197,38 @@ const Signup = () => {
     fontWeight: "700",
     fontSize: "1.1rem",
   });
-
   const renderUserTypeButtons = () =>
     ["business", "influencer"].map((type) => (
-      <Button
+      <div
         key={type}
-        variant="outline-info"
-        className="w-100 mb-3"
         onClick={() => {
           setUserType(type);
           setStep(2);
         }}
         style={{
-          fontWeight: "600",
+          width: "100%",
+          marginBottom: "16px",
+          padding: "14px 20px",
           borderRadius: "12px",
-          padding: "12px",
-          borderColor: COLORS.primary,
+          fontWeight: 600,
+          border: `2px solid ${COLORS.primary}`,
           color: COLORS.primary,
+          backgroundColor: "#fff",
+          textAlign: "center",
+          cursor: "pointer",
+          transition: "all 0.2s ease",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = COLORS.primary;
+          e.currentTarget.style.color = "#fff";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = "#fff";
+          e.currentTarget.style.color = COLORS.primary;
         }}
       >
         {type.charAt(0).toUpperCase() + type.slice(1)} User
-      </Button>
+      </div>
     ));
 
   return (
