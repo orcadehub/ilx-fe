@@ -41,7 +41,7 @@ function Influencers() {
     const loadInfluencers = async () => {
       const InfluencersData = await getInfluencersData();
       setData(InfluencersData);
-      // console.log(InfluencersData);
+      console.log(InfluencersData);
       setSelected(InfluencersData[0]); // Set selected after data is available
     };
 
@@ -342,7 +342,13 @@ function Influencers() {
                   </span>
                   <span className="d-flex align-items-center gap-1">
                     <FaFacebook style={{ color: "#1877F2" }} size={14} />{" "}
-                    <span>{inf.stats.facebook}</span>
+                    {inf.data?.facebook?.friends?.summary?.total_count ? (
+                      <span>
+                        {inf.data.facebook.friends.summary.total_count}
+                      </span>
+                    ) : (
+                      <span>0</span>
+                    )}
                   </span>
                   <span className="d-flex align-items-center gap-1">
                     <FaTwitter style={{ color: "#1DA1F2" }} size={14} />{" "}
@@ -421,7 +427,10 @@ function Influencers() {
                 </div>
                 <div>
                   <FaFacebook color="#1877F2" size={26} />
-                  <div className="fw-bold">{selected.stats.facebook}</div>
+                  <div className="fw-bold">
+                    {selected.data?.facebook?.friends?.summary?.total_count ??
+                      "0"}
+                  </div>
                 </div>
                 <div>
                   <FaYoutube color="#FF0000" size={26} />
@@ -462,16 +471,70 @@ function Influencers() {
             {activeTab === "services" && (
               <Row className="g-4">
                 {data
-                  .flatMap((influencer) => influencer.posts || [])
+                  .flatMap((influencer) => {
+                    const posts = [];
+
+                    // Facebook Posts
+                    if (influencer.posts?.facebook?.data) {
+                      posts.push(
+                        ...influencer.posts.facebook.data.map((fb) => ({
+                          platform: "facebook",
+                          id: fb.id,
+                          created_time: fb.created_time,
+                          image: `https://graph.facebook.com/${fb.fb_id}/picture?access_token=${fb.fb_access_token}`, // optional thumbnail
+                          likes: 0,
+                          views: 0,
+                          comments: 0,
+                          shares: 0,
+                        }))
+                      );
+                    }
+
+                    // Instagram Posts
+                    if (influencer.posts?.instagram?.data) {
+                      posts.push(
+                        ...influencer.posts.instagram.data.map((ig) => ({
+                          platform: "instagram",
+                          id: ig.id,
+                          created_time: ig.timestamp,
+                          image: ig.media_url,
+                          likes: ig.like_count || 0,
+                          views: ig.view_count || 0,
+                          comments: ig.comments_count || 0,
+                          shares: 0,
+                        }))
+                      );
+                    }
+
+                    // YouTube Posts
+                    if (influencer.posts?.youtube?.data) {
+                      posts.push(
+                        ...influencer.posts.youtube.data.map((yt) => ({
+                          platform: "youtube",
+                          id: yt.id.videoId,
+                          created_time: yt.snippet.publishedAt,
+                          image: yt.snippet.thumbnails?.medium?.url,
+                          likes: yt.likes || 0,
+                          views: yt.views || 0,
+                          comments: yt.comments || 0,
+                          shares: 0,
+                        }))
+                      );
+                    }
+
+                    return posts;
+                  })
                   .map((post, index) => (
                     <Col xs={12} sm={6} md={4} key={index}>
                       <Card className="h-100 shadow-sm border-0">
-                        <Card.Img
-                          variant="top"
-                          src={post.image}
-                          height="140"
-                          className="rounded-top"
-                        />
+                        {post.image && (
+                          <Card.Img
+                            variant="top"
+                            src={post.image}
+                            height="140"
+                            className="rounded-top object-fit-cover"
+                          />
+                        )}
                         <Card.Body className="p-3">
                           <div className="d-flex justify-content-around small text-muted">
                             <div>
@@ -487,6 +550,11 @@ function Influencers() {
                             <div>
                               <FaShare /> {post.shares || 0}
                             </div>
+                          </div>
+                          <div className="mt-2 text-center">
+                            <small className="text-secondary">
+                              {post.platform?.toUpperCase()}
+                            </small>
                           </div>
                         </Card.Body>
                       </Card>
@@ -1050,7 +1118,6 @@ function Influencers() {
           </div>
         </Offcanvas.Body>
       </Offcanvas>
-      
     </div>
   );
 }
