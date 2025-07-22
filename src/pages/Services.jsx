@@ -1,37 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-  Container, Row, Col, Card, Form, Button, Image, Modal,
-} from 'react-bootstrap';
-import { motion } from 'framer-motion';
-import 'bootstrap/dist/css/bootstrap.min.css';
+  Container,
+  Row,
+  Col,
+  Card,
+  Form,
+  Button,
+  Image,
+  Modal,
+} from "react-bootstrap";
+import { motion } from "framer-motion";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const servicesData = {
-  'Design Services': [
-    { id: 'posts', title: 'Posts' },
-    { id: 'reels', title: 'Reels/Shorts' },
-    { id: 'logo', title: 'Logo Design' },
-    { id: 'logo-animation', title: 'Logo Animation' },
+  "Design Services": [
+    { id: "posts", title: "Posts" },
+    { id: "reels", title: "Reels/Shorts" },
+    { id: "logo", title: "Logo Design" },
+    { id: "logo-animation", title: "Logo Animation" },
   ],
-  'Marketing Services': [
-    { id: 'ppc', title: 'Pay per click' },
-    { id: 'seo', title: 'SEO Ranking' },
-    { id: 'analytics', title: 'Google Analytics' },
-    { id: 'business', title: 'Google Business' },
+  "Marketing Services": [
+    { id: "ppc", title: "Pay per click" },
+    { id: "seo", title: "SEO Ranking" },
+    { id: "analytics", title: "Google Analytics" },
+    { id: "business", title: "Google Business" },
   ],
-  'Social Media Campaigns': [
-    { id: 'instagram', title: 'Instagram' },
-    { id: 'snapchat', title: 'Snapchat' },
-    { id: 'youtube', title: 'YouTube' },
-    { id: 'twitter', title: 'Twitter' },
-    { id: 'pinterest', title: 'Pinterest' },
-    { id: 'facebook', title: 'Facebook' },
-    { id: 'googleads', title: 'Google Ads' },
-    { id: 'linkedin', title: 'LinkedIn' },
+  "Social Media Campaigns": [
+    { id: "instagram", title: "Instagram" },
+    { id: "snapchat", title: "Snapchat" },
+    { id: "youtube", title: "YouTube" },
+    { id: "twitter", title: "Twitter" },
+    { id: "pinterest", title: "Pinterest" },
+    { id: "facebook", title: "Facebook" },
+    { id: "googleads", title: "Google Ads" },
+    { id: "linkedin", title: "LinkedIn" },
   ],
-  'OTT Campaigns': [
-    { id: 'hotstar', title: 'Hotstar' },
-    { id: 'amazon', title: 'Amazon' },
-    { id: 'zeetv', title: 'ZeeTV' },
+  "OTT Campaigns": [
+    { id: "hotstar", title: "Hotstar" },
+    { id: "amazon", title: "Amazon" },
+    { id: "zeetv", title: "ZeeTV" },
   ],
 };
 
@@ -43,16 +50,35 @@ const Services = () => {
   const handleCloseModal = () => setShowModal(false);
 
   const renderForm = () => {
-    if (!selectedService) return null;
-
-    return (
+    return !selectedService ? (
+      <div
+        className="text-center py-5"
+        style={{
+          color: "#888",
+          fontSize: "2.1rem",
+          fontWeight: 500,
+          background: "hsl(214.3, 31.8%, 98%)",
+          borderRadius: "1rem",
+          boxShadow: "0 0 12px rgba(0,0,0,0.06)",
+        }}
+      >
+        Please select a service to continue
+      </div>
+    ) : (
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Card className="p-4 shadow-sm border-0 rounded-4">
-          <h5 className="mb-4 text-primary">Request {selectedService.title} Service</h5>
+        <Card
+          className="p-4 shadow-sm border-0 rounded-4"
+          style={{
+            background: "hsl(214.3, 31.8%, 98%)",
+          }}
+        >
+          <h5 className="mb-4" style={{ color: "#1a237e" }}>
+            Request {selectedService.title} Service
+          </h5>
           <Form>
             <Form.Group className="mb-3">
               <Form.Label>Full Name</Form.Label>
@@ -68,7 +94,11 @@ const Services = () => {
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Project Description</Form.Label>
-              <Form.Control as="textarea" rows={4} placeholder="Describe your requirements" />
+              <Form.Control
+                as="textarea"
+                rows={4}
+                placeholder="Describe your requirements"
+              />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Budget Range</Form.Label>
@@ -92,9 +122,9 @@ const Services = () => {
             </Form.Group>
             <Button
               style={{
-                background: 'linear-gradient(to right, #6a11cb, #2575fc)',
-                border: 'none',
-                borderRadius: '30px',
+                background: "linear-gradient(135deg, #1976d2),rgb(87, 52, 226)",
+                border: "none",
+                borderRadius: "30px",
               }}
               className="w-100 fw-bold"
               type="submit"
@@ -114,9 +144,9 @@ const Services = () => {
           <h6
             className="fw-semibold mb-3"
             style={{
-              borderLeft: '4px solid #6a11cb',
-              paddingLeft: '10px',
-              color: '#444',
+              borderLeft: "4px solid #6a11cb",
+              paddingLeft: "10px",
+              color: "#444",
             }}
           >
             {category}
@@ -147,24 +177,33 @@ const Services = () => {
                     handleCloseModal();
                   }}
                   className={`text-center d-flex flex-column justify-content-center align-items-center ${
-                    selectedService?.id === service.id ? 'border-primary shadow' : ''
+                    selectedService?.id === service.id
+                      ? "border-primary shadow"
+                      : ""
                   }`}
                   style={{
-                    width: '120px',
-                    height:'100px',
-                    cursor: 'pointer',
-                    border: '1px solid #ddd',
-                    borderRadius: '16px',
-                    transition: 'all 0.3s ease-in-out',
-                    boxShadow: selectedService?.id === service.id ? '0 0 10px rgba(106, 17, 203, 0.3)' : '',
+                    width: "120px",
+                    height: "100px",
+                    cursor: "pointer",
+                    border: "1px solid #ddd",
+                    borderRadius: "16px",
+                    transition: "all 0.3s ease-in-out",
+                    boxShadow:
+                      selectedService?.id === service.id
+                        ? "0 0 10px rgba(106, 17, 203, 0.3)"
+                        : "",
                   }}
                 >
                   <Image
                     src={`/icons/${service.id}.png`}
                     alt={service.title}
-                    style={{ width: '36px', height: '36px', marginBottom: '8px' }}
+                    style={{
+                      width: "36px",
+                      height: "36px",
+                      marginBottom: "8px",
+                    }}
                   />
-                  <div style={{ fontSize: '13px' }}>{service.title}</div>
+                  <div style={{ fontSize: "13px" }}>{service.title}</div>
                 </Card>
               </motion.div>
             ))}
@@ -175,19 +214,33 @@ const Services = () => {
   );
 
   return (
-    <Container fluid className="p-4" style={{ background: '#f8f9fa', minHeight: '100vh' }}>
+    <Container
+      fluid
+      className="p-4"
+      style={{ background: "hsl(214.3, 31.8%, 98%)", minHeight: "100vh" }}
+    >
       <motion.h4
-        className="mb-4 fw-bold text-dark"
+        className="mb-4 fw-bold"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        style={{ color: "#1a237e" }}
       >
         Services
       </motion.h4>
       <Row>
         <Col md={6} className="d-none d-md-block">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-            <Card className="p-4 shadow-sm border-0 rounded-4">{renderServiceCards()}</Card>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card
+              className="p-4 shadow-sm border-0 rounded-4"
+              style={{ backgroundColor: "hsl(214.3, 31.8%, 98%)" }}
+            >
+              {renderServiceCards()}
+            </Card>
           </motion.div>
         </Col>
         <Col md={6}>
@@ -196,9 +249,9 @@ const Services = () => {
               onClick={handleOpenModal}
               className="w-100 fw-bold text-white"
               style={{
-                background: 'linear-gradient(to right, #8e2de2, #4a00e0)',
-                border: 'none',
-                borderRadius: '10px',
+                background: "linear-gradient(to right, #8e2de2, #4a00e0)",
+                border: "none",
+                borderRadius: "10px",
               }}
             >
               Select Service

@@ -76,16 +76,20 @@ function Reports() {
   );
 
   return (
-    <div className="bg-white px-3">
+    <div
+      className="px-3"
+      style={{ backgroundColor: "hsl(214.3, 31.8%, 98%)", minHeight: "100vh" }}
+    >
       <Container fluid className="py-4">
+        {/* Header */}
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h4 className="fw-bold ">Business Reports</h4>
+          <h4 className="fw-bold" style={{ color: "#1a237e" }}>Business Reports</h4>
           <Button
             variant="outline-secondary"
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
             style={{
-              background: "linear-gradient(135deg,rgb(87, 52, 226), #7d68c3)",
+              background: "linear-gradient(135deg, #1976d2),rgb(87, 52, 226)",
               border: "none",
               color: "#fff",
               borderRadius: "50px",
@@ -99,6 +103,7 @@ function Reports() {
           </Button>
         </div>
 
+        {/* Filters Collapse */}
         <Collapse in={showFilters}>
           <div className="mb-4">
             <Card className="p-4 shadow-sm border-0 rounded-3 bg-white">
@@ -163,7 +168,7 @@ function Reports() {
           </div>
         </Collapse>
 
-        {/* Request Report Modal */}
+        {/* Modal */}
         <Modal show={showModal} onHide={() => setShowModal(false)} centered>
           <Modal.Header closeButton>
             <Modal.Title>
@@ -254,6 +259,7 @@ function Reports() {
           </Modal.Body>
         </Modal>
 
+        {/* Tab Filter */}
         <div className="w-100 d-flex justify-content-between mb-3">
           {["all", "completed", "pending"].map((key) => (
             <Button
@@ -282,6 +288,7 @@ function Reports() {
           ))}
         </div>
 
+        {/* Report Cards */}
         <Row className="g-4 mt-3">
           {filtered.length ? (
             filtered.map((r, i) => (

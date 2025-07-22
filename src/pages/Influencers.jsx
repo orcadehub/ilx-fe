@@ -72,6 +72,7 @@ function Influencers() {
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
   const [audienceCountry, setAudienceCountry] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Store all selected filters
   const getSelectedFilters = () => ({
@@ -204,18 +205,20 @@ function Influencers() {
       <div
         className="p-3 col-12 col-lg-4"
         style={{
-          background: "linear-gradient(to bottom, #fefefe, #f4f4f7)",
+          backgroundColor: "hsl(214.3, 31.8%, 98%)",
           borderRight: "1px solid #e0e0e0",
           height: "calc(90vh)", // Reduced height
           borderRadius: "16px",
         }}
       >
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h6 className="fw-semibold fs-4">Influencers</h6>
+          <h6 className="fw-semibold fs-4" style={{ color: "#1a237e" }}>
+            Influencers
+          </h6>
           <button
             className="btn btn-sm "
             style={{
-              background: "linear-gradient(135deg,rgb(87, 52, 226), #7d68c3)",
+              background: "linear-gradient(135deg,rgb(87, 52, 226), #1976d2)",
               border: "none",
               color: "#fff",
               borderRadius: "50px",
@@ -285,6 +288,8 @@ function Influencers() {
         <input
           className="form-control mb-3"
           placeholder="Search..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
           style={{
             borderRadius: "12px",
             fontSize: "0.85rem",
@@ -293,75 +298,94 @@ function Influencers() {
           }}
         />
 
-        <div className="overflow-auto" style={{ height: "calc(90vh - 120px)" }}>
-          {data.map((inf, index) => (
-            <div
-              key={inf.id}
-              className="d-flex align-items-start p-2"
-              onClick={() => setSelected(inf)}
-              style={{
-                background: "#fff",
-                cursor: index >= 5 ? "default" : "pointer",
-                pointerEvents: index >= 5 ? "none" : "auto",
-                opacity: index >= 5 ? 0.5 : 1,
-                minHeight: "70px",
-                transition: "0.2s",
-                filter: index >= 5 ? "blur(2px)" : "none",
-              }}
-            >
-              <img
-                src={inf.profilePic}
-                alt="profile"
-                width="50"
-                height="50"
-                className="rounded-circle border"
+        <div
+          className="overflow-auto"
+          style={{
+            height: "calc(90vh - 120px)",
+            backgroundColor: "hsl(214.3, 31.8%, 98%)",
+          }}
+        >
+          {data
+            .filter((inf) => inf.username.toLowerCase().includes(searchTerm))
+            .map((inf, index) => (
+              <div
+                key={inf.id}
+                className="d-flex align-items-start p-2 mb-2 rounded transition-all"
+                onClick={() => setSelected(inf)}
                 style={{
-                  borderColor: "#FFD700",
-                  borderWidth: "2px",
-                  borderStyle: "solid",
-                  marginTop: "4px",
+                  background: "#fff",
+                  cursor: index >= 5 ? "default" : "pointer",
+                  pointerEvents: index >= 5 ? "none" : "auto",
+                  opacity: index >= 5 ? 0.5 : 1,
+                  minHeight: "70px",
+                  filter: index >= 5 ? "blur(2px)" : "none",
+                  transition: "all 0.2s ease-in-out",
                 }}
-              />
-              <div className="ms-3 w-100">
-                <div
-                  className="fw-medium text-dark"
-                  style={{ fontSize: "0.9rem" }}
-                >
-                  {inf.username}
-                </div>
-                <div
-                  className="text-muted mb-1"
-                  style={{ fontSize: "0.75rem" }}
-                >
-                  {inf.category}
-                </div>
-                <div className="d-flex flex-wrap gap-3 small text-secondary">
-                  <span className="d-flex align-items-center gap-1">
-                    <FaInstagram style={{ color: "#E1306C" }} size={14} />{" "}
-                    <span>{inf.stats.instagram}</span>
-                  </span>
-                  <span className="d-flex align-items-center gap-1">
-                    <FaFacebook style={{ color: "#1877F2" }} size={14} />{" "}
-                    {inf.data?.facebook?.friends?.summary?.total_count ? (
+                onMouseEnter={(e) => {
+                  if (index < 5) {
+                    e.currentTarget.style.boxShadow =
+                      "0 4px 12px rgba(0,0,0,0.05)";
+                    e.currentTarget.style.backgroundColor = "#f9f9ff";
+                    e.currentTarget.style.transform = "scale(1.015)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (index < 5) {
+                    e.currentTarget.style.boxShadow = "none";
+                    e.currentTarget.style.backgroundColor = "#fff";
+                    e.currentTarget.style.transform = "scale(1)";
+                  }
+                }}
+              >
+                <img
+                  src={inf.profilePic}
+                  alt="profile"
+                  width="50"
+                  height="50"
+                  className="rounded-circle border"
+                  style={{
+                    borderColor: "#FFD700",
+                    borderWidth: "2px",
+                    borderStyle: "solid",
+                    marginTop: "4px",
+                  }}
+                />
+                <div className="ms-3 w-100">
+                  <div
+                    className="fw-medium text-dark"
+                    style={{ fontSize: "0.9rem" }}
+                  >
+                    {inf.username}
+                  </div>
+                  <div
+                    className="text-muted mb-1"
+                    style={{ fontSize: "0.75rem" }}
+                  >
+                    {inf.category}
+                  </div>
+                  <div className="d-flex flex-wrap gap-3 small text-secondary">
+                    <span className="d-flex align-items-center gap-1">
+                      <FaInstagram style={{ color: "#E1306C" }} size={14} />{" "}
+                      <span>{inf.stats.instagram}</span>
+                    </span>
+                    <span className="d-flex align-items-center gap-1">
+                      <FaFacebook style={{ color: "#1877F2" }} size={14} />{" "}
                       <span>
-                        {inf.data.facebook.friends.summary.total_count}
+                        {inf.data?.facebook?.friends?.summary?.total_count || 0}
                       </span>
-                    ) : (
-                      <span>0</span>
-                    )}
-                  </span>
-                  <span className="d-flex align-items-center gap-1">
-                    <FaTwitter style={{ color: "#1DA1F2" }} size={14} />{" "}
-                    <span>{inf.stats.twitter}</span>
-                  </span>
-                  <span className="d-flex align-items-center gap-1">
-                    <FaYoutube style={{ color: "#FF0000" }} size={14} />{" "}
-                    <span>{inf.stats.youtube}</span>
-                  </span>
+                    </span>
+                    <span className="d-flex align-items-center gap-1">
+                      <FaTwitter style={{ color: "#1DA1F2" }} size={14} />{" "}
+                      <span>{inf.stats.twitter}</span>
+                    </span>
+                    <span className="d-flex align-items-center gap-1">
+                      <FaYoutube style={{ color: "#FF0000" }} size={14} />{" "}
+                      <span>{inf.stats.youtube}</span>
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
 
@@ -370,7 +394,7 @@ function Influencers() {
         className="right-panel p-4 overflow-auto"
         style={{
           borderRadius: "1rem",
-          background: "#fff",
+          backgroundColor: "hsl(214.3, 31.8%, 98%)",
           minHeight: "100%",
         }}
       >
@@ -379,7 +403,22 @@ function Influencers() {
             {/* Header */}
             <div className="d-flex justify-content-between align-items-center mb-4">
               <h4 className="fw-bold mb-0">Profile</h4>
-              <button className="btn btn-primary">Book</button>
+              <button
+                className="btn"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #1976d2),rgb(87, 52, 226)",
+                  border: "none",
+                  color: "#fff",
+                  borderRadius: "50px",
+                  padding: "0.6rem 1.5rem",
+                  fontWeight: 600,
+                  fontSize: "0.95rem",
+                  boxShadow: "0 4px 14px rgba(125, 104, 195, 0.25)",
+                }}
+              >
+                Book
+              </button>
             </div>
 
             {/* Profile Card */}

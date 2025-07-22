@@ -5,6 +5,15 @@
   overflow-x: hidden;
 }
 
+.order-hover {
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.order-hover:hover {
+  background-color: #b0beee;
+}
+
+
 @media (max-width: 768px) {
   .custom-orders-wrapper {
     width: 100vw;

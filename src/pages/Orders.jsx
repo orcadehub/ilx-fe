@@ -24,41 +24,48 @@ import {
 import { useNavigate } from "react-router-dom";
 import "./Orders.css";
 
+
 const customStyles = `
   .custom-select {
-    border: 1px solid #d6cfe6;
+    border: 1px solid hsl(214.3, 25%, 85%);
     border-radius: 30px;
-    background-color: #f9f8fc;
-    color: #5c4d7d;
+    background-color: hsl(214.3, 31.8%, 98%);
+    color: hsl(220, 15%, 30%);
     padding: 0.5rem 1rem;
     font-weight: 500;
     box-shadow: none;
     transition: border-color 0.2s ease-in-out;
   }
+
   .custom-select:focus {
-    border-color: #c1b2d9;
-    box-shadow: 0 0 0 0.15rem rgba(193, 178, 217, 0.3);
+    border-color: hsl(214.3, 40%, 75%);
+    box-shadow: 0 0 0 0.15rem hsla(214.3, 40%, 75%, 0.3);
     outline: none;
-    background-color: #f9f8fc;
+    background-color: hsl(214.3, 31.8%, 95%);
   }
+
   .custom-select option {
-    background-color: #fff !important;
-    color: #333 !important;
+    background-color: hsl(214.3, 31.8%, 98%) !important;
+    color: hsl(220, 15%, 30%) !important;
   }
+
   .info-section {
-    background-color: #f8f9fa;
+    background-color: hsl(214.3, 31.8%, 98%);
     border-radius: 8px;
     padding: 1rem;
     margin-bottom: 1rem;
+    border: 1px solid hsl(214.3, 25%, 90%);
   }
+
   .info-item {
     display: flex;
     align-items: center;
     margin-bottom: 0.5rem;
   }
+
   .info-icon {
     margin-right: 0.75rem;
-    color: #6c757d;
+    color: hsl(220, 10%, 50%);
     min-width: 20px;
   }
 `;
@@ -265,7 +272,7 @@ function Orders() {
   const [showFilters, setShowFilters] = useState(false);
   const [tabKey, setTabKey] = useState("All");
   const [selectedOrder, setSelectedOrder] = useState(null);
-
+  const [isHovered, setIsHovered] = useState(false);
   const parseDate = (dt) =>
     dt
       ? new Date(dt).toLocaleString("default", {
@@ -330,14 +337,19 @@ function Orders() {
     <div className="custom-orders-wrapper">
       <style>{customStyles}</style>
 
-      <Container fluid className="px-md-5 py-5 ">
-        <Row className="align-items-center justify-content-center  mb-5">
+      <Container
+        fluid
+        className="px-md-5 py-5"
+        style={{ backgroundColor: "hsl(214.3, 31.8%, 98%)" }}
+      >
+        <Row className="align-items-center justify-content-center mb-5">
           <Col xs={12} md={8}>
             <h2
               className="fw-bold mb-2"
               style={{
                 fontSize: "1.5rem",
                 letterSpacing: "-0.5px",
+                color: "hsl(230, 70%, 20%)",
               }}
             >
               Orders Dashboard
@@ -347,7 +359,7 @@ function Orders() {
               style={{
                 fontFamily: "'Inter', sans-serif",
                 fontSize: "1.05rem",
-                color: "#6c757d",
+                color: "hsl(220, 10%, 40%)",
               }}
             >
               View, filter and manage all your influencer orders
@@ -358,7 +370,8 @@ function Orders() {
             <Button
               onClick={() => setShowFilters((s) => !s)}
               style={{
-                background: "linear-gradient(135deg,rgb(87, 52, 226), #7d68c3)",
+                background:
+                  "linear-gradient(135deg, rgb(87, 52, 226), #7d68c3)",
                 border: "none",
                 color: "#fff",
                 borderRadius: "50px",
@@ -374,7 +387,10 @@ function Orders() {
         </Row>
 
         <Collapse in={showFilters}>
-          <div className="card mb-4 shadow-sm p-3 border-0 bg-white">
+          <div
+            className="card mb-4 shadow-sm p-3 border-0"
+            style={{ backgroundColor: "hsl(214.3, 31.8%, 98%)" }}
+          >
             <Form>
               <Row className="gx-4 gy-3">
                 <Col md={3}>
@@ -426,7 +442,7 @@ function Orders() {
                 <Col md={3}>
                   <Button
                     style={{
-                      backgroundColor: "#aaa",
+                      backgroundColor: "hsl(220, 10%, 65%)",
                       border: "none",
                       color: "#fff",
                       borderRadius: "50px",
@@ -441,6 +457,7 @@ function Orders() {
             </Form>
           </div>
         </Collapse>
+
         <div className="d-flex justify-content-between gap-3 mb-4">
           {["All", "Pending", "Completed"].map((key) => (
             <Button
@@ -448,12 +465,13 @@ function Orders() {
               onClick={() => setTabKey(key)}
               className="flex-fill"
               style={{
-                backgroundColor: "#fff",
-                color: tabKey === key ? "#000" : "#5c4d7d",
+                backgroundColor: "hsl(214.3, 31.8%, 98%)",
+                color:
+                  tabKey === key ? "hsl(230, 50%, 10%)" : "hsl(220, 10%, 50%)",
                 border: "none",
                 borderBottom:
                   tabKey === key
-                    ? "3px solid #1A237E"
+                    ? "3px solid hsl(230, 70%, 25%)"
                     : "3px solid transparent",
                 width: "100%",
                 borderRadius: "10px",
@@ -466,9 +484,12 @@ function Orders() {
           ))}
         </div>
 
-        <div className="card shadow-sm border-0 bg-white">
+        <div
+          className="card shadow-sm border-0"
+          style={{ backgroundColor: "hsl(214.3, 31.8%, 98%)" }}
+        >
           <Table responsive className="mb-0">
-            <thead className="table-light">
+            <thead style={{ backgroundColor: "hsl(214.3, 31.8%, 95%)" }}>
               <tr>
                 {[
                   "Username",
@@ -481,14 +502,27 @@ function Orders() {
                   "Status",
                   "Actions",
                 ].map((h) => (
-                  <th key={h}>{h}</th>
+                  <th key={h} style={{ color: "hsl(230, 50%, 20%)" }}>
+                    {h}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {getFilteredByStatus().length > 0 ? (
                 getFilteredByStatus().map((o) => (
-                  <tr key={o.id}>
+                  <tr
+                    key={o.id}
+                    onClick={() => setSelectedOrder(o)}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                    style={{
+                      cursor: "pointer",
+                      transition: "background 0.2s ease",
+                      backgroundColor: isHovered ? "#eef2ff" : "transparent",
+                    }}
+                    className="order-row"
+                  >
                     <td>{o.username}</td>
                     <td>{parseDate(o.orderDate)}</td>
                     <td>{o.scheduledDate || "—"}</td>
@@ -507,14 +541,20 @@ function Orders() {
                       <Button
                         size="sm"
                         style={{ backgroundColor: "#8e7cc3", border: "none" }}
-                        onClick={() => setSelectedOrder(o)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedOrder(o);
+                        }}
                       >
                         <Eye />
                       </Button>
                       <Button
                         size="sm"
                         style={{ backgroundColor: "#c94c4c", border: "none" }}
-                        onClick={() => handleReject(o.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleReject(o.id);
+                        }}
                       >
                         <XCircle />
                       </Button>
@@ -522,7 +562,10 @@ function Orders() {
                         <Button
                           size="sm"
                           style={{ backgroundColor: "#4bb543", border: "none" }}
-                          onClick={() => handleCheckout(o)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCheckout(o);
+                          }}
                         >
                           <CreditCard />
                         </Button>

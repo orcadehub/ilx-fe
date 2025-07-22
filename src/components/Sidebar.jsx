@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Drawer,
   List,
@@ -12,7 +12,7 @@ import {
   useMediaQuery,
   Box,
   Divider,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Dashboard,
   People,
@@ -23,8 +23,8 @@ import {
   ShoppingBag,
   Menu as MenuIcon,
   ChevronLeft,
-} from '@mui/icons-material';
-import { Link, useLocation } from 'react-router-dom';
+} from "@mui/icons-material";
+import { Link, useLocation } from "react-router-dom";
 
 const fullDrawerWidth = 240;
 const collapsedDrawerWidth = 80;
@@ -32,7 +32,7 @@ const collapsedDrawerWidth = 80;
 const Sidebar = ({ mobileOpen, handleDrawerToggle, darkMode, setDarkMode }) => {
   const theme = useTheme();
   const location = useLocation();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [open, setOpen] = useState(true);
 
   const user = JSON.parse(localStorage.getItem("user"));
@@ -42,39 +42,71 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, darkMode, setDarkMode }) => {
 
   if (role === "business") {
     menuItems = [
-      { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
-      { text: 'Influencers', icon: <People />, path: '/dashboard/influencers' },
-      { text: 'Chats', icon: <Chat />, path: '/dashboard/chats' },
-      { text: 'Reach', icon: <BarChart />, path: '/dashboard/reach' },
-      { text: 'Services', icon: <Settings />, path: '/dashboard/services' },
-      { text: 'Reports', icon: <InsertChartOutlined />, path: '/dashboard/reports' },
-      { text: 'Orders', icon: <ShoppingBag />, path: '/dashboard/orders' },
+      { text: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
+      { text: "Influencers", icon: <People />, path: "/dashboard/influencers" },
+      { text: "Chats", icon: <Chat />, path: "/dashboard/chats" },
+      { text: "Reach", icon: <BarChart />, path: "/dashboard/reach" },
+      { text: "Services", icon: <Settings />, path: "/dashboard/services" },
+      {
+        text: "Reports",
+        icon: <InsertChartOutlined />,
+        path: "/dashboard/reports",
+      },
+      { text: "Orders", icon: <ShoppingBag />, path: "/dashboard/orders" },
     ];
   } else if (role === "influencer") {
     menuItems = [
-      { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
-      { text: 'Influencers', icon: <People />, path: '/dashboard/influencers' },
-      { text: 'Chats', icon: <Chat />, path: '/dashboard/chats' },
-      { text: 'Reach', icon: <BarChart />, path: '/dashboard/reach' },
-      { text: 'Services', icon: <Settings />, path: '/dashboard/services' },
-      { text: 'Reports', icon: <InsertChartOutlined />, path: '/dashboard/reports' },
-      { text: 'Orders', icon: <ShoppingBag />, path: '/dashboard/orders' },
-      { text: 'Campaigns', icon: <InsertChartOutlined />, path: '/dashboard/campaigns' },
-      { text: 'Earnings', icon: <ShoppingBag />, path: '/dashboard/earnings' },
+      { text: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
+      { text: "Influencers", icon: <People />, path: "/dashboard/influencers" },
+      { text: "Chats", icon: <Chat />, path: "/dashboard/chats" },
+      { text: "Reach", icon: <BarChart />, path: "/dashboard/reach" },
+      { text: "Services", icon: <Settings />, path: "/dashboard/services" },
+      {
+        text: "Reports",
+        icon: <InsertChartOutlined />,
+        path: "/dashboard/reports",
+      },
+      { text: "Orders", icon: <ShoppingBag />, path: "/dashboard/orders" },
+      {
+        text: "Campaigns",
+        icon: <InsertChartOutlined />,
+        path: "/dashboard/campaigns",
+      },
+      { text: "Earnings", icon: <ShoppingBag />, path: "/dashboard/earnings" },
     ];
   } else if (role === "admin") {
     menuItems = [
-      { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
-      { text: 'Business Users', icon: <People />, path: '/dashboard/business-users' },
-      { text: 'Influencers', icon: <People />, path: '/dashboard/influencers' },
-      { text: 'Analytics', icon: <BarChart />, path: '/dashboard/analytics' },
-      { text: 'Team Management', icon: <Settings />, path: '/dashboard/team' },
-      { text: 'Reports', icon: <InsertChartOutlined />, path: '/dashboard/reports' },
-      { text: 'Support', icon: <Chat />, path: '/dashboard/support' },
-      { text: 'Marketing', icon: <BarChart />, path: '/dashboard/marketing' },
-      { text: 'Service Orders', icon: <ShoppingBag />, path: '/dashboard/service-orders' },
-      { text: 'Wallet Settings', icon: <Settings />, path: '/dashboard/wallet-settings' },
-      { text: 'Site Settings', icon: <Settings />, path: '/dashboard/site-settings' },
+      { text: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
+      {
+        text: "Business Users",
+        icon: <People />,
+        path: "/dashboard/business-users",
+      },
+      { text: "Influencers", icon: <People />, path: "/dashboard/influencers" },
+      { text: "Analytics", icon: <BarChart />, path: "/dashboard/analytics" },
+      { text: "Team Management", icon: <Settings />, path: "/dashboard/team" },
+      {
+        text: "Reports",
+        icon: <InsertChartOutlined />,
+        path: "/dashboard/reports",
+      },
+      { text: "Support", icon: <Chat />, path: "/dashboard/support" },
+      { text: "Marketing", icon: <BarChart />, path: "/dashboard/marketing" },
+      {
+        text: "Service Orders",
+        icon: <ShoppingBag />,
+        path: "/dashboard/service-orders",
+      },
+      {
+        text: "Wallet Settings",
+        icon: <Settings />,
+        path: "/dashboard/wallet-settings",
+      },
+      {
+        text: "Site Settings",
+        icon: <Settings />,
+        path: "/dashboard/site-settings",
+      },
     ];
   }
 
@@ -83,33 +115,48 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, darkMode, setDarkMode }) => {
   const drawerContent = (
     <Box
       sx={{
-        background: darkMode ? '#121212' : '#ffffff',
-        height: '100%',
-        color: darkMode ? '#fff' : '#000',
-        borderRight: '1px solid #ccc',
+        background: "hsl(214.3 31.8% 98%)",
+        height: "100%",
+        color: darkMode ? "#ffffff" : "#1a1a1a",
+        borderRight: darkMode ? "1px solid #2c2c2c" : "1px solid #e0e0e0",
       }}
     >
       <Toolbar
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
           px: open ? 2 : 1,
         }}
       >
         <Box display="flex" alignItems="center" gap={1}>
-          {open && <Typography variant="h6" className='fs-4'>InfluexKonnect</Typography>}
+          {open && (
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 700,
+                fontSize: "1.5rem",
+                color: (theme) => theme.palette.primary.main,
+              }}
+            >
+              Influex<span style={{ color: "#000" }}>Konnect</span>
+            </Typography>
+          )}
         </Box>
-        <IconButton onClick={handleSidebarToggle}>
+        <IconButton
+          onClick={handleSidebarToggle}
+          sx={{ color: darkMode ? "#ddd" : "#444" }}
+        >
           {open ? <ChevronLeft /> : <MenuIcon />}
         </IconButton>
       </Toolbar>
 
-      <Divider />
+      <Divider sx={{ borderColor: darkMode ? "#2c2c2c" : "#e0e0e0" }} />
 
       <List>
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
+
           return (
             <ListItem
               button
@@ -118,23 +165,23 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, darkMode, setDarkMode }) => {
               to={item.path}
               onClick={handleDrawerToggle}
               sx={{
-                color: isActive ? theme.palette.primary.main : darkMode ? '#fff' : '#000',
-                borderRadius: 1,
-                mt: 1,
+                color: isActive ? "#ffffff" : "#333",
+                borderRadius: 2,
+                m: 1,
                 px: open ? 2 : 1,
-                justifyContent: open ? 'flex-start' : 'center',
-                backgroundColor: isActive ? 'rgba(0,0,0,0.08)' : 'transparent',
-                '&:hover': {
-                  backgroundColor: 'rgba(0,0,0,0.04)',
+                justifyContent: open ? "flex-start" : "center",
+                backgroundColor: isActive ? "#1070e0" : "transparent",
+                "&:hover": {
+                  backgroundColor: "#bccfe5",
                 },
               }}
             >
               <ListItemIcon
                 sx={{
-                  color: 'inherit',
+                  color: "inherit",
                   minWidth: 0,
                   mr: open ? 2 : 0,
-                  justifyContent: 'center',
+                  justifyContent: "center",
                 }}
               >
                 {item.icon}
@@ -156,10 +203,10 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, darkMode, setDarkMode }) => {
           onClose={handleDrawerToggle}
           ModalProps={{ keepMounted: true }}
           sx={{
-            display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': {
+            display: { xs: "block", sm: "none" },
+            "& .MuiDrawer-paper": {
               width: fullDrawerWidth,
-              boxSizing: 'border-box',
+              boxSizing: "border-box",
             },
           }}
         >
@@ -172,14 +219,14 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, darkMode, setDarkMode }) => {
           variant="permanent"
           open={open}
           sx={{
-            display: { xs: 'none', sm: 'block' },
+            display: { xs: "none", sm: "block" },
             width: open ? fullDrawerWidth : collapsedDrawerWidth,
             flexShrink: 0,
-            '& .MuiDrawer-paper': {
+            "& .MuiDrawer-paper": {
               width: open ? fullDrawerWidth : collapsedDrawerWidth,
-              boxSizing: 'border-box',
-              overflowX: 'hidden',
-              transition: theme.transitions.create('width', {
+              boxSizing: "border-box",
+              overflowX: "hidden",
+              transition: theme.transitions.create("width", {
                 easing: theme.transitions.easing.sharp,
                 duration: theme.transitions.duration.enteringScreen,
               }),

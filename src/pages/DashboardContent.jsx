@@ -232,32 +232,43 @@ function DashboardContent() {
   return (
     <div
       className="py-5"
-      style={{ minHeight: "100vh", backgroundColor: "white" }}
+      style={{ minHeight: "100vh", backgroundColor: "hsl(214.3 31.8% 98%)" }}
     >
       <Container fluid>
         {/* Dashboard Title */}
         <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-          <div className="d-flex justify-content-between align-items-center mb-5 px-3">
+          <div
+            className="d-flex justify-content-between align-items-center mb-5 px-4 py-3 rounded shadow-sm"
+            style={{
+              backgroundColor: "hsl(214.3, 31.8%, 98%)", // consistent light blue
+              borderLeft: "5px solid #1A237E",
+            }}
+          >
             {/* Left Side: Heading and Subheading */}
             <div>
-              <h4 className="fw-bold mb-1" style={{ color: "#1A237E" }}>
+              <h4
+                className="fw-bold mb-2"
+                style={{ color: "#1A237E", fontSize: "1.75rem" }}
+              >
                 {user?.role === "admin"
                   ? "Admin Dashboard"
                   : user?.role === "influencer"
                   ? "Influencer Dashboard"
                   : "Business Dashboard"}
               </h4>
-
-              <p className="text-muted mb-0" style={{ fontSize: "0.9rem" }}>
+              <p
+                className="text-muted"
+                style={{ fontSize: "1rem", marginBottom: 0 }}
+              >
                 Monitor performance, orders, influencers, and more.
               </p>
             </div>
 
             {/* Right Side: Button */}
-            <div className="text-center my-2">
+            <div className="text-center">
               <button
-                className="btn btn-primary btn-sm rounded-pill px-3 py-2 shadow-sm w-100 d-sm-inline d-md-inline d-lg-inline"
-                style={{ maxWidth: "200px" }}
+                className="btn btn-outline-primary rounded-pill px-4 py-2 shadow-sm"
+                style={{ fontWeight: 500 }}
                 onClick={() => navigate("/dashboard/influencers")}
               >
                 Find Influencers
@@ -280,7 +291,7 @@ function DashboardContent() {
                   onClick={() => navigate(card.path)}
                   className="shadow-sm border-0 premium-card"
                   style={{
-                    background: "linear-gradient(to bottom, #ffffff, #f8f9fa)",
+                    background: "hsl(214.3 31.8% 98%)",
                     borderRadius: "1rem",
                     transition: "transform 0.3s ease",
                     cursor: "pointer",
@@ -321,164 +332,214 @@ function DashboardContent() {
         </Row>
 
         {/* Top Content Section */}
-      {role!=="admin" && (  <Row className="g-4 px-3 mb-5">
-          <Col md={6}>
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={fadeUp}
-              custom={1}
-            >
-              <Card className="shadow-sm border-0 h-100 scrollable-equal-height">
-                <Card.Body>
-                  <div className="d-flex justify-content-between align-items-center mb-5">
-                    <h5 className="fw-bold mb-0">Top Performed Orders</h5>
-                    <Badge
-                      bg="light"
-                      text="dark"
-                      className="rounded-pill px-3 py-2"
-                    >
-                      View All <FaArrowRight className="ms-2" size={12} />
-                    </Badge>
-                  </div>
+        {role !== "admin" && (
+          <Row className="g-4 px-3 mb-5">
+            {/* Top Performed Orders */}
+            <Col md={6}>
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={fadeUp}
+                custom={1}
+              >
+                <Card
+                  className="border-0 shadow-sm h-100 scrollable-equal-height"
+                  style={{
+                    backgroundColor: "hsl(214.3, 31.8%, 98%)",
+                    borderRadius: "1rem",
+                  }}
+                >
+                  <Card.Body>
+                    <div className="d-flex justify-content-between align-items-center mb-4">
+                      <h5 className="fw-bold mb-0 text-dark">
+                        Top Performed Orders
+                      </h5>
+                      <Badge
+                        bg="light"
+                        text="dark"
+                        className="rounded-pill px-3 py-2 shadow-sm"
+                        style={{ cursor: "pointer" }}
+                      >
+                        View All <FaArrowRight className="ms-2" size={12} />
+                      </Badge>
+                    </div>
 
-                  <div className="scroll-content">
-                    <Table hover className="mb-0">
-                      <thead>
-                        <tr>
-                          <th>Order</th>
-                          <th>Platform</th>
-                          <th>Type</th>
-                          <th className="text-end">Performance</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {top.map((order, idx) => (
-                          <tr
-                            key={idx}
-                            className="cursor-pointer"
-                            onClick={() => navigate(order.link)}
-                          >
-                            <td className="fw-medium">{order.title}</td>
-                            <td>{order.platform}</td>
-                            <td>{order.type}</td>
-                            <td className="text-end fw-bold">{order.value}</td>
+                    <div
+                      className="scroll-content"
+                      style={{
+                        backgroundColor: "hsl(214.3, 31.8%, 98%)",
+                        borderRadius: "1rem",
+                      }}
+                    >
+                      <Table hover className="mb-0">
+                        <thead>
+                          <tr className="text-muted large">
+                            <th>Order</th>
+                            <th>Platform</th>
+                            <th>Type</th>
+                            <th className="text-end">Performance</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </Table>
-                  </div>
-                </Card.Body>
-              </Card>
-            </motion.div>
-          </Col>
+                        </thead>
+                        <tbody>
+                          {top.map((order, idx) => (
+                            <tr
+                              key={idx}
+                              className="cursor-pointer"
+                              onClick={() => navigate(order.link)}
+                              style={{
+                                backgroundColor: "hsl(214.3, 31.8%, 98%)",
+                              }}
+                            >
+                              <td className="fw-medium">{order.title}</td>
+                              <td>{order.platform}</td>
+                              <td>{order.type}</td>
+                              <td className="text-end fw-bold">
+                                {order.value}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                    </div>
+                  </Card.Body>
+                </Card>
+              </motion.div>
+            </Col>
 
-          <Col md={6}>
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={fadeUp}
-              custom={2}
-            >
-              <Card className="shadow-sm border-0 h-100 scrollable-equal-height">
-                <Card.Body>
-                  <div className="d-flex justify-content-between align-items-center mb-4 w-100">
-                    <h5 className="fw-bold mb-0">Top Influencers</h5>
-                    <Badge
-                      bg="light"
-                      text="dark"
-                      className="rounded-pill px-3 py-2"
-                    >
-                      View All <FaArrowRight className="ms-2" size={12} />
-                    </Badge>
-                  </div>
+            {/* Top Influencers */}
+            <Col md={6}>
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={fadeUp}
+                custom={2}
+              >
+                <Card
+                  className="border-0 shadow-sm h-100 scrollable-equal-height"
+                  style={{
+                    backgroundColor: "hsl(214.3, 31.8%, 98%)",
+                    borderRadius: "1rem",
+                  }}
+                >
+                  <Card.Body>
+                    <div className="d-flex justify-content-between align-items-center mb-2">
+                      <h5 className="fw-bold mb-0 text-dark">
+                        Top Influencers
+                      </h5>
+                      <Badge
+                        bg="light"
+                        text="dark"
+                        className="rounded-pill px-3 py-2 shadow-sm"
+                        style={{ cursor: "pointer" }}
+                      >
+                        View All <FaArrowRight className="ms-2" size={12} />
+                      </Badge>
+                    </div>
 
-                  <div
-                    className="scroll-content"
-                    style={{ overflowX: "hidden" }}
-                  >
-                    <div className="row gx-0">
-                      {[
-                        {
-                          name: "Fashion Forward",
-                          handle: "@fashionforward",
-                          orders: 28,
-                          img: "https://picsum.photos/seed/fashion/100",
-                        },
-                        {
-                          name: "Tech Haven",
-                          handle: "@techhaven",
-                          orders: 24,
-                          img: "https://picsum.photos/seed/tech/100",
-                        },
-                        {
-                          name: "Beauty Essentials",
-                          handle: "@beautyessentials",
-                          orders: 20,
-                          img: "https://picsum.photos/seed/beauty/100",
-                        },
-                        {
-                          name: "Health First",
-                          handle: "@healthfirst",
-                          orders: 16,
-                          img: "https://picsum.photos/seed/health/100",
-                        },
-                        {
-                          name: "Fitness Hub",
-                          handle: "@fitnesshub",
-                          orders: 14,
-                          img: "https://picsum.photos/seed/fitness/100",
-                        },
-                      ].map((user, index) => (
-                        <div
-                          key={index}
-                          className="w-100 d-flex justify-content-between align-items-center border-bottom py-1 cursor-pointer"
-                          onClick={() =>
-                            navigate(
-                              `/business/${user.handle.replace("@", "")}`
-                            )
-                          }
-                        >
-                          <div className="d-flex align-items-center">
-                            <img
-                              src={user.img}
-                              alt={user.name}
-                              className="rounded-circle me-3"
-                              width="40"
-                              height="40"
-                            />
+                    <div style={{ overflowX: "hidden" }}>
+                      <div className="row gx-0">
+                        {[
+                          {
+                            name: "Fashion Forward",
+                            handle: "@fashionforward",
+                            orders: 28,
+                            img: "https://picsum.photos/seed/fashion/100",
+                          },
+                          {
+                            name: "Tech Haven",
+                            handle: "@techhaven",
+                            orders: 24,
+                            img: "https://picsum.photos/seed/tech/100",
+                          },
+                          {
+                            name: "Beauty Essentials",
+                            handle: "@beautyessentials",
+                            orders: 20,
+                            img: "https://picsum.photos/seed/beauty/100",
+                          },
+                          {
+                            name: "Health First",
+                            handle: "@healthfirst",
+                            orders: 16,
+                            img: "https://picsum.photos/seed/health/100",
+                          },
+                          {
+                            name: "Fitness Hub",
+                            handle: "@fitnesshub",
+                            orders: 14,
+                            img: "https://picsum.photos/seed/fitness/100",
+                          },
+                        ].map((user, index) => (
+                          <div
+                            key={index}
+                            className="w-100 d-flex justify-content-between align-items-center border-bottom py-2 cursor-pointer"
+                            onClick={() =>
+                              navigate(
+                                `/business/${user.handle.replace("@", "")}`
+                              )
+                            }
+                          >
+                            <div className="d-flex align-items-center">
+                              <img
+                                src={user.img}
+                                alt={user.name}
+                                className="rounded-circle me-3"
+                                width="40"
+                                height="40"
+                              />
+                              <div>
+                                <h6 className="fw-bold mb-1 text-dark">
+                                  {user.name}
+                                </h6>
+                                <p className="text-muted mb-0 small">
+                                  {user.handle}
+                                </p>
+                              </div>
+                            </div>
                             <div>
-                              <h6 className="fw-bold mb-1">{user.name}</h6>
-                              <p className="text-muted mb-0">{user.handle}</p>
+                              <h6 className="fw-bold mb-0 text-end text-dark">
+                                {user.orders} orders
+                              </h6>
                             </div>
                           </div>
-                          <div>
-                            <h6 className="fw-bold mb-0 text-end">
-                              {user.orders} orders
-                            </h6>
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </Card.Body>
-              </Card>
-            </motion.div>
-          </Col>
-        </Row>)}
+                  </Card.Body>
+                </Card>
+              </motion.div>
+            </Col>
+          </Row>
+        )}
 
-       {role!=="admin" &&( <Row className="g-4 px-3">
-          <Col md={8}>
-            <PendingOrders />
-          </Col>
-          <Col md={4}>
-            <TopBusinessUsers />
-          </Col>
-        </Row>)}
+        {role !== "admin" && (
+          <div
+            className="d-flex flex-column gap-4 mb-4 px-4 py-3 rounded shadow-sm"
+            style={{
+              backgroundColor: "hsl(214.3, 31.8%, 98%)", // Same as dashboard background
+            }}
+          >
+            <Row className="g-4">
+              <Col md={8}>
+                <PendingOrders />
+              </Col>
+              <Col md={4}>
+                <TopBusinessUsers />
+              </Col>
+            </Row>
+          </div>
+        )}
 
-        {role==="admin" && (<div>
-          <AdminBusinUsers/>
-        </div>)}
+        {role === "admin" && (
+          <div
+            className="mb-4 px-4 py-3 rounded shadow-sm"
+            style={{
+              backgroundColor: "hsl(214.3, 31.8%, 98%)", // Same as dashboard background
+            }}
+          >
+            <AdminBusinUsers />
+          </div>
+        )}
       </Container>
     </div>
   );

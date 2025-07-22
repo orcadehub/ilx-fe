@@ -70,7 +70,7 @@ const HeaderD = ({ handleDrawerToggle }) => {
         position: "fixed",
         width: "100%",
         ml: { sm: `240px` },
-        bgcolor: "white",
+        bgcolor: "hsl(214.3 31.8% 98%)",
         color: "black",
         boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
         borderBottom: "1px solid #eee",

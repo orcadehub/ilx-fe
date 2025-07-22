@@ -246,7 +246,7 @@ function Chats() {
     // Set up interval to refresh every 5 seconds
     const interval = setInterval(() => {
       fetchMessages(contact.id);
-    }, 5000);
+    }, 2000);
 
     setRefreshInterval(interval);
   };
@@ -355,13 +355,13 @@ function Chats() {
     >
       <Row
         className="flex-grow-1 w-100"
-        style={{ overflow: "hidden", boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}
+        style={{ overflow: "hidden", backgroundColor: "hsl(214.3, 31.8%, 98%)", boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}
       >
         {/* Sidebar */}
         {(!isMobile || !showChat) && (
-          <Col xs={12} md={3} className="bg-white border-end px-0">
+          <Col xs={12} md={3} className="border-end px-0">
             <div className="px-4 py-3 border-bottom">
-              <h5 className="mb-0 fw-bold fs-4">Chats</h5>
+              <h5 className="mb-0 fw-bold fs-4" style={{ color: "#1a237e" }}>Chats</h5>
             </div>
             <div className="p-3 border-bottom">
               <Form.Control
@@ -422,50 +422,34 @@ function Chats() {
         {/* Chat Pane */}
         {(isMobile ? showChat : true) && (
           <Col xs={12} md={9} className="d-flex flex-column">
+           
             {/* Chat Header */}
-            <div className="d-flex align-items-center justify-content-between border-bottom p-3 bg-white">
-              <div className="d-flex align-items-center">
-                {isMobile && (
-                  <Button
-                    variant="light"
-                    className="me-2"
-                    onClick={() => setShowChat(false)}
-                  >
-                    ⬅
-                  </Button>
-                )}
-                {active && (
-                  <>
-                    <img
-                      src={active.avatar}
-                      alt="avatar"
-                      className="rounded-circle me-2"
-                      width={40}
-                      height={40}
-                    />
-                    <div>
-                      <div className="fw-semibold text-dark">{active.name}</div>
-                    </div>
-                  </>
-                )}
-              </div>
-              <Dropdown align="end">
-                <Dropdown.Toggle
-                  as="span"
-                  bsPrefix="p-0 border-0 bg-transparent"
+            <div className="d-flex align-items-center justify-content-start border-bottom p-3">
+              {isMobile && (
+                <Button
+                  variant="light"
+                  className="me-2"
+                  onClick={() => setShowChat(false)}
                 >
-                  <i
-                    className="bi bi-three-dots-vertical"
-                    style={{ fontSize: "1.3rem", cursor: "pointer" }}
-                  ></i>
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  <Dropdown.Item>Profile</Dropdown.Item>
-                  <Dropdown.Item>Settings</Dropdown.Item>
-                  <Dropdown.Divider />
-                  <Dropdown.Item>Logout</Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
+                  ⬅
+                </Button>
+              )}
+              {active && (
+                <>
+                  <img
+                    src={active.avatar}
+                    alt="avatar"
+                    className="rounded-circle me-2"
+                    width={40}
+                    height={40}
+                  />
+                  <div>
+                    <div className="fw-semibold text-dark fs-5">
+                      {active.name}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Messages */}
