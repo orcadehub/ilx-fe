@@ -18,6 +18,7 @@ import {
   CardGiftcard,
   AccountBalanceWallet,
   Settings,
+  Favorite,
   Logout,
   Payment,
   SupportAgent,
@@ -31,6 +32,12 @@ import { useNavigate } from "react-router-dom";
 
 const user = JSON.parse(localStorage.getItem("user"));
 const role = user?.role || "business"; // default to business
+import config from "../config";
+
+const baseURL =
+  import.meta.env.MODE === "development"
+    ? config.LOCAL_BASE_URL
+    : config.BASE_URL;
 
 const HeaderD = ({ handleDrawerToggle }) => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -60,8 +67,29 @@ const HeaderD = ({ handleDrawerToggle }) => {
   };
 
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("user"));
-    setUser(data);
+    const fetchAndUpdateUser = async () => {
+      const data = JSON.parse(localStorage.getItem("user"));
+      if (!data?.email) return;
+
+      setUser(data); // Set initial user from localStorage
+
+      try {
+        const response = await fetch(
+          `${baseURL}/api/user-details/${data.email}`
+        );
+        if (!response.ok) throw new Error("Failed to fetch user data");
+
+        const updatedUser = await response.json();
+
+        // Update localStorage and state
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        setUser(updatedUser);
+      } catch (err) {
+        console.error("Error fetching user details:", err);
+      }
+    };
+
+    fetchAndUpdateUser();
   }, []);
 
   return (
@@ -70,10 +98,10 @@ const HeaderD = ({ handleDrawerToggle }) => {
         position: "fixed",
         width: "100%",
         ml: { sm: `240px` },
-        bgcolor: "hsl(214.3 31.8% 98%)",
+        bgcolor: "var(--primary-color)",
         color: "black",
         boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-        borderBottom: "1px solid #eee",
+        borderBottom: "1px solid #e0e0e0",
       }}
     >
       <Toolbar sx={{ justifyContent: "space-between", px: 1 }}>
@@ -82,7 +110,7 @@ const HeaderD = ({ handleDrawerToggle }) => {
           <IconButton
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: "none" } }}
+            sx={{ mr: 2, display: { sm: "none" }, color: "black" }}
           >
             <MenuIcon />
           </IconButton>
@@ -109,7 +137,7 @@ const HeaderD = ({ handleDrawerToggle }) => {
             >
               <CardGiftcard sx={{ color: "#ff9800" }} />
               {!isMobile && (
-                <Typography variant="body2" fontWeight={500}>
+                <Typography variant="body2" fontWeight={500} color="black">
                   3 Offers
                 </Typography>
               )}
@@ -119,7 +147,10 @@ const HeaderD = ({ handleDrawerToggle }) => {
           {/* Wallet */}
           {role !== "admin" && (
             <Tooltip title="Wallet">
-              <IconButton onClick={() => navigate("/dashboard/wallet")}>
+              <IconButton
+                onClick={() => navigate("/dashboard/wallet")}
+                sx={{ color: "black" }}
+              >
                 <AccountBalanceWallet />
               </IconButton>
             </Tooltip>
@@ -127,10 +158,25 @@ const HeaderD = ({ handleDrawerToggle }) => {
 
           {/* Notifications */}
           <Tooltip title="Notifications">
-            <IconButton onClick={() => navigate("/dashboard/notifications")}>
+            <IconButton
+              onClick={() => navigate("/dashboard/notifications")}
+              sx={{ color: "black" }}
+            >
               <Notifications />
             </IconButton>
           </Tooltip>
+
+          {/* Wishlist */}
+          {role !== "admin" && (
+            <Tooltip title="My Wishlist">
+              <IconButton
+                onClick={() => navigate("/dashboard/mywishlist")}
+                sx={{ color: "black" }}
+              >
+                <Favorite />
+              </IconButton>
+            </Tooltip>
+          )}
 
           {/* Profile with name and email */}
           <Box
@@ -142,34 +188,35 @@ const HeaderD = ({ handleDrawerToggle }) => {
               px: 1,
               py: 0.5,
               borderRadius: 3,
-              "&:hover": { backgroundColor: "#f5f5f5" },
+              "&:hover": { backgroundColor: "#e5e9ed" },
             }}
             onClick={handleMenuOpen}
           >
             <Avatar
-              src={user.profilePic || ""}
+              src={user.profile_pic || ""}
               sx={{
-                bgcolor: user.profilePic ? "transparent" : "#1976d2",
+                bgcolor: user.profile_pic ? "transparent" : "#1976d2",
                 width: 34,
                 height: 34,
                 fontSize: 14,
                 fontWeight: 500,
+                color: user.profile_pic ? "inherit" : "white",
               }}
             >
-              {!user.profilePic && (user.fullname?.[0] || "U")}
+              {!user.profile_pic && (user.fullname?.[0] || "U")}
             </Avatar>
 
             {!isMobile && (
               <>
                 <Box sx={{ textAlign: "left" }}>
-                  <Typography variant="body2" fontWeight="bold">
+                  <Typography variant="body2" fontWeight="bold" color="black">
                     {user.fullname}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {user.email}
                   </Typography>
                 </Box>
-                <KeyboardArrowDown />
+                <KeyboardArrowDown sx={{ color: "black" }} />
               </>
             )}
           </Box>

@@ -43,7 +43,7 @@ const TopBusinessUsers = () => {
     <Card
       className="shadow-sm border-0 pending-orders-card"
       style={{
-        backgroundColor: "hsl(214.3, 31.8%, 98%)",
+        backgroundColor: "#fff",
         borderRadius: "1rem",
       }}
     >
@@ -57,12 +57,12 @@ const TopBusinessUsers = () => {
         {users.map((user, index) => (
           <div
             key={index}
-            className="d-flex align-items-center justify-content-between mb-3 px-3 py-2 rounded cursor-pointer"
+            className="d-flex align-items-center justify-content-between mb-1 px-3 py-2 rounded cursor-pointer"
             onClick={() =>
               navigate(`/business/${user.handle.replace("@", "")}`)
             }
             style={{
-              backgroundColor: "hsl(214.3, 31.8%, 98%)",
+              backgroundColor: "#fff",
               boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
             }}
           >

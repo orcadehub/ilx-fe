@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Container,
   Row,
@@ -9,6 +9,7 @@ import {
   Badge,
   Collapse,
   Modal,
+  Spinner,
 } from "react-bootstrap";
 import {
   FunnelFill,
@@ -23,7 +24,7 @@ import {
 } from "react-bootstrap-icons";
 import { useNavigate } from "react-router-dom";
 import "./Orders.css";
-
+import config from "../config";
 
 const customStyles = `
   .custom-select {
@@ -69,6 +70,11 @@ const customStyles = `
     min-width: 20px;
   }
 `;
+
+const baseURL =
+  import.meta.env.MODE === "development"
+    ? config.LOCAL_BASE_URL
+    : config.BASE_URL;
 
 // Scheduled Information Component
 const ScheduledInfo = ({ date, time }) => (
@@ -118,151 +124,7 @@ const ProductInfo = ({ type, product, category }) => (
 function Orders() {
   const navigate = useNavigate();
 
-  const initialOrders = [
-    {
-      id: 1001,
-      username: "fashionista_ella",
-      orderDate: "2024-06-05T09:15:00",
-      scheduledDate: "18/06/2024",
-      scheduledTime: "11:30",
-      type: "Reel",
-      product: "Luxury Handbag Unboxing",
-      amount: 8500,
-      status: "Pending",
-    },
-    {
-      id: 1002,
-      username: "techguru_max",
-      orderDate: "2024-06-07T14:20:00",
-      scheduledDate: "20/06/2024",
-      scheduledTime: "16:45",
-      type: "Long Video",
-      product: "Smartphone Review",
-      amount: 12000,
-      status: "Completed",
-    },
-    {
-      id: 1003,
-      username: "beautyqueen_lydia",
-      orderDate: "2024-06-08T16:30:00",
-      scheduledDate: "22/06/2024",
-      scheduledTime: "10:00",
-      type: "Post",
-      product: "Skincare Routine",
-      amount: 6500,
-      status: "Pending",
-    },
-    {
-      id: 1004,
-      username: "travelwithdiego",
-      orderDate: "2024-06-09T11:45:00",
-      scheduledDate: "25/06/2024",
-      scheduledTime: "09:15",
-      type: "Short Video",
-      product: "Hotel Tour",
-      amount: 9500,
-      status: "Pending",
-    },
-    {
-      id: 1005,
-      username: "fitnesstrainer_sam",
-      orderDate: "2024-06-10T08:00:00",
-      scheduledDate: "28/06/2024",
-      scheduledTime: "07:30",
-      type: "Combo Package",
-      product: "Workout Plan Promo",
-      amount: 15000,
-      status: "Completed",
-    },
-    {
-      id: 1006,
-      username: "foodexplorer_anna",
-      orderDate: "2024-06-11T13:10:00",
-      scheduledDate: "30/06/2024",
-      scheduledTime: "12:45",
-      type: "Reel",
-      product: "Restaurant Review",
-      amount: 7200,
-      status: "Pending",
-    },
-    {
-      id: 1007,
-      username: "gaming_wizard",
-      orderDate: "2024-06-12T17:25:00",
-      scheduledDate: "02/07/2024",
-      scheduledTime: "20:00",
-      type: "Long Video",
-      product: "Gameplay Walkthrough",
-      amount: 11000,
-      status: "Pending",
-    },
-    {
-      id: 1008,
-      username: "luxuryhomes_tv",
-      orderDate: "2024-06-13T10:50:00",
-      scheduledDate: "05/07/2024",
-      scheduledTime: "14:15",
-      type: "Short Video",
-      product: "Mansion Tour",
-      amount: 18000,
-      status: "Completed",
-    },
-    {
-      id: 1009,
-      username: "petlover_jess",
-      orderDate: "2024-06-14T15:35:00",
-      scheduledDate: "08/07/2024",
-      scheduledTime: "13:30",
-      type: "Post",
-      product: "Pet Product Demo",
-      amount: 4800,
-      status: "Pending",
-    },
-    {
-      id: 1010,
-      username: "business_mogul",
-      orderDate: "2024-06-15T12:05:00",
-      scheduledDate: "10/07/2024",
-      scheduledTime: "08:45",
-      type: "Combo Package",
-      product: "Entrepreneur Story",
-      amount: 22000,
-      status: "Completed",
-    },
-    {
-      id: 1011,
-      username: "artistry_by_mei",
-      orderDate: "2024-06-16T14:55:00",
-      scheduledDate: "12/07/2024",
-      scheduledTime: "17:30",
-      type: "Reel",
-      product: "Painting Tutorial",
-      amount: 6800,
-      status: "Pending",
-    },
-    {
-      id: 1012,
-      username: "automotive_expert",
-      orderDate: "2024-06-17T09:40:00",
-      scheduledDate: "15/07/2024",
-      scheduledTime: "10:00",
-      type: "Long Video",
-      product: "Car Review",
-      amount: 16500,
-      status: "Pending",
-    },
-  ];
-
-  const types = [
-    "Post",
-    "Reel",
-    "Short Video",
-    "Long Video",
-    "Polls",
-    "Combo Package",
-  ];
-
-  const [orders, setOrders] = useState(initialOrders);
+  const [orders, setOrders] = useState([]);
   const [filters, setFilters] = useState({
     from: "",
     to: "",
@@ -273,6 +135,18 @@ function Orders() {
   const [tabKey, setTabKey] = useState("All");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const types = [
+    "Post",
+    "Reel",
+    "Short Video",
+    "Long Video",
+    "Polls",
+    "Combo Package",
+  ];
+
   const parseDate = (dt) =>
     dt
       ? new Date(dt).toLocaleString("default", {
@@ -283,6 +157,43 @@ function Orders() {
           minute: "2-digit",
         })
       : "—";
+
+  // Fetch orders from API
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const localUser = JSON.parse(localStorage.getItem("user"));
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          throw new Error("User not authenticated: No token found");
+        }
+
+        const response = await fetch(`${baseURL}/api/orders`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.message || "Failed to fetch orders");
+        }
+
+        const data = await response.json();
+        setOrders(data.orders || []);
+      } catch (err) {
+        console.error("Fetch orders error:", err.message);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
 
   const filteredOrders = useMemo(
     () =>
@@ -333,6 +244,7 @@ function Orders() {
     });
   };
 
+  const user = JSON.parse(localStorage.getItem("user"));
   return (
     <div className="custom-orders-wrapper">
       <style>{customStyles}</style>
@@ -340,7 +252,7 @@ function Orders() {
       <Container
         fluid
         className="px-md-5 py-5"
-        style={{ backgroundColor: "hsl(214.3, 31.8%, 98%)" }}
+        style={{ backgroundColor: "var(--primary-color)" }}
       >
         <Row className="align-items-center justify-content-center mb-5">
           <Col xs={12} md={8}>
@@ -488,111 +400,153 @@ function Orders() {
           className="card shadow-sm border-0"
           style={{ backgroundColor: "hsl(214.3, 31.8%, 98%)" }}
         >
-          <Table responsive className="mb-0">
-            <thead style={{ backgroundColor: "hsl(214.3, 31.8%, 95%)" }}>
-              <tr>
-                {[
-                  "Username",
-                  "Order Date",
-                  "Scheduled Date",
-                  "Scheduled Time",
-                  "Order Type",
-                  "Product/Service",
-                  "Amount",
-                  "Status",
-                  "Actions",
-                ].map((h) => (
-                  <th key={h} style={{ color: "hsl(230, 50%, 20%)" }}>
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {getFilteredByStatus().length > 0 ? (
-                getFilteredByStatus().map((o) => (
-                  <tr
-                    key={o.id}
-                    onClick={() => setSelectedOrder(o)}
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
-                    style={{
-                      cursor: "pointer",
-                      transition: "background 0.2s ease",
-                      backgroundColor: isHovered ? "#eef2ff" : "transparent",
-                    }}
-                    className="order-row"
-                  >
-                    <td>{o.username}</td>
-                    <td>{parseDate(o.orderDate)}</td>
-                    <td>{o.scheduledDate || "—"}</td>
-                    <td>{o.scheduledTime || "—"}</td>
-                    <td>{o.type}</td>
-                    <td>{o.product}</td>
-                    <td>₹{o.amount.toLocaleString()}</td>
-                    <td>
-                      <Badge
-                        bg={o.status === "Completed" ? "success" : "warning"}
-                      >
-                        {o.status}
-                      </Badge>
-                    </td>
-                    <td className="d-flex gap-2">
-                      <Button
-                        size="sm"
-                        style={{ backgroundColor: "#8e7cc3", border: "none" }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedOrder(o);
-                        }}
-                      >
-                        <Eye />
-                      </Button>
-                      <Button
-                        size="sm"
-                        style={{ backgroundColor: "#c94c4c", border: "none" }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleReject(o.id);
-                        }}
-                      >
-                        <XCircle />
-                      </Button>
-                      {o.status !== "Completed" && (
+          {isLoading ? (
+            <div className="text-center py-5">
+              <Spinner animation="border" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </Spinner>
+            </div>
+          ) : error ? (
+            <div className="text-center py-5 text-danger">{error}</div>
+          ) : (
+            <Table responsive className="mb-0">
+              <thead style={{ backgroundColor: "hsl(214.3, 31.8%, 95%)" }}>
+                <tr>
+                  {[
+                    "Type",
+                    "Username",
+                    "Order Date",
+                    "Scheduled Date",
+                    "Scheduled Time",
+                    "Order Type",
+                    "Product/Service",
+                    "Amount",
+                    "Status",
+                    "Actions",
+                  ].map((h) => (
+                    <th key={h} style={{ color: "hsl(230, 50%, 20%)" }}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {getFilteredByStatus().length > 0 ? (
+                  getFilteredByStatus().map((o) => (
+                    <tr
+                      key={o.id}
+                      onClick={() => setSelectedOrder(o)}
+                      onMouseEnter={() => setIsHovered(true)}
+                      onMouseLeave={() => setIsHovered(false)}
+                      style={{
+                        cursor: "pointer",
+                        transition: "background 0.2s ease",
+                        backgroundColor: isHovered ? "#eef2ff" : "transparent",
+                      }}
+                      className="order-row"
+                    >
+                      <td>
+                        {user.id === o.influencerId ? (
+                          <>
+                            <span style={{ color: "green" }}>↙</span>
+                          </>
+                        ) : (
+                          <>
+                            <span style={{ color: "red" }}>↗</span>
+                          </>
+                        )}
+                      </td>
+
+                      <td>
+                        {user.id === o.influencerId ? (
+                          <>{o.username}</>
+                        ) : (
+                          <>{o.infName}</>
+                        )}
+                      </td>
+                      <td>{parseDate(o.orderDate)}</td>
+                      <td>{o.scheduledDate || "—"}</td>
+                      <td>{o.scheduledTime || "—"}</td>
+                      <td>{o.type}</td>
+                      <td>{o.product}</td>
+                      <td>₹{o.amount.toLocaleString()}</td>
+                      <td>
+                        <Badge
+                          bg={o.status === "Completed" ? "success" : "warning"}
+                        >
+                          {o.status}
+                        </Badge>
+                      </td>
+                      <td className="d-flex gap-2">
                         <Button
                           size="sm"
-                          style={{ backgroundColor: "#4bb543", border: "none" }}
+                          style={{ backgroundColor: "#8e7cc3", border: "none" }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleCheckout(o);
+                            setSelectedOrder(o);
                           }}
                         >
-                          <CreditCard />
+                          <Eye />
                         </Button>
-                      )}
+                        <Button
+                          size="sm"
+                          style={{ backgroundColor: "#c94c4c", border: "none" }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleReject(o.id);
+                          }}
+                        >
+                          <XCircle />
+                        </Button>
+                        {o.status !== "Completed" &&
+                          user.id !== o.influencerId && (
+                            <Button
+                              size="sm"
+                              style={{
+                                backgroundColor: "#4bb543",
+                                border: "none",
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCheckout(o);
+                              }}
+                            >
+                              <CreditCard />
+                            </Button>
+                          )}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="9" className="text-center text-muted py-4">
+                      No {tabKey.toLowerCase()} orders found.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="9" className="text-center text-muted py-4">
-                    No {tabKey.toLowerCase()} orders found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </Table>
+                )}
+              </tbody>
+            </Table>
+          )}
         </div>
       </Container>
 
+      {/* Order-Details Model */}
       <Modal
         show={!!selectedOrder}
         onHide={() => setSelectedOrder(null)}
         centered
+        style={{ zIndex: 1300 }}
+        dialogClassName="modal-wider"
       >
         <Modal.Header
           closeButton
-          style={{ backgroundColor: "#f3eefc", borderBottom: "none" }}
+          style={{
+            backgroundColor: "#f3eefc",
+            borderBottom: "none",
+            position: "sticky",
+            top: 0,
+            zIndex: 1,
+          }}
         >
           <Modal.Title
             style={{
@@ -604,7 +558,14 @@ function Orders() {
             Order Details
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body style={{ backgroundColor: "#fefefe", fontSize: "1rem" }}>
+        <Modal.Body
+          style={{
+            backgroundColor: "#fefefe",
+            fontSize: "1rem",
+            maxHeight: "60vh",
+            overflowY: "auto",
+          }}
+        >
           {selectedOrder && (
             <div className="px-1 py-2">
               <Row className="mb-3">
@@ -633,7 +594,25 @@ function Orders() {
                 <Col xs={5}>
                   <strong>Username</strong>
                 </Col>
-                <Col>: {selectedOrder.username}</Col>
+                <Col>: {selectedOrder.username || "Unknown"}</Col>
+              </Row>
+              <Row className="mb-3">
+                <Col xs={5}>
+                  <strong>Influencer Name</strong>
+                </Col>
+                <Col>: {selectedOrder.infName || "Unknown"}</Col>
+              </Row>
+              <Row className="mb-3">
+                <Col xs={5}>
+                  <strong>User ID</strong>
+                </Col>
+                <Col>: {selectedOrder.userId}</Col>
+              </Row>
+              <Row className="mb-3">
+                <Col xs={5}>
+                  <strong>Influencer ID</strong>
+                </Col>
+                <Col>: {selectedOrder.influencerId}</Col>
               </Row>
               <Row className="mb-3">
                 <Col xs={5}>
@@ -647,23 +626,103 @@ function Orders() {
                 </Col>
                 <Col>: {parseDate(selectedOrder.orderDate)}</Col>
               </Row>
-
-              {/* Scheduled Information Component */}
-              <ScheduledInfo
-                date={selectedOrder.scheduledDate}
-                time={selectedOrder.scheduledTime}
-              />
-
-              {/* Product Information Component */}
-              <ProductInfo
-                type={selectedOrder.type}
-                product={selectedOrder.product}
-                category={selectedOrder.category || "General"}
-              />
+              <Row className="mb-3">
+                <Col xs={5}>
+                  <strong>Scheduled Date</strong>
+                </Col>
+                <Col>: {selectedOrder.scheduledDate || "Not scheduled"}</Col>
+              </Row>
+              <Row className="mb-3">
+                <Col xs={5}>
+                  <strong>Scheduled Time</strong>
+                </Col>
+                <Col>: {selectedOrder.scheduledTime || "Not specified"}</Col>
+              </Row>
+              <Row className="mb-3">
+                <Col xs={5}>
+                  <strong>Type</strong>
+                </Col>
+                <Col>: {selectedOrder.type || "Unknown"}</Col>
+              </Row>
+              <Row className="mb-3">
+                <Col xs={5}>
+                  <strong>Product</strong>
+                </Col>
+                <Col>: {selectedOrder.product || "Custom Service"}</Col>
+              </Row>
+              <Row className="mb-3">
+                <Col xs={5}>
+                  <strong>Order Type</strong>
+                </Col>
+                <Col>: {selectedOrder.orderType || "Unknown"}</Col>
+              </Row>
+              <Row className="mb-3">
+                <Col xs={5}>
+                  <strong>Description</strong>
+                </Col>
+                <Col>
+                  : {selectedOrder.description || "No description provided"}
+                </Col>
+              </Row>
+              <Row className="mb-3">
+                <Col xs={5}>
+                  <strong>Coupon Code</strong>
+                </Col>
+                <Col>: {selectedOrder.couponCode || "None"}</Col>
+              </Row>
+              <Row className="mb-3">
+                <Col xs={5}>
+                  <strong>Affiliated Links</strong>
+                </Col>
+                <Col>
+                  :{" "}
+                  {selectedOrder.affiliatedLinks &&
+                  selectedOrder.affiliatedLinks.length > 0
+                    ? selectedOrder.affiliatedLinks.map((link, index) => (
+                        <div key={index}>
+                          <a
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Link {index + 1}
+                          </a>
+                        </div>
+                      ))
+                    : "None"}
+                </Col>
+              </Row>
+              <Row className="mb-3">
+                <Col xs={5}>
+                  <strong>File</strong>
+                </Col>
+                <Col>
+                  :{" "}
+                  {selectedOrder.file ? (
+                    <a
+                      href={selectedOrder.file}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Download File
+                    </a>
+                  ) : (
+                    "No file uploaded"
+                  )}
+                </Col>
+              </Row>
             </div>
           )}
         </Modal.Body>
-        <Modal.Footer className="d-flex justify-content-between">
+        <Modal.Footer
+          style={{
+            position: "sticky",
+            bottom: 0,
+            backgroundColor: "#fefefe",
+            zIndex: 1,
+          }}
+          className="d-flex justify-content-between"
+        >
           <Button
             variant="danger"
             onClick={() => handleReject(selectedOrder?.id)}

@@ -4,6 +4,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { Offcanvas, Dropdown } from "react-bootstrap";
 import { Country, State, City } from "country-state-city";
 import ISO6391 from "iso-639-1";
+import { useNavigate } from "react-router-dom";
 
 import {
   FaInstagram,
@@ -30,18 +31,30 @@ import {
 } from "recharts";
 import { Card, Row, Col } from "react-bootstrap";
 import "./Influencers.css";
-import { useNavigate } from "react-router-dom";
 import getInfluencersData from "../components/InfluencersData";
+import config from "../config";
+
+const baseURL =
+  import.meta.env.MODE === "development"
+    ? config.LOCAL_BASE_URL
+    : config.BASE_URL;
 
 function Influencers() {
   const [data, setData] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [isWishlisted, setIsWishlisted] = useState({});
 
   useEffect(() => {
     const loadInfluencers = async () => {
       const InfluencersData = await getInfluencersData();
       setData(InfluencersData);
       console.log(InfluencersData);
+      // Initialize isWishlisted state from fetched data
+      const wishlistState = InfluencersData.reduce((acc, influencer) => {
+        acc[influencer.id] = influencer.wishlist || false;
+        return acc;
+      }, {});
+      setIsWishlisted(wishlistState);
       setSelected(InfluencersData[0]); // Set selected after data is available
     };
 
@@ -52,11 +65,15 @@ function Influencers() {
   const [activeTab, setActiveTab] = useState("services");
   const [engagementRate, setEngagementRate] = useState(0);
   const [selectedService, setSelectedService] = useState("Platform Based");
+  const [selectedPlatformServices, setSelectedPlatformServices] = useState({});
+  const [selectedCombos, setSelectedCombos] = useState([]);
+
   const [platformDropdownOpen, setPlatformDropdownOpen] = useState(false);
-  const [isWishlisted, setIsWishlisted] = useState(true);
   const navigate = useNavigate();
   const [selectedPlatforms, setSelectedPlatforms] = useState([]);
-  const [selectedCombos, setSelectedCombos] = useState([]);
+  // const [selectedCombos, setSelectedCombos] = useState([]);
+  const [selectedFilter, setSelectedFilter] = useState("");
+
   const [country, setCountry] = useState(null);
   const [countryCode, setCountryCode] = useState("");
   const [stateCode, setStateCode] = useState("");
@@ -64,6 +81,8 @@ function Influencers() {
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
+  const [expandedPlatform, setExpandedPlatform] = useState("instagram");
+
   const [niche, setNiche] = useState("");
   const [contentType, setContentType] = useState("");
   const [platform, setPlatform] = useState("");
@@ -160,43 +179,79 @@ function Influencers() {
     return num;
   };
 
-  const handlePlatformChange = (service) => {
-    setSelectedPlatforms((prev) =>
-      prev.includes(service)
-        ? prev.filter((item) => item !== service)
-        : [...prev, service]
-    );
+  const handlePlatformChange = (key) => {
+    const [platform, service] = key.split("-");
+
+    setSelectedPlatformServices((prev) => {
+      const updated = { ...prev };
+      const currentServices = updated[platform] || [];
+
+      // Toggle the service
+      if (currentServices.includes(service)) {
+        const filtered = currentServices.filter((s) => s !== service);
+        if (filtered.length > 0) {
+          updated[platform] = filtered;
+        } else {
+          delete updated[platform];
+        }
+      } else {
+        updated[platform] = [...currentServices, service];
+      }
+
+      return updated;
+    });
   };
 
-  const handleComboChange = (combo) => {
+  const handleComboChange = (comboName) => {
     setSelectedCombos((prev) =>
-      prev.includes(combo)
-        ? prev.filter((item) => item !== combo)
-        : [...prev, combo]
+      prev.includes(comboName)
+        ? prev.filter((name) => name !== comboName)
+        : [...prev, comboName]
     );
   };
 
-  const comboPackages = [
-    {
-      name: "Starter Combo",
-      price: "₹499",
-      services: ["Instagram Post", "Facebook Story"],
-    },
-    {
-      name: "Growth Combo",
-      price: "₹999",
-      services: [
-        "Instagram Post + Story",
-        "Facebook Post",
-        "YouTube Community Post",
-      ],
-    },
-  ];
+  const handleProceed = () => {
+    navigate("/make-order", {
+      state: {
+        selectedPlatformServices,
+        selectedCombos,
+        selected, // pass the selected user details
+      },
+    });
+  };
 
-  const toggleWishlist = () => {
-    const newState = !isWishlisted;
-    setIsWishlisted(newState);
-    toast(newState ? "❤️ Added to Wishlist" : "❌ Removed from Wishlist");
+  const toggleWishlist = async (itemId) => {
+    const newState = !isWishlisted[itemId];
+    try {
+      const token = localStorage.getItem("token");
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      };
+
+      setIsWishlisted({ ...isWishlisted, [itemId]: newState });
+
+      const response = await fetch(`${baseURL}/api/wishlist`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ itemId }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update wishlist");
+      }
+
+      const { message } = await response.json();
+      toast(
+        message === "Added to wishlist"
+          ? "❤️ Added to Wishlist"
+          : "❌ Removed from Wishlist"
+      );
+    } catch (error) {
+      console.error("Wishlist error:", error);
+      setIsWishlisted({ ...isWishlisted, [itemId]: !newState });
+      toast.error("⚠️ Failed to update wishlist");
+    }
   };
 
   return (
@@ -205,9 +260,9 @@ function Influencers() {
       <div
         className="p-3 col-12 col-lg-4"
         style={{
-          backgroundColor: "hsl(214.3, 31.8%, 98%)",
+          backgroundColor: "var(--primary-color)",
           borderRight: "1px solid #e0e0e0",
-          height: "calc(90vh)", // Reduced height
+          height: "calc(90vh)",
           borderRadius: "16px",
         }}
       >
@@ -216,9 +271,9 @@ function Influencers() {
             Influencers
           </h6>
           <button
-            className="btn btn-sm "
+            className="btn btn-sm"
             style={{
-              background: "linear-gradient(135deg,rgb(87, 52, 226), #1976d2)",
+              background: "linear-gradient(135deg, rgb(87, 52, 226), #1976d2)",
               border: "none",
               color: "#fff",
               borderRadius: "50px",
@@ -273,11 +328,6 @@ function Influencers() {
               Followers: {formatFollowers(followers)}
             </span>
           )}
-          {/* {priceMin && (
-            <span className="badge bg-danger text-white">
-              Price: ₹{priceMin} - ₹{priceMax || "?"}
-            </span>
-          )} */}
           {selectedLang && (
             <span className="badge bg-light text-dark border">
               Lang: {selectedLang}
@@ -302,7 +352,7 @@ function Influencers() {
           className="overflow-auto"
           style={{
             height: "calc(90vh - 120px)",
-            backgroundColor: "hsl(214.3, 31.8%, 98%)",
+            backgroundColor: "var(--primary-color)",
           }}
         >
           {data
@@ -313,7 +363,7 @@ function Influencers() {
                 className="d-flex align-items-start p-2 mb-2 rounded transition-all"
                 onClick={() => setSelected(inf)}
                 style={{
-                  background: "#fff",
+                  backgroundColor: "#fff",
                   cursor: index >= 5 ? "default" : "pointer",
                   pointerEvents: index >= 5 ? "none" : "auto",
                   opacity: index >= 5 ? 0.5 : 1,
@@ -325,7 +375,7 @@ function Influencers() {
                   if (index < 5) {
                     e.currentTarget.style.boxShadow =
                       "0 4px 12px rgba(0,0,0,0.05)";
-                    e.currentTarget.style.backgroundColor = "#f9f9ff";
+                    e.currentTarget.style.backgroundColor = "#e2e8f0";
                     e.currentTarget.style.transform = "scale(1.015)";
                   }
                 }}
@@ -394,7 +444,7 @@ function Influencers() {
         className="right-panel p-4 overflow-auto"
         style={{
           borderRadius: "1rem",
-          backgroundColor: "hsl(214.3, 31.8%, 98%)",
+          backgroundColor: "var(--primary-color)",
           minHeight: "100%",
         }}
       >
@@ -422,7 +472,7 @@ function Influencers() {
             </div>
 
             {/* Profile Card */}
-            <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 shadow-sm p-3 bg-light rounded-4 mb-4">
+            <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 shadow-sm p-3 bg-white rounded-4 mb-4">
               <div className="d-flex align-items-center gap-3 flex-grow-1">
                 <img
                   src={selected.profilePic}
@@ -437,10 +487,12 @@ function Influencers() {
                     <FaHeart
                       style={{
                         cursor: "pointer",
-                        color: isWishlisted ? "#dc3545" : "#b6b6b6",
+                        color: isWishlisted[selected.id]
+                          ? "#dc3545"
+                          : "#b6b6b6",
                         transition: "all 0.2s ease",
                       }}
-                      onClick={toggleWishlist}
+                      onClick={() => toggleWishlist(Number(selected.id))}
                     />
 
                     <FaComment
@@ -481,7 +533,6 @@ function Influencers() {
                 </div>
               </div>
             </div>
-
             {/* Tabs */}
             <div className="d-flex mb-4 w-100">
               {["services", "prices", "data"].map((tab) => (
@@ -505,65 +556,71 @@ function Influencers() {
                 </button>
               ))}
             </div>
-
             {/* Services */}
-            {activeTab === "services" && (
+            {activeTab === "services" && selected && (
               <Row className="g-4">
-                {data
-                  .flatMap((influencer) => {
-                    const posts = [];
+                {(() => {
+                  const posts = [];
 
-                    // Facebook Posts
-                    if (influencer.posts?.facebook?.data) {
-                      posts.push(
-                        ...influencer.posts.facebook.data.map((fb) => ({
-                          platform: "facebook",
-                          id: fb.id,
-                          created_time: fb.created_time,
-                          image: `https://graph.facebook.com/${fb.fb_id}/picture?access_token=${fb.fb_access_token}`, // optional thumbnail
-                          likes: 0,
-                          views: 0,
-                          comments: 0,
-                          shares: 0,
-                        }))
-                      );
-                    }
+                  // Facebook Posts
+                  if (selected.posts?.facebook?.data) {
+                    posts.push(
+                      ...selected.posts.facebook.data.map((fb) => ({
+                        platform: "facebook",
+                        id: fb.id,
+                        created_time: fb.created_time,
+                        image: `https://graph.facebook.com/${fb.fb_id}/picture?access_token=${fb.fb_access_token}`,
+                        likes: 0,
+                        views: 0,
+                        comments: 0,
+                        shares: 0,
+                      }))
+                    );
+                  }
 
-                    // Instagram Posts
-                    if (influencer.posts?.instagram?.data) {
-                      posts.push(
-                        ...influencer.posts.instagram.data.map((ig) => ({
-                          platform: "instagram",
-                          id: ig.id,
-                          created_time: ig.timestamp,
-                          image: ig.media_url,
-                          likes: ig.like_count || 0,
-                          views: ig.view_count || 0,
-                          comments: ig.comments_count || 0,
-                          shares: 0,
-                        }))
-                      );
-                    }
+                  // Instagram Posts
+                  if (selected.posts?.instagram?.data) {
+                    posts.push(
+                      ...selected.posts.instagram.data.map((ig) => ({
+                        platform: "instagram",
+                        id: ig.id,
+                        created_time: ig.timestamp,
+                        image: ig.media_url,
+                        likes: ig.like_count || 0,
+                        views: ig.view_count || 0,
+                        comments: ig.comments_count || 0,
+                        shares: 0,
+                      }))
+                    );
+                  }
 
-                    // YouTube Posts
-                    if (influencer.posts?.youtube?.data) {
-                      posts.push(
-                        ...influencer.posts.youtube.data.map((yt) => ({
-                          platform: "youtube",
-                          id: yt.id.videoId,
-                          created_time: yt.snippet.publishedAt,
-                          image: yt.snippet.thumbnails?.medium?.url,
-                          likes: yt.likes || 0,
-                          views: yt.views || 0,
-                          comments: yt.comments || 0,
-                          shares: 0,
-                        }))
-                      );
-                    }
+                  // YouTube Posts
+                  if (selected.posts?.youtube?.data) {
+                    posts.push(
+                      ...selected.posts.youtube.data.map((yt) => ({
+                        platform: "youtube",
+                        id: yt.id.videoId,
+                        created_time: yt.snippet.publishedAt,
+                        image: yt.snippet.thumbnails?.medium?.url,
+                        likes: yt.likes || 0,
+                        views: yt.views || 0,
+                        comments: yt.comments || 0,
+                        shares: 0,
+                      }))
+                    );
+                  }
 
-                    return posts;
-                  })
-                  .map((post, index) => (
+                  if (posts.length === 0) {
+                    return (
+                      <Col>
+                        <div className="text-center text-muted">
+                          No posts available.
+                        </div>
+                      </Col>
+                    );
+                  }
+
+                  return posts.map((post, index) => (
                     <Col xs={12} sm={6} md={4} key={index}>
                       <Card className="h-100 shadow-sm border-0">
                         {post.image && (
@@ -598,67 +655,117 @@ function Influencers() {
                         </Card.Body>
                       </Card>
                     </Col>
-                  ))}
+                  ));
+                })()}
               </Row>
             )}
-
             {/* Prices */}
+
             {activeTab === "prices" && (
               <div className="border rounded-4 p-4 bg-light shadow-sm">
                 {/* Tab Options */}
                 <div className="mb-3 d-flex gap-3">
-                  {["Platform Based", "Combo Package"].map((tab) => (
-                    <div className="form-check" key={tab}>
-                      <input
-                        className="form-check-input"
-                        type="radio"
-                        name="serviceTypeTab"
-                        id={`tab-${tab}`}
-                        checked={selectedService === tab}
-                        onChange={() => {
-                          setSelectedService(tab);
-                          setSelectedPlatforms([]);
-                          setSelectedCombos([]);
-                        }}
-                      />
-                      <label
-                        className="form-check-label ms-2"
-                        htmlFor={`tab-${tab}`}
-                        style={{ cursor: "pointer" }}
-                      >
-                        {tab}
-                      </label>
-                    </div>
-                  ))}
+                  {["Platform Based", "Combo Package", "Custom Package"].map(
+                    (tab) => (
+                      <div className="form-check" key={tab}>
+                        <input
+                          className="form-check-input"
+                          type="radio"
+                          name="serviceTypeTab"
+                          id={`tab-${tab}`}
+                          checked={selectedService === tab}
+                          onChange={() => {
+                            setSelectedService(tab);
+                            setSelectedPlatformServices({});
+                            setSelectedCombos([]);
+                            setSelectedComboData([]);
+                            setSelectedCustomData([]);
+                            setSelectedFilter("");
+                            setExpandedPlatform("instagram");
+                          }}
+                        />
+                        <label
+                          className="form-check-label ms-2"
+                          htmlFor={`tab-${tab}`}
+                          style={{ cursor: "pointer" }}
+                        >
+                          {tab}
+                        </label>
+                      </div>
+                    )
+                  )}
                 </div>
 
                 {/* Platform Based Content */}
                 {selectedService === "Platform Based" && (
                   <>
-                    {Object.entries(selected.prices).map(
-                      ([key, value], idx) => (
-                        <div
-                          key={idx}
-                          className="d-flex justify-content-between align-items-center border-bottom py-2"
-                        >
-                          <div className="form-check">
-                            <input
-                              className="form-check-input"
-                              type="checkbox"
-                              id={`platform-${key}`}
-                              checked={selectedPlatforms.includes(key)}
-                              onChange={() => handlePlatformChange(key)}
-                            />
-                            <label
-                              className="form-check-label ms-2"
-                              htmlFor={`platform-${key}`}
+                    {["facebook", "instagram", "youtube", "twitter"].map(
+                      (platform) =>
+                        selected.prices[platform] && (
+                          <div
+                            key={platform}
+                            className="mb-3 rounded border shadow-sm bg-light overflow-hidden"
+                          >
+                            <button
+                              className="btn w-100 text-start d-flex justify-content-between align-items-center px-3 py-2 border-bottom fw-bold text-white"
+                              style={{ backgroundColor: "#37517e" }}
+                              onClick={() =>
+                                setExpandedPlatform((prev) =>
+                                  prev === platform ? null : platform
+                                )
+                              }
                             >
-                              {key}
-                            </label>
+                              <span className="text-capitalize">
+                                {platform}
+                              </span>
+                              <i
+                                className={`bi ${
+                                  expandedPlatform === platform
+                                    ? "bi-chevron-up"
+                                    : "bi-chevron-down"
+                                } fs-5`}
+                              ></i>
+                            </button>
+
+                            {expandedPlatform === platform && (
+                              <div className="px-3 pt-2 pb-3 bg-white">
+                                {Object.entries(selected.prices[platform])
+                                  .filter(([service]) => service !== "combo")
+                                  .map(([service, price], idx) => (
+                                    <div
+                                      key={idx}
+                                      className="d-flex justify-content-between align-items-center border-bottom py-2"
+                                    >
+                                      <div className="form-check">
+                                        <input
+                                          className="form-check-input"
+                                          type="checkbox"
+                                          id={`platform-${platform}-${service}`}
+                                          checked={selectedPlatformServices[
+                                            platform
+                                          ]?.includes(service)}
+                                          onChange={() =>
+                                            handlePlatformChange(
+                                              `${platform}-${service}`
+                                            )
+                                          }
+                                        />
+                                        <label
+                                          className="form-check-label ms-2"
+                                          htmlFor={`platform-${platform}-${service}`}
+                                        >
+                                          {service}
+                                        </label>
+                                      </div>
+                                      <div className="fw-semibold text-success">
+                                        ₹{price}
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+                            )}
                           </div>
-                          <div className="fw-semibold">{value}</div>
-                        </div>
-                      )
+                        )
                     )}
                   </>
                 )}
@@ -666,47 +773,72 @@ function Influencers() {
                 {/* Combo Package Content */}
                 {selectedService === "Combo Package" && (
                   <div className="row">
-                    {comboPackages.map((combo) => {
+                    {(selected.prices.combos || []).map((combo) => {
                       const isSelected = selectedCombos.includes(combo.name);
                       return (
                         <div
                           key={combo.name}
-                          className="col-md-6 mb-3"
+                          className="col-12 col-md-6 col-lg-4 mb-4"
                           style={{ cursor: "pointer" }}
+                          onClick={() => handleComboChange(combo.name)}
                         >
                           <div
-                            className={`card h-100 shadow-sm ${
-                              isSelected ? "border-success border-2" : "border"
+                            className={`card h-100 shadow-sm border-0 rounded-4 p-3 ${
+                              isSelected
+                                ? "border border-primary border-2"
+                                : "border"
                             }`}
                           >
-                            <div className="card-body">
-                              <div className="form-check d-flex justify-content-between align-items-center">
-                                <div>
-                                  <input
-                                    type="checkbox"
-                                    className="form-check-input"
-                                    id={`combo-${combo.name}`}
-                                    checked={isSelected}
-                                    onChange={() =>
-                                      handleComboChange(combo.name)
-                                    }
-                                  />
-                                  <label
-                                    htmlFor={`combo-${combo.name}`}
-                                    className="form-check-label ms-2 fw-semibold"
-                                  >
-                                    {combo.name}
-                                  </label>
-                                </div>
-                                <span className="fw-semibold">
-                                  {combo.price}
+                            <div className="card-body d-flex flex-column justify-content-between h-100">
+                              <div>
+                                <h5 className="fw-bold">{combo.name}</h5>
+                                <p className="text-muted small mb-3">
+                                  {combo.description ||
+                                    "No description available."}
+                                </p>
+
+                                {combo.platforms?.length > 0 && (
+                                  <>
+                                    <div className="text-muted small fw-semibold">
+                                      Platforms:
+                                    </div>
+                                    <div className="d-flex flex-wrap gap-2 mb-2">
+                                      {combo.platforms.map((platform, i) => (
+                                        <span
+                                          key={i}
+                                          className="badge bg-light text-dark border border-1"
+                                        >
+                                          {platform}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </>
+                                )}
+
+                                {combo.services?.length > 0 && (
+                                  <>
+                                    <div className="text-muted small fw-semibold">
+                                      Includes:
+                                    </div>
+                                    <div className="d-flex flex-wrap gap-2 mb-2">
+                                      {combo.services.map((service, idx) => (
+                                        <span
+                                          key={idx}
+                                          className="badge bg-secondary-subtle text-dark border border-secondary"
+                                        >
+                                          {service}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+
+                              <div className="d-flex justify-content-end">
+                                <span className="badge bg-primary-subtle text-primary fs-6 px-3 py-2 rounded-pill">
+                                  ₹{combo.price}
                                 </span>
                               </div>
-                              <ul className="mt-3 ps-3 text-muted small mb-0">
-                                {combo.services.map((service, idx) => (
-                                  <li key={idx}>{service}</li>
-                                ))}
-                              </ul>
                             </div>
                           </div>
                         </div>
@@ -715,13 +847,84 @@ function Influencers() {
                   </div>
                 )}
 
+                {/* Custom Package Content */}
+                {selectedService === "Custom Package" && (
+                  <div className="row">
+                    {(selected.prices.custom || []).map((combo) => (
+                      <div
+                        key={combo.name}
+                        className="col-12 col-md-6 col-lg-4 mb-4 d-flex"
+                      >
+                        <div className="card h-100 shadow-sm rounded-4 border-0 w-100">
+                          <div className="card-body p-4 d-flex flex-column justify-content-between">
+                            <div>
+                              <h5 className="fw-semibold mb-2">{combo.name}</h5>
+                              <p className="text-muted small mb-3">
+                                {combo.description ||
+                                  "No description available."}
+                              </p>
+
+                              {combo.platforms?.length > 0 && (
+                                <>
+                                  <div className="text-muted small fw-semibold">
+                                    Platforms:
+                                  </div>
+                                  <div className="d-flex flex-wrap gap-2 mt-1 mb-3">
+                                    {combo.platforms.map((platform, i) => (
+                                      <span
+                                        key={i}
+                                        className="badge bg-light text-dark border border-1"
+                                      >
+                                        {platform}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </>
+                              )}
+
+                              {combo.services?.length > 0 && (
+                                <>
+                                  <div className="text-muted small fw-semibold">
+                                    Includes:
+                                  </div>
+                                  <div className="d-flex flex-wrap gap-2 mt-1 mb-3">
+                                    {combo.services.map((service, idx) => (
+                                      <span
+                                        key={idx}
+                                        className="badge bg-secondary-subtle text-dark border border-secondary"
+                                      >
+                                        {service}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+
+                            <div className="d-flex justify-content-end">
+                              <span className="badge bg-primary-subtle text-primary fs-6 px-3 py-2 rounded-pill">
+                                ₹{combo.price}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Book Button */}
                 <div className="text-end mt-3">
-                  <button className="btn btn-success rounded-pill px-4 shadow-sm">
+                  <button
+                    className="btn btn-success rounded-pill px-4 shadow-sm"
+                    onClick={handleProceed}
+                  >
                     Book
                   </button>
                 </div>
               </div>
             )}
+
             {/* Data */}
             {activeTab === "data" && (
               <Row className="g-4">

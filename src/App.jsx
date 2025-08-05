@@ -21,18 +21,21 @@ import Checkout from "./pages/Checkout";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import SocialSuccess from "./pages/SocialSuccess";
+import MakeOrder from "./pages/MakeOrder";
 
 const AppContent = () => {
   const location = useLocation();
   const isDashboard = location.pathname.startsWith("/dashboard");
   const isCheck = location.pathname.startsWith("/checkout");
+  const isOrder = location.pathname.startsWith("/make-order");
 
   return (
     <>
-      {!isCheck && <Header />}
+      {!isCheck && !isOrder && <Header />}
       <Routes>
         <Route exact path="/" element={<Home />} />
         <Route exact path="/login" element={<Login />} />
+        <Route exact path="/make-order" element={<MakeOrder />} />
         <Route exact path="/signup" element={<Signup />} />
         <Route exact path="/contact" element={<Contact />} />
         <Route exact path="/pricing" element={<Price />} />
@@ -43,7 +46,7 @@ const AppContent = () => {
         <Route exact path="/social-success" element={<SocialSuccess />} />
         <Route path="/dashboard/*" element={<DashboardPage />} />
       </Routes>
-      {!isDashboard && !isCheck && <Footer />}
+      {!isDashboard && !isCheck && !isOrder && <Footer />}
       <ToastContainer position="top-center" autoClose={3000} />
     </>
   );

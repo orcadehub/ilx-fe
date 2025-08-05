@@ -29,11 +29,14 @@ import { Link, useLocation } from "react-router-dom";
 const fullDrawerWidth = 240;
 const collapsedDrawerWidth = 80;
 
-const Sidebar = ({ mobileOpen, handleDrawerToggle, darkMode, setDarkMode }) => {
+const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
   const theme = useTheme();
   const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [open, setOpen] = useState(true);
+
+  // Log to verify component rendering
+  console.log("Sidebar rendered with background: hsl(214.3, 31.8%, 98%)");
 
   const user = JSON.parse(localStorage.getItem("user"));
   const role = user?.role || "business";
@@ -42,6 +45,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, darkMode, setDarkMode }) => {
 
   if (role === "business") {
     menuItems = [
+      
       { text: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
       { text: "Influencers", icon: <People />, path: "/dashboard/influencers" },
       { text: "Chats", icon: <Chat />, path: "/dashboard/chats" },
@@ -115,10 +119,10 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, darkMode, setDarkMode }) => {
   const drawerContent = (
     <Box
       sx={{
-        background: "hsl(214.3 31.8% 98%)",
+        background: "var(--primary-color)",
         height: "100%",
-        color: darkMode ? "#ffffff" : "#1a1a1a",
-        borderRight: darkMode ? "1px solid #2c2c2c" : "1px solid #e0e0e0",
+        color: "#1a1a1a",
+        borderRight: "1px solid #fff",
       }}
     >
       <Toolbar
@@ -127,6 +131,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, darkMode, setDarkMode }) => {
           justifyContent: "space-between",
           alignItems: "center",
           px: open ? 2 : 1,
+          background: "#f1f5f9 !important",
         }}
       >
         <Box display="flex" alignItems="center" gap={1}>
@@ -145,13 +150,13 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, darkMode, setDarkMode }) => {
         </Box>
         <IconButton
           onClick={handleSidebarToggle}
-          sx={{ color: darkMode ? "#ddd" : "#444" }}
+          sx={{ color: "#444" }}
         >
           {open ? <ChevronLeft /> : <MenuIcon />}
         </IconButton>
       </Toolbar>
 
-      <Divider sx={{ borderColor: darkMode ? "#2c2c2c" : "#e0e0e0" }} />
+      <Divider sx={{ borderColor: "#e0e0e0" }} />
 
       <List>
         {menuItems.map((item) => {
@@ -207,6 +212,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, darkMode, setDarkMode }) => {
             "& .MuiDrawer-paper": {
               width: fullDrawerWidth,
               boxSizing: "border-box",
+              background: "var(--primary-color)",
             },
           }}
         >
@@ -225,6 +231,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, darkMode, setDarkMode }) => {
             "& .MuiDrawer-paper": {
               width: open ? fullDrawerWidth : collapsedDrawerWidth,
               boxSizing: "border-box",
+              background: "var(--primary-color)",
               overflowX: "hidden",
               transition: theme.transitions.create("width", {
                 easing: theme.transitions.easing.sharp,

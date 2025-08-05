@@ -1,4 +1,3 @@
-// InfluencersData.js
 import axios from "axios";
 import config from "../config";
 
@@ -38,12 +37,18 @@ const fallbackInfluencer = {
     fakeFollowers: "0%",
   },
   posts: [],
+  wishlist: false, // Add fallback wishlist field
 };
 
 const getInfluencersData = async () => {
   try {
-    const response = await axios.get(`${baseURL}/api/influencers`);
-    return response.data || [];
+    const token = localStorage.getItem('token'); // Retrieve token
+    const response = await axios.get(`${baseURL}/api/influencers`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return response.data || [fallbackInfluencer];
   } catch (error) {
     console.error("❌ API fetch failed. Returning fallback data.", error);
     return [fallbackInfluencer];

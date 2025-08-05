@@ -355,7 +355,7 @@ function Chats() {
     >
       <Row
         className="flex-grow-1 w-100"
-        style={{ overflow: "hidden", backgroundColor: "hsl(214.3, 31.8%, 98%)", boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}
+        style={{ overflow: "hidden", backgroundColor: "var(--primary-color)", boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}
       >
         {/* Sidebar */}
         {(!isMobile || !showChat) && (
@@ -456,7 +456,7 @@ function Chats() {
             <div
               className="flex-grow-1 px-3 py-3"
               style={{
-                backgroundColor: "#F8FAFC",
+                backgroundColor: "#fff",
                 overflowY: "auto",
                 height: "calc(100vh - 250px)",
               }}
@@ -537,7 +537,7 @@ function Chats() {
             </div>
 
             {/* Message Input */}
-            <div className="border-top bg-white p-3">
+            <div className="border-top p-3">
               <InputGroup className="rounded-pill border shadow-sm overflow-hidden">
                 <Button
                   variant="light"

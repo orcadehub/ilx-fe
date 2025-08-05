@@ -26,6 +26,8 @@ const FacebookCallback = () => {
     }
   }, []);
 
+  
+
   return <div>Logging you in...</div>;
 };
 

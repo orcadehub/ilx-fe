@@ -217,7 +217,7 @@ const Services = () => {
     <Container
       fluid
       className="p-4"
-      style={{ background: "hsl(214.3, 31.8%, 98%)", minHeight: "100vh" }}
+      style={{ background: "var(--primary-color)", minHeight: "100vh" }}
     >
       <motion.h4
         className="mb-4 fw-bold"
@@ -237,7 +237,7 @@ const Services = () => {
           >
             <Card
               className="p-4 shadow-sm border-0 rounded-4"
-              style={{ backgroundColor: "hsl(214.3, 31.8%, 98%)" }}
+              style={{ backgroundColor: "var(--primary-color)" }}
             >
               {renderServiceCards()}
             </Card>
@@ -265,7 +265,9 @@ const Services = () => {
         <Modal.Header closeButton>
           <Modal.Title>Select a Service</Modal.Title>
         </Modal.Header>
-        <Modal.Body className="pb-2">{renderServiceCards()}</Modal.Body>
+        <Modal.Body className="pb-2" style={{ backgroundColor: "var(--primary-color)" }}>
+          {renderServiceCards()}
+        </Modal.Body>
       </Modal>
     </Container>
   );

@@ -29,7 +29,7 @@ const DashboardPage = () => {
   };
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ display: "flex",backgroundColor:'#f1f5f9' }}>
       <CssBaseline />
       <HeaderD handleDrawerToggle={handleDrawerToggle} />
       <Sidebar

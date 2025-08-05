@@ -1,11 +1,11 @@
 .profile-page {
-  background: linear-gradient(135deg, #F8FAFC, #ffffff);
+  background: #f1f5f9;
   min-height: 100vh;
   font-family: 'Segoe UI', sans-serif;
 }
 
 .profile-header {
-  background: #1E3A8A;
+  background: #1976d2;
   color: white;
   padding: 20px 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -37,7 +37,7 @@
 }
 
 .business-info-header {
-  background-color: #1E3A8A;
+  background-color: #1976d2;
   color: #F8FAFC;
   padding: 15px;
   font-weight: 600;

@@ -78,18 +78,20 @@ function Reports() {
   return (
     <div
       className="px-3"
-      style={{ backgroundColor: "hsl(214.3, 31.8%, 98%)", minHeight: "100vh" }}
+      style={{ backgroundColor: "var(--primary-color)", minHeight: "100vh" }}
     >
       <Container fluid className="py-4">
         {/* Header */}
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h4 className="fw-bold" style={{ color: "#1a237e" }}>Business Reports</h4>
+          <h4 className="fw-bold" style={{ color: "#1a237e" }}>
+            Business Reports
+          </h4>
           <Button
             variant="outline-secondary"
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
             style={{
-              background: "linear-gradient(135deg, #1976d2),rgb(87, 52, 226)",
+              background: "linear-gradient(135deg, #1976d2, rgb(87, 52, 226))",
               border: "none",
               color: "#fff",
               borderRadius: "50px",
@@ -106,7 +108,10 @@ function Reports() {
         {/* Filters Collapse */}
         <Collapse in={showFilters}>
           <div className="mb-4">
-            <Card className="p-4 shadow-sm border-0 rounded-3 bg-white">
+            <Card
+              className="p-4 shadow-sm border-0 rounded-3"
+              style={{ backgroundColor: "var(--primary-color)" }}
+            >
               <Row className="g-3 align-items-end">
                 <Col md={4}>
                   <Form.Label className="fw-semibold">
@@ -293,7 +298,10 @@ function Reports() {
           {filtered.length ? (
             filtered.map((r, i) => (
               <Col key={i} md={6} lg={4} xl={3}>
-                <Card className="border-0 shadow-lg h-100 rounded-4">
+                <Card
+                  className="border-0 shadow-lg h-100 rounded-4"
+                  style={{ backgroundColor: "#fff" }}
+                >
                   <Card.Body className="d-flex flex-column justify-content-between">
                     <div>
                       <div className="d-flex align-items-center mb-3">
@@ -340,7 +348,10 @@ function Reports() {
             ))
           ) : (
             <Col>
-              <Card className="text-center py-5 border-0 shadow-sm rounded-4">
+              <Card
+                className="text-center py-5 border-0 shadow-sm rounded-4"
+                style={{ backgroundColor: "#f1f5f9" }}
+              >
                 <Card.Body>
                   <FaFileExcel className="fs-1 text-muted mb-3" />
                   <h5>No Reports Found</h5>

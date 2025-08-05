@@ -1,4 +1,4 @@
-// /Edit.jsx
+// Edit.jsx
 import React, { useState } from "react";
 import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 import {
@@ -9,9 +9,26 @@ import {
   XCircle,
   CheckCircle,
 } from "react-bootstrap-icons";
+import axios from "axios";
+import config from "../config";
 
-function Edit({ businessInfo, onSave, onClose }) {
-  const [formData, setFormData] = useState(businessInfo);
+
+ const baseURL =
+    import.meta.env.MODE === "development"
+      ? config.LOCAL_BASE_URL
+      : config.BASE_URL;
+
+function Edit({ user, onSave, onClose }) {
+  const [formData, setFormData] = useState({
+    business_name: user.business_name || "My Business",
+    category: user.category || "Lifestyle",
+    business_status: user.business_status || "Active",
+    service_type: user.service_type || "Consulting",
+    website: user.website || "example.com",
+    location: user.location || "Hyderabad, India",
+    price_range: user.price_range || "₹1000 - ₹10000",
+    account_status: user.account_status || "Activate",
+  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,9 +38,21 @@ function Edit({ businessInfo, onSave, onClose }) {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData);
+
+    try {
+      const response = await axios.put(
+        `${baseURL}/api/update-profile/${user.email}`,
+        formData
+      );
+
+      onSave(response.data); // send updated user back to parent
+      onClose(); // close modal
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Failed to update profile. Please try again.");
+    }
   };
 
   return (
@@ -38,7 +67,7 @@ function Edit({ businessInfo, onSave, onClose }) {
               {
                 icon: <Gear className="me-2 text-muted" />,
                 label: "Business Name",
-                name: "businessName",
+                name: "business_name",
                 type: "text",
               },
               {
@@ -50,13 +79,13 @@ function Edit({ businessInfo, onSave, onClose }) {
               {
                 icon: <Gear className="me-2 text-muted" />,
                 label: "Business Status",
-                name: "businessStatus",
+                name: "business_status",
                 type: "text",
               },
               {
                 icon: <Gear className="me-2 text-muted" />,
                 label: "Service Type",
-                name: "serviceType",
+                name: "service_type",
                 type: "text",
               },
               {
@@ -74,7 +103,7 @@ function Edit({ businessInfo, onSave, onClose }) {
               {
                 icon: <CurrencyDollar className="me-2 text-muted" />,
                 label: "Price Range",
-                name: "priceRange",
+                name: "price_range",
                 type: "text",
               },
             ].map((field, idx) => (
@@ -101,8 +130,8 @@ function Edit({ businessInfo, onSave, onClose }) {
                   Account Management
                 </Form.Label>
                 <Form.Select
-                  name="accountStatus"
-                  value={formData.accountStatus}
+                  name="account_status"
+                  value={formData.account_status}
                   onChange={handleChange}
                   className="border-2"
                 >
