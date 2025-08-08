@@ -1,3 +1,4 @@
+// ```jsx
 import React, { useState, useEffect, useRef } from "react";
 import {
   Container,
@@ -8,7 +9,7 @@ import {
   InputGroup,
   FormControl,
   Button,
-  Dropdown,
+  Alert,
 } from "react-bootstrap";
 import io from "socket.io-client";
 import { useParams } from "react-router-dom";
@@ -28,9 +29,7 @@ const formatDateLabel = (dateStr) => {
   if (diffDays === 0) return "Today";
   if (diffDays === 1) return "Yesterday";
   if (diffDays < 7)
-    return date.toLocaleDateString("en-IN", {
-      weekday: "long",
-    });
+    return date.toLocaleDateString("en-IN", { weekday: "long" });
 
   return date.toLocaleDateString("en-IN", {
     day: "numeric",
@@ -48,6 +47,7 @@ function Chats() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [contacts, setContacts] = useState([]);
+  const [connectionError, setConnectionError] = useState(null);
   const isMobile = window.innerWidth <= 768;
   const [showChat, setShowChat] = useState(false);
   const messagesEndRef = useRef(null);
@@ -56,31 +56,42 @@ function Chats() {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     const token = localStorage.getItem("token");
-    if (!user || !token) return;
+    if (!user || !token) {
+      setConnectionError("Please log in to access chats.");
+      return;
+    }
 
-    // Create socket connection
+    // Create socket connection with enhanced options
     socketRef.current = io(baseURL, {
       auth: { token },
+      transports: ["websocket", "polling"], // Prefer WebSocket, fallback to polling
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 2000,
+      timeout: 10000,
     });
 
     // Set up event listeners
     socketRef.current.on("connect", () => {
-      // console.log("🟢 Socket connected:", socketRef.current.id);
-      // Join user's personal room
+      console.log("🟢 Socket connected:", socketRef.current.id);
+      setConnectionError(null);
       socketRef.current.emit("join", user.id);
     });
 
-    socketRef.current.on("disconnect", () => {
-      // console.log("🔴 Socket disconnected");
+    socketRef.current.on("disconnect", (reason) => {
+      console.log("🔴 Socket disconnected:", reason);
+      setConnectionError("Disconnected from server. Attempting to reconnect...");
     });
 
     socketRef.current.on("connect_error", (err) => {
       console.error("Connection error:", err.message);
+      setConnectionError(`Failed to connect: ${err.message}`);
     });
 
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
+        socketRef.current = null;
       }
     };
   }, []);
@@ -92,12 +103,10 @@ function Chats() {
     const handleNewMessage = (msg) => {
       console.log("📩 New message received:", msg);
       const user = JSON.parse(localStorage.getItem("user"));
+      if (!user) return;
 
-      // Check if message is for the current chat
       const isForCurrentChat =
         active && (msg.from === active.id || msg.to === active.id);
-
-      // Check if message is from another user (to update contact list)
       const isFromOtherUser = msg.from !== user.id;
 
       if (isForCurrentChat) {
@@ -112,7 +121,6 @@ function Chats() {
         ]);
       }
 
-      // Update contact list for received messages
       if (isFromOtherUser) {
         setContacts((prev) =>
           prev
@@ -153,7 +161,7 @@ function Chats() {
       try {
         const response = await fetch(`${baseURL}/api/chats`, {
           headers: {
-            Authorization: "Bearer " + localStorage.getItem("token"),
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
         const data = await response.json();
@@ -172,9 +180,11 @@ function Chats() {
           setContacts(formattedContacts);
         } else {
           console.error("Failed to fetch chats:", data.message);
+          setConnectionError(`Failed to fetch chats: ${data.message}`);
         }
       } catch (err) {
         console.error("Error fetching chats:", err);
+        setConnectionError("Error loading chat contacts.");
       }
     };
 
@@ -196,7 +206,7 @@ function Chats() {
         try {
           const res = await fetch(`${baseURL}/api/users/${selectedId}`, {
             headers: {
-              Authorization: "Bearer " + localStorage.getItem("token"),
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           });
 
@@ -219,9 +229,11 @@ function Chats() {
             handleContactSelect(newContact);
           } else {
             console.error("User not found:", data.message);
+            setConnectionError(`User not found: ${data.message}`);
           }
         } catch (err) {
           console.error("Error fetching new user:", err);
+          setConnectionError("Error loading user details.");
         }
       }
     };
@@ -235,28 +247,24 @@ function Chats() {
     setMessages([]);
     if (isMobile) setShowChat(true);
 
-    // Clear any existing interval
     if (refreshInterval) {
       clearInterval(refreshInterval);
     }
 
-    // Load messages immediately
     await fetchMessages(contact.id);
 
-    // Set up interval to refresh every 5 seconds
     const interval = setInterval(() => {
       fetchMessages(contact.id);
-    }, 2000);
+    }, 5000); // Increased to 5s to reduce server load
 
     setRefreshInterval(interval);
   };
 
-  // Separate fetch messages function
   const fetchMessages = async (contactId) => {
     try {
       const response = await fetch(`${baseURL}/api/chat/${contactId}`, {
         headers: {
-          Authorization: "Bearer " + localStorage.getItem("token"),
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
 
@@ -273,9 +281,11 @@ function Chats() {
         setMessages(mappedMessages);
       } else {
         console.error("Failed to fetch messages:", data.message);
+        setConnectionError(`Failed to fetch messages: ${data.message}`);
       }
     } catch (err) {
       console.error("Error fetching messages:", err);
+      setConnectionError("Error loading messages.");
     }
   };
 
@@ -294,7 +304,7 @@ function Chats() {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) return;
 
-    const tempId = Date.now(); // Temporary ID for optimistic update
+    const tempId = Date.now();
     const newMessage = {
       id: tempId,
       fromMe: true,
@@ -302,11 +312,9 @@ function Chats() {
       timestamp: new Date(),
     };
 
-    // Optimistic update
     setMessages((prev) => [...prev, newMessage]);
     setMessage("");
 
-    // Update contact list preview
     setContacts((prev) =>
       prev
         .map((contact) =>
@@ -329,11 +337,17 @@ function Chats() {
         to: active.id,
         content: message,
         token: localStorage.getItem("token"),
+      }, (ack) => {
+        if (ack && ack.error) {
+          console.error("Message send failed:", ack.error);
+          setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
+          setConnectionError("Failed to send message. Please try again.");
+        }
       });
     } catch (err) {
       console.error("Error sending message:", err);
-      // Rollback optimistic update if needed
       setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
+      setConnectionError("Error sending message.");
     }
   };
 
@@ -355,15 +369,32 @@ function Chats() {
     >
       <Row
         className="flex-grow-1 w-100"
-        style={{ overflow: "hidden", backgroundColor: "var(--primary-color)", boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}
+        style={{
+          overflow: "hidden",
+          backgroundColor: "var(--primary-color)",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+        }}
       >
+        {/* Connection Error Alert */}
+        {connectionError && (
+          <Alert
+            variant="danger"
+            onClose={() => setConnectionError(null)}
+            dismissible
+            className="m-3 position-absolute"
+            style={{ zIndex: 1000 }}
+          >
+            {connectionError}
+          </Alert>
+        )}
+
         {/* Sidebar */}
         {(!isMobile || !showChat) && (
           <Col xs={12} md={3} className="border-end px-0">
-            <div className="px-4 py-3 border-bottom">
-              <h5 className="mb-0 fw-bold fs-4" style={{ color: "#1a237e" }}>Chats</h5>
+            <div className="px-4 py-3 border-bottom bg-white">
+              <h5 className="mb-0 fw-bold fs-4 text-dark">Chats</h5>
             </div>
-            <div className="p-3 border-bottom">
+            <div className="p-3 border-bottom bg-white">
               <Form.Control
                 placeholder="Search..."
                 className="rounded-pill border border-dark shadow-sm"
@@ -387,7 +418,7 @@ function Chats() {
                     style={{
                       cursor: "pointer",
                       backgroundColor:
-                        active?.id === c.id ? "#EEF2FF" : "transparent",
+                        active?.id === c.id ? "#e0e7ff" : "transparent",
                     }}
                   >
                     <img
@@ -422,9 +453,8 @@ function Chats() {
         {/* Chat Pane */}
         {(isMobile ? showChat : true) && (
           <Col xs={12} md={9} className="d-flex flex-column">
-           
             {/* Chat Header */}
-            <div className="d-flex align-items-center justify-content-start border-bottom p-3">
+            <div className="d-flex align-items-center justify-content-start border-bottom p-3 bg-white">
               {isMobile && (
                 <Button
                   variant="light"
@@ -476,10 +506,9 @@ function Chats() {
                   <div key={dateKey}>
                     <div className="text-center my-3">
                       <span
+                        className="px-3 py-1 rounded-pill"
                         style={{
                           background: "#e5e7eb",
-                          padding: "6px 16px",
-                          borderRadius: "20px",
                           fontSize: "0.9rem",
                           fontWeight: "500",
                           color: "#374151",
@@ -495,11 +524,10 @@ function Chats() {
                           m.fromMe
                             ? "justify-content-end"
                             : "justify-content-start"
-                        }`}
-                        style={{ marginBottom: "6px" }}
+                        } mb-2`}
                       >
                         <div
-                          className={`rounded-4 shadow-sm d-inline-block ${
+                          className={`rounded-3 shadow-sm ${
                             m.fromMe
                               ? "bg-primary text-white"
                               : "bg-white border"
@@ -508,10 +536,10 @@ function Chats() {
                         >
                           <div>{m.text}</div>
                           <div
+                            className="text-end"
                             style={{
                               fontSize: "0.7rem",
                               color: m.fromMe ? "#e5e7eb" : "#6b7280",
-                              textAlign: "right",
                               marginTop: "2px",
                             }}
                           >
@@ -532,12 +560,11 @@ function Chats() {
                   </div>
                 ));
               })()}
-
               <div ref={messagesEndRef}></div>
             </div>
 
             {/* Message Input */}
-            <div className="border-top p-3">
+            <div className="border-top p-3 bg-white">
               <InputGroup className="rounded-pill border shadow-sm overflow-hidden">
                 <Button
                   variant="light"
@@ -552,6 +579,7 @@ function Chats() {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                  disabled={!!connectionError}
                 />
                 <Button variant="light" className="px-3">
                   <i className="bi bi-mic text-secondary"></i>
@@ -560,6 +588,7 @@ function Chats() {
                   variant="primary"
                   className="px-3"
                   onClick={sendMessage}
+                  disabled={!!connectionError}
                 >
                   <i className="bi bi-send text-white"></i>
                 </Button>
@@ -579,3 +608,4 @@ function Chats() {
 }
 
 export default Chats;
+// ```
