@@ -1,21 +1,6 @@
 import React, { useState } from 'react';
-import { Container, Row, Col, Card, Button, Form, Badge } from 'react-bootstrap';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Funnel,
-  ArrowUpRight,
-  ArrowDownLeft,
-  CreditCard,
-  Plus,
-  Gift,
-  ArrowRepeat,
-  Wallet as WalletIcon
-} from 'react-bootstrap-icons';
-
-const fadeIn = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
-};
+import { Container, Row, Col, Card, Button, Tabs, Tab, Form, ListGroup, Badge } from 'react-bootstrap';
+import { Plus, ArrowUpRight, ArrowDownLeft, Gift, ArrowRepeat, Wallet as WalletIcon } from 'react-bootstrap-icons';
 
 function Wallet() {
   const [amount, setAmount] = useState('');
@@ -64,115 +49,134 @@ function Wallet() {
   const totalWithdrawn = Math.abs(transactions.filter(tx => tx.type === 'refund' && tx.status === 'completed').reduce((sum, tx) => sum + tx.amount, 0));
 
   return (
-    <Container fluid style={{ backgroundColor: '#f1f5f9', minHeight: '100vh' }} className="py-5">
-      <Row className="justify-content-center mb-4">
-        <Col md={10} lg={8}>
-          <Card className="shadow-sm border-0 rounded-4">
-            <Card.Body className="text-center py-4">
-              <h2 className="fw-bold text-dark">Wallet Dashboard</h2>
-              <p className="text-muted">Overview of your funds and transactions</p>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+    <Container fluid style={{ backgroundColor: '#f1f5f9', minHeight: '100vh' }} className="p-0">
+      {/* Header */}
+      <div
+        style={{
+          background: 'linear-gradient(to right, #605cff, #4a00e0)',
+          color: '#fff',
+          padding: '20px 0',
+          borderBottomLeftRadius: 20,
+          borderBottomRightRadius: 20,
+        }}
+      >
+        <Container>
+          <Row className="align-items-center">
+            <Col>
+              <h5 className="mb-0">Wallet & Transactions</h5>
+              <small>Manage your balance and payments</small>
+            </Col>
+          </Row>
+        </Container>
+      </div>
 
-      <Row className="justify-content-center g-4">
-        <Col md={4}>
-          <Card className="shadow-sm border-0 rounded-4 bg-white">
-            <Card.Body>
-              <div className="d-flex align-items-center mb-3">
-                <CreditCard className="text-primary me-2" />
-                <h6 className="mb-0">Current Balance</h6>
-              </div>
-              <h4 className="fw-bold">₹{currentBalance.toLocaleString('en-IN')}</h4>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={4}>
-          <Card className="shadow-sm border-0 rounded-4 bg-white">
-            <Card.Body>
-              <div className="d-flex align-items-center mb-3">
-                <ArrowUpRight className="text-danger me-2" />
-                <h6 className="mb-0">Total Spent</h6>
-              </div>
-              <h4 className="fw-bold">₹{Math.abs(totalSpent).toLocaleString('en-IN')}</h4>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={4}>
-          <Card className="shadow-sm border-0 rounded-4 bg-white">
-            <Card.Body>
-              <div className="d-flex align-items-center mb-3">
-                <ArrowDownLeft className="text-success me-2" />
-                <h6 className="mb-0">Total Withdrawn</h6>
-              </div>
-              <h4 className="fw-bold">₹{totalWithdrawn.toLocaleString('en-IN')}</h4>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+      <Container className="mt-4">
+        <Row>
+          {/* Left Side - Add Funds */}
+          <Col lg={3} md={12} className="mb-4">
+            <Card className="shadow-sm border-0">
+              <Card.Header className="bg-white d-flex justify-content-between align-items-center border-bottom">
+                <h6 className="mb-0">Add Funds</h6>
+              </Card.Header>
+              <Card.Body>
+                <Form>
+                  <Form.Group className="mb-3" controlId="formAmount">
+                    <Form.Label>Amount</Form.Label>
+                    <Form.Control
+                      type="number"
+                      min="1"
+                      value={amount}
+                      onChange={e => setAmount(e.target.value)}
+                      placeholder="Enter amount"
+                    />
+                  </Form.Group>
+                  <Button variant="primary" className="w-100" disabled={!amount} onClick={handleAddFunds}>
+                    <Plus className="me-1" /> Add Funds
+                  </Button>
+                </Form>
+              </Card.Body>
+            </Card>
+          </Col>
 
-      <Row className="justify-content-center mt-5">
-        <Col md={10} lg={8}>
-          <Card className="shadow-sm border-0 rounded-4 bg-white">
-            <Card.Body>
-              <h5 className="fw-bold mb-4">Add Funds</h5>
-              <Form className="d-flex gap-3 align-items-end">
-                <Form.Group className="flex-grow-1">
-                  <Form.Label className="text-muted">Amount</Form.Label>
-                  <Form.Control type="number" min="1" value={amount} onChange={e => setAmount(e.target.value)} placeholder="Enter amount" />
-                </Form.Group>
-                <Button variant="primary" onClick={handleAddFunds} disabled={!amount}><Plus className="me-1" /> Add</Button>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+          {/* Right Side - Tabs */}
+          <Col lg={9} md={12}>
+            <Card className="shadow-sm border-0 rounded" style={{ backgroundColor: '#f8f9fa' }}>
+              <Tabs defaultActiveKey="summary" justify variant="underline" className="pt-3 px-3">
+                <Tab eventKey="summary" title="Summary">
+                  <Row className="g-4 px-4 py-3">
+                    <Col md={4}>
+                      <Card className="h-100 border-0 shadow-sm">
+                        <Card.Body className="text-center">
+                          <h6 className="text-secondary">Current Balance</h6>
+                          <h3 className="fw-bold">₹{currentBalance.toLocaleString('en-IN')}</h3>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                    <Col md={4}>
+                      <Card className="h-100 border-0 shadow-sm">
+                        <Card.Body className="text-center">
+                          <h6 className="text-secondary">Total Spent</h6>
+                          <h3 className="fw-bold text-danger">₹{Math.abs(totalSpent).toLocaleString('en-IN')}</h3>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                    <Col md={4}>
+                      <Card className="h-100 border-0 shadow-sm">
+                        <Card.Body className="text-center">
+                          <h6 className="text-secondary">Total Withdrawn</h6>
+                          <h3 className="fw-bold text-success">₹{totalWithdrawn.toLocaleString('en-IN')}</h3>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  </Row>
+                </Tab>
 
-      <Row className="justify-content-center mt-5">
-        <Col md={10} lg={8}>
-          <Card className="shadow-sm border-0 rounded-4 bg-white">
-            <Card.Body>
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="fw-bold mb-0">Transactions</h5>
-                <div className="d-flex gap-2">
-                  {['all','deposit','payment','refund','bonus'].map(f => (
-                    <Button key={f} variant={activeFilter === f ? 'dark' : 'outline-dark'} size="sm" onClick={() => setActiveFilter(f)}>
-                      {f[0].toUpperCase() + f.slice(1)}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                {filteredTransactions.length > 0 ? (
-                  filteredTransactions.map(tx => (
-                    <div key={tx.id} className="d-flex justify-content-between align-items-center py-3 border-bottom">
-                      <div className="d-flex align-items-center">
-                        <div className="me-3">{getIcon(tx.type)}</div>
-                        <div>
-                          <h6 className="mb-0 fw-bold">{tx.description}</h6>
-                          <small className="text-muted">{tx.date} • {tx.time}</small>
-                        </div>
-                      </div>
-                      <div className="text-end">
-                        <span className={`fw-bold ${tx.amount > 0 ? 'text-success' : 'text-danger'}`}>
-                          {tx.amount > 0 ? '+' : ''}{tx.amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
-                        </span>
-                        {tx.status === 'pending' && <Badge bg="warning" text="dark" className="ms-2">Pending</Badge>}
-                      </div>
+                <Tab eventKey="transactions" title="Transactions">
+                  <ListGroup variant="flush" className="px-3 py-3" style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                    <div className="d-flex justify-content-end mb-3 gap-2 flex-wrap">
+                      {['all', 'deposit', 'payment', 'refund', 'bonus'].map(filter => (
+                        <Button
+                          key={filter}
+                          variant={activeFilter === filter ? 'dark' : 'outline-dark'}
+                          size="sm"
+                          onClick={() => setActiveFilter(filter)}
+                          aria-pressed={activeFilter === filter}
+                          className="text-capitalize"
+                        >
+                          {filter}
+                        </Button>
+                      ))}
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-muted mb-1">No transactions found</p>
-                    <h4 className="fw-bold text-muted">₹0.00</h4>
-                  </div>
-                )}
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+                    {filteredTransactions.length ? (
+                      filteredTransactions.map(tx => (
+                        <ListGroup.Item key={tx.id} className="d-flex justify-content-between align-items-center">
+                          <div className="d-flex align-items-center gap-3">
+                            {getIcon(tx.type)}
+                            <div>
+                              <h6 className="mb-1 fw-semibold">{tx.description}</h6>
+                              <small className="text-muted">{tx.date} • {tx.time}</small>
+                            </div>
+                          </div>
+                          <div className="text-end d-flex align-items-center gap-2">
+                            <span className={`fw-bold ${tx.amount > 0 ? 'text-success' : 'text-danger'}`}>
+                              {tx.amount > 0 ? '+' : ''}{tx.amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                            </span>
+                            {tx.status === 'pending' && (
+                              <Badge bg="warning" text="dark" pill>Pending</Badge>
+                            )}
+                          </div>
+                        </ListGroup.Item>
+                      ))
+                    ) : (
+                      <div className="text-center text-secondary py-5 fw-semibold">No transactions found</div>
+                    )}
+                  </ListGroup>
+                </Tab>
+              </Tabs>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
     </Container>
   );
 }

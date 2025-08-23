@@ -15,11 +15,6 @@ const DashboardPage = () => {
 
     // Use a flag to prevent duplicate toast
     if (!token) {
-      const toastShown = sessionStorage.getItem("toastShown");
-      if (!toastShown) {
-        toast.warn("Please login to access the dashboard");
-        sessionStorage.setItem("toastShown", "true");
-      }
       navigate("/login");
     }
   }, [navigate]);

@@ -183,6 +183,7 @@ function Orders() {
         }
 
         const data = await response.json();
+        console.log("Fetched orders:", data.orders); // Debug log
         setOrders(data.orders || []);
       } catch (err) {
         console.error("Fetch orders error:", err.message);
@@ -202,7 +203,7 @@ function Orders() {
           (!filters.from || new Date(o.orderDate) >= new Date(filters.from)) &&
           (!filters.to || new Date(o.orderDate) <= new Date(filters.to)) &&
           (!filters.status || o.status === filters.status) &&
-          (!filters.type || o.type === filters.type)
+          (!filters.type || o.orderType === filters.type) // Updated to use orderType
       ),
     [filters, orders]
   );
@@ -228,14 +229,20 @@ function Orders() {
   };
 
   const handleCheckout = (order) => {
+    // Derive type and product from orderType and services
+    const primaryService =
+      order.services && order.services.length > 0 ? order.services[0] : {};
+    const type = order.orderType || "Unknown";
+    const product = primaryService.name || "Unknown Service";
+
     navigate("/checkout", {
       state: {
         order: {
           orderId: order.id,
           scheduledDate: order.scheduledDate,
           scheduledTime: order.scheduledTime,
-          type: order.type,
-          product: order.product,
+          type: type,
+          product: product,
           businessStatus: "Verified",
           subtotal: order.amount,
           total: order.amount,
@@ -413,13 +420,13 @@ function Orders() {
               <thead style={{ backgroundColor: "hsl(214.3, 31.8%, 95%)" }}>
                 <tr>
                   {[
-                    "Type",
-                    "Username",
+                    "Direction",
+                    "Name",
                     "Order Date",
                     "Scheduled Date",
                     "Scheduled Time",
                     "Order Type",
-                    "Product/Service",
+                    "Service",
                     "Amount",
                     "Status",
                     "Actions",
@@ -432,94 +439,133 @@ function Orders() {
               </thead>
               <tbody>
                 {getFilteredByStatus().length > 0 ? (
-                  getFilteredByStatus().map((o) => (
-                    <tr
-                      key={o.id}
-                      onClick={() => setSelectedOrder(o)}
-                      onMouseEnter={() => setIsHovered(true)}
-                      onMouseLeave={() => setIsHovered(false)}
-                      style={{
-                        cursor: "pointer",
-                        transition: "background 0.2s ease",
-                        backgroundColor: isHovered ? "#eef2ff" : "transparent",
-                      }}
-                      className="order-row"
-                    >
-                      <td>
-                        {user.id === o.influencerId ? (
-                          <>
-                            <span style={{ color: "green" }}>↙</span>
-                          </>
-                        ) : (
-                          <>
-                            <span style={{ color: "red" }}>↗</span>
-                          </>
-                        )}
-                      </td>
+                  getFilteredByStatus().map((o) => {
+                    // Derive service name and type from services
+                    const primaryService =
+                      o.services && o.services.length > 0 ? o.services[0] : {};
+                    const serviceName =
+                      primaryService.name || "Unknown Service";
+                    const serviceType =
+                      primaryService.type || o.orderType || "Unknown";
 
-                      <td>
-                        {user.id === o.influencerId ? (
-                          <>{o.username}</>
-                        ) : (
-                          <>{o.infName}</>
-                        )}
-                      </td>
-                      <td>{parseDate(o.orderDate)}</td>
-                      <td>{o.scheduledDate || "—"}</td>
-                      <td>{o.scheduledTime || "—"}</td>
-                      <td>{o.type}</td>
-                      <td>{o.product}</td>
-                      <td>₹{o.amount.toLocaleString()}</td>
-                      <td>
-                        <Badge
-                          bg={o.status === "Completed" ? "success" : "warning"}
-                        >
-                          {o.status}
-                        </Badge>
-                      </td>
-                      <td className="d-flex gap-2">
-                        <Button
-                          size="sm"
-                          style={{ backgroundColor: "#8e7cc3", border: "none" }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedOrder(o);
-                          }}
-                        >
-                          <Eye />
-                        </Button>
-                        <Button
-                          size="sm"
-                          style={{ backgroundColor: "#c94c4c", border: "none" }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleReject(o.id);
-                          }}
-                        >
-                          <XCircle />
-                        </Button>
-                        {o.status !== "Completed" &&
-                          user.id !== o.influencerId && (
-                            <Button
-                              size="sm"
-                              style={{
-                                backgroundColor: "#4bb543",
-                                border: "none",
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleCheckout(o);
-                              }}
-                            >
-                              <CreditCard />
-                            </Button>
+                    return (
+                      <tr
+                        key={o.id}
+                        onClick={() => setSelectedOrder(o)}
+                        onMouseEnter={() => setIsHovered(true)}
+                        onMouseLeave={() => setIsHovered(false)}
+                        style={{
+                          cursor: "pointer",
+                          transition: "background 0.2s ease",
+                          backgroundColor: isHovered
+                            ? "#eef2ff"
+                            : "transparent",
+                        }}
+                        className="order-row"
+                      >
+                        <td>
+                          {user.id === o.influencer_id ? (
+                            <span style={{ color: "green" }}>↙</span>
+                          ) : (
+                            <span style={{ color: "red" }}>↗</span>
                           )}
-                      </td>
-                    </tr>
-                  ))
+                        </td>
+                        <td>
+                          {user.id === o.influencer_id ? o.username : o.infname}
+                        </td>
+                        <td>{parseDate(o.orderdate)}</td>
+                        <td>
+                          {o.scheduleddate
+                            ? new Date(o.scheduleddate).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                  timeZone: "Asia/Kolkata", // Adjust to IST
+                                }
+                              )
+                            : "—"}
+                        </td>
+                        <td>
+                          {o.scheduleddate
+                            ? new Date(o.scheduleddate).toLocaleTimeString(
+                                "en-US",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                  timeZone: "Asia/Kolkata", // Adjust to IST
+                                }
+                              )
+                            : "—"}
+                        </td>
+                        <td>{o.ordertype || "Unknown"}</td>
+                        <td>
+                          {o.services && o.services.length > 0
+                            ? o.services[0].name
+                            : "Unknown Service"}
+                        </td>
+                        <td>₹{o.amount.toLocaleString()}</td>
+                        <td>
+                          <Badge
+                            bg={
+                              o.status === "Completed" ? "success" : "warning"
+                            }
+                          >
+                            {o.status}
+                          </Badge>
+                        </td>
+                        <td className="d-flex gap-2">
+                          <Button
+                            size="sm"
+                            style={{
+                              backgroundColor: "#8e7cc3",
+                              border: "none",
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedOrder(o);
+                            }}
+                          >
+                            <Eye />
+                          </Button>
+                          <Button
+                            size="sm"
+                            style={{
+                              backgroundColor: "#c94c4c",
+                              border: "none",
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleReject(o.id);
+                            }}
+                          >
+                            <XCircle />
+                          </Button>
+                          {o.status !== "Completed" &&
+                            user.id !== o.influencer_id && (
+                              <Button
+                                size="sm"
+                                style={{
+                                  backgroundColor: "#4bb543",
+                                  border: "none",
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCheckout(o);
+                                }}
+                              >
+                                <CreditCard />
+                              </Button>
+                            )}
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
-                    <td colSpan="9" className="text-center text-muted py-4">
+                    <td colSpan="10" className="text-center text-muted py-4">
                       No {tabKey.toLowerCase()} orders found.
                     </td>
                   </tr>
@@ -530,7 +576,7 @@ function Orders() {
         </div>
       </Container>
 
-      {/* Order-Details Model */}
+      {/* Order-Details Modal */}
       <Modal
         show={!!selectedOrder}
         onHide={() => setSelectedOrder(null)}
@@ -574,6 +620,7 @@ function Orders() {
                 </Col>
                 <Col>: {selectedOrder.id || "4292424244"}</Col>
               </Row>
+
               <Row className="mb-3">
                 <Col xs={5}>
                   <strong>Status</strong>
@@ -590,72 +637,87 @@ function Orders() {
                   </Badge>
                 </Col>
               </Row>
+
               <Row className="mb-3">
                 <Col xs={5}>
                   <strong>Username</strong>
                 </Col>
                 <Col>: {selectedOrder.username || "Unknown"}</Col>
               </Row>
+
               <Row className="mb-3">
                 <Col xs={5}>
                   <strong>Influencer Name</strong>
                 </Col>
-                <Col>: {selectedOrder.infName || "Unknown"}</Col>
+                <Col>: {selectedOrder.infname || "Unknown"}</Col>
               </Row>
+
               <Row className="mb-3">
                 <Col xs={5}>
                   <strong>User ID</strong>
                 </Col>
-                <Col>: {selectedOrder.userId}</Col>
+                <Col>: {selectedOrder.user_id}</Col>
               </Row>
+
               <Row className="mb-3">
                 <Col xs={5}>
                   <strong>Influencer ID</strong>
                 </Col>
-                <Col>: {selectedOrder.influencerId}</Col>
+                <Col>: {selectedOrder.influencer_id}</Col>
               </Row>
+
               <Row className="mb-3">
                 <Col xs={5}>
                   <strong>Amount</strong>
                 </Col>
-                <Col>: ₹{selectedOrder.amount.toLocaleString()}</Col>
+                <Col>: ₹{Number(selectedOrder.amount).toLocaleString()}</Col>
               </Row>
+
               <Row className="mb-3">
                 <Col xs={5}>
                   <strong>Order Date</strong>
                 </Col>
-                <Col>: {parseDate(selectedOrder.orderDate)}</Col>
+                <Col>: {parseDate(selectedOrder.orderdate)}</Col>
               </Row>
+
               <Row className="mb-3">
                 <Col xs={5}>
                   <strong>Scheduled Date</strong>
                 </Col>
-                <Col>: {selectedOrder.scheduledDate || "Not scheduled"}</Col>
+                <Col>
+                  :{" "}
+                  {selectedOrder.scheduleddate
+                    ? parseDate(selectedOrder.scheduleddate)
+                    : "Not scheduled"}
+                </Col>
               </Row>
+
               <Row className="mb-3">
                 <Col xs={5}>
                   <strong>Scheduled Time</strong>
                 </Col>
-                <Col>: {selectedOrder.scheduledTime || "Not specified"}</Col>
+                <Col>: {selectedOrder.scheduledtime || "Not specified"}</Col>
               </Row>
-              <Row className="mb-3">
-                <Col xs={5}>
-                  <strong>Type</strong>
-                </Col>
-                <Col>: {selectedOrder.type || "Unknown"}</Col>
-              </Row>
-              <Row className="mb-3">
-                <Col xs={5}>
-                  <strong>Product</strong>
-                </Col>
-                <Col>: {selectedOrder.product || "Custom Service"}</Col>
-              </Row>
+
               <Row className="mb-3">
                 <Col xs={5}>
                   <strong>Order Type</strong>
                 </Col>
-                <Col>: {selectedOrder.orderType || "Unknown"}</Col>
+                <Col>: {selectedOrder.ordertype || "Unknown"}</Col>
               </Row>
+
+              <Row className="mb-3">
+                <Col xs={5}>
+                  <strong>Service</strong>
+                </Col>
+                <Col>
+                  :{" "}
+                  {selectedOrder.services && selectedOrder.services.length > 0
+                    ? selectedOrder.services[0].name || "Unknown Service"
+                    : "Unknown Service"}
+                </Col>
+              </Row>
+
               <Row className="mb-3">
                 <Col xs={5}>
                   <strong>Description</strong>
@@ -664,21 +726,23 @@ function Orders() {
                   : {selectedOrder.description || "No description provided"}
                 </Col>
               </Row>
+
               <Row className="mb-3">
                 <Col xs={5}>
                   <strong>Coupon Code</strong>
                 </Col>
-                <Col>: {selectedOrder.couponCode || "None"}</Col>
+                <Col>: {selectedOrder.couponcode || "None"}</Col>
               </Row>
+
               <Row className="mb-3">
                 <Col xs={5}>
                   <strong>Affiliated Links</strong>
                 </Col>
                 <Col>
                   :{" "}
-                  {selectedOrder.affiliatedLinks &&
-                  selectedOrder.affiliatedLinks.length > 0
-                    ? selectedOrder.affiliatedLinks.map((link, index) => (
+                  {selectedOrder.affiliatedlinks &&
+                  selectedOrder.affiliatedlinks.length > 0
+                    ? selectedOrder.affiliatedlinks.map((link, index) => (
                         <div key={index}>
                           <a
                             href={link}
@@ -692,6 +756,7 @@ function Orders() {
                     : "None"}
                 </Col>
               </Row>
+
               <Row className="mb-3">
                 <Col xs={5}>
                   <strong>File</strong>

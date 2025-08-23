@@ -34,6 +34,14 @@ import "./Influencers.css";
 import getInfluencersData from "../components/InfluencersData";
 import config from "../config";
 
+import LeftPanel from "../components/inflcomp/LeftPanel";
+import ProfileHeader from "../components/inflcomp/ProfileHeader";
+import TabNavigation from "../components/inflcomp/TabNavigation";
+import ServicesTab from "../components/inflcomp/ServicesTab";
+import PricesTab from "../components/inflcomp/PricesTab";
+import DataTab from "../components/inflcomp/DataTab";
+import FiltersOffcanvas from "../components/inflcomp/FiltersOffcanvas";
+
 const baseURL =
   import.meta.env.MODE === "development"
     ? config.LOCAL_BASE_URL
@@ -180,19 +188,20 @@ function Influencers() {
   };
 
   const handlePlatformChange = (key) => {
-    const [platform, service] = key.split("-");
+    const dashIndex = key.indexOf("-");
+    const platform = key.substring(0, dashIndex);
+    const service = key.substring(dashIndex + 1);
 
     setSelectedPlatformServices((prev) => {
-      const updated = { ...prev };
-      const currentServices = updated[platform] || [];
+      let updated = {};
 
-      // Toggle the service
+      // Always reset to current platform only
+      const currentServices = prev[platform] || [];
+
       if (currentServices.includes(service)) {
         const filtered = currentServices.filter((s) => s !== service);
         if (filtered.length > 0) {
           updated[platform] = filtered;
-        } else {
-          delete updated[platform];
         }
       } else {
         updated[platform] = [...currentServices, service];
@@ -256,190 +265,25 @@ function Influencers() {
 
   return (
     <div className="d-flex flex-column flex-md-row h-100">
-      {/* Left Panel */}
-      <div
-        className="p-3 col-12 col-lg-4"
-        style={{
-          backgroundColor: "var(--primary-color)",
-          borderRight: "1px solid #e0e0e0",
-          height: "calc(90vh)",
-          borderRadius: "16px",
-        }}
-      >
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h6 className="fw-semibold fs-4" style={{ color: "#1a237e" }}>
-            Influencers
-          </h6>
-          <button
-            className="btn btn-sm"
-            style={{
-              background: "linear-gradient(135deg, rgb(87, 52, 226), #1976d2)",
-              border: "none",
-              color: "#fff",
-              borderRadius: "50px",
-              padding: "0.6rem 1.5rem",
-              fontWeight: 600,
-              fontSize: "0.95rem",
-              boxShadow: "0 4px 14px rgba(125, 104, 195, 0.25)",
-            }}
-            onClick={() => setShowFilters(true)}
-          >
-            Filters
-          </button>
-        </div>
+      <LeftPanel
+        data={data}
+        selected={selected}
+        setSelected={setSelected}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        setShowFilters={setShowFilters}
+        countryCode={countryCode}
+        stateCode={stateCode}
+        selectedCity={selectedCity}
+        niche={niche}
+        contentType={contentType}
+        platform={platform}
+        engagementRate={engagementRate}
+        followers={followers}
+        selectedLang={selectedLang}
+        formatFollowers={formatFollowers}
+      />
 
-        {/* Selected Filters Badges */}
-        <div className="d-flex flex-wrap gap-2 mb-3">
-          {countryCode && (
-            <span className="badge bg-primary text-white">
-              Country: {countryCode}
-            </span>
-          )}
-          {stateCode && (
-            <span className="badge bg-primary text-white">
-              State: {stateCode}
-            </span>
-          )}
-          {selectedCity && (
-            <span className="badge bg-primary text-white">
-              City: {selectedCity}
-            </span>
-          )}
-          {niche && (
-            <span className="badge bg-success text-white">Niche: {niche}</span>
-          )}
-          {contentType && (
-            <span className="badge bg-info text-dark">
-              Content: {contentType}
-            </span>
-          )}
-          {platform && (
-            <span className="badge bg-warning text-dark">
-              Platform: {platform}
-            </span>
-          )}
-          {engagementRate > 0 && (
-            <span className="badge bg-dark text-white">
-              Engagement: {engagementRate}%
-            </span>
-          )}
-          {followers > 0 && (
-            <span className="badge bg-secondary text-white">
-              Followers: {formatFollowers(followers)}
-            </span>
-          )}
-          {selectedLang && (
-            <span className="badge bg-light text-dark border">
-              Lang: {selectedLang}
-            </span>
-          )}
-        </div>
-
-        <input
-          className="form-control mb-3"
-          placeholder="Search..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
-          style={{
-            borderRadius: "12px",
-            fontSize: "0.85rem",
-            padding: "8px 12px",
-            border: "1px solid #dcdcdc",
-          }}
-        />
-
-        <div
-          className="overflow-auto"
-          style={{
-            height: "calc(90vh - 120px)",
-            backgroundColor: "var(--primary-color)",
-          }}
-        >
-          {data
-            .filter((inf) => inf.username.toLowerCase().includes(searchTerm))
-            .map((inf, index) => (
-              <div
-                key={inf.id}
-                className="d-flex align-items-start p-2 mb-2 rounded transition-all"
-                onClick={() => setSelected(inf)}
-                style={{
-                  backgroundColor: "#fff",
-                  cursor: index >= 5 ? "default" : "pointer",
-                  pointerEvents: index >= 5 ? "none" : "auto",
-                  opacity: index >= 5 ? 0.5 : 1,
-                  minHeight: "70px",
-                  filter: index >= 5 ? "blur(2px)" : "none",
-                  transition: "all 0.2s ease-in-out",
-                }}
-                onMouseEnter={(e) => {
-                  if (index < 5) {
-                    e.currentTarget.style.boxShadow =
-                      "0 4px 12px rgba(0,0,0,0.05)";
-                    e.currentTarget.style.backgroundColor = "#e2e8f0";
-                    e.currentTarget.style.transform = "scale(1.015)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (index < 5) {
-                    e.currentTarget.style.boxShadow = "none";
-                    e.currentTarget.style.backgroundColor = "#fff";
-                    e.currentTarget.style.transform = "scale(1)";
-                  }
-                }}
-              >
-                <img
-                  src={inf.profilePic}
-                  alt="profile"
-                  width="50"
-                  height="50"
-                  className="rounded-circle border"
-                  style={{
-                    borderColor: "#FFD700",
-                    borderWidth: "2px",
-                    borderStyle: "solid",
-                    marginTop: "4px",
-                  }}
-                />
-                <div className="ms-3 w-100">
-                  <div
-                    className="fw-medium text-dark"
-                    style={{ fontSize: "0.9rem" }}
-                  >
-                    {inf.username}
-                  </div>
-                  <div
-                    className="text-muted mb-1"
-                    style={{ fontSize: "0.75rem" }}
-                  >
-                    {inf.category}
-                  </div>
-                  <div className="d-flex flex-wrap gap-3 small text-secondary">
-                    <span className="d-flex align-items-center gap-1">
-                      <FaInstagram style={{ color: "#E1306C" }} size={14} />{" "}
-                      <span>{inf.stats.instagram}</span>
-                    </span>
-                    <span className="d-flex align-items-center gap-1">
-                      <FaFacebook style={{ color: "#1877F2" }} size={14} />{" "}
-                      <span>
-                        {inf.data?.facebook?.friends?.summary?.total_count || 0}
-                      </span>
-                    </span>
-                    <span className="d-flex align-items-center gap-1">
-                      <FaTwitter style={{ color: "#1DA1F2" }} size={14} />{" "}
-                      <span>{inf.stats.twitter}</span>
-                    </span>
-                    <span className="d-flex align-items-center gap-1">
-                      <FaYoutube style={{ color: "#FF0000" }} size={14} />{" "}
-                      <span>{inf.stats.youtube}</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-        </div>
-      </div>
-
-      {/* Right Panel */}
       <div
         className="right-panel p-4 overflow-auto"
         style={{
@@ -450,7 +294,6 @@ function Influencers() {
       >
         {selected && (
           <>
-            {/* Header */}
             <div className="d-flex justify-content-between align-items-center mb-4">
               <h4 className="fw-bold mb-0">Profile</h4>
               <button
@@ -471,895 +314,78 @@ function Influencers() {
               </button>
             </div>
 
-            {/* Profile Card */}
-            <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 shadow-sm p-3 bg-white rounded-4 mb-4">
-              <div className="d-flex align-items-center gap-3 flex-grow-1">
-                <img
-                  src={selected.profilePic}
-                  className="rounded border border-1"
-                  width="70"
-                  height="70"
-                  alt="Profile"
-                />
-                <div>
-                  <h5 className="fw-semibold mb-1 d-flex align-items-center gap-3">
-                    {selected.name}
-                    <FaHeart
-                      style={{
-                        cursor: "pointer",
-                        color: isWishlisted[selected.id]
-                          ? "#dc3545"
-                          : "#b6b6b6",
-                        transition: "all 0.2s ease",
-                      }}
-                      onClick={() => toggleWishlist(Number(selected.id))}
-                    />
+            <ProfileHeader
+              selected={selected}
+              isWishlisted={isWishlisted}
+              toggleWishlist={toggleWishlist}
+              navigate={navigate}
+            />
 
-                    <FaComment
-                      className="text-primary cursor-pointer"
-                      title="Chat"
-                      onClick={() =>
-                        navigate(`/dashboard/chats/${selected.id}`)
-                      }
-                    />
-                    <FaShareAlt
-                      className="text-secondary cursor-pointer"
-                      title="Share"
-                    />
-                  </h5>
-                  <div className="text-muted small">@{selected.username}</div>
-                </div>
-              </div>
+            <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
 
-              <div className="d-flex gap-4 flex-wrap text-center">
-                <div>
-                  <FaInstagram color="#E1306C" size={26} />
-                  <div className="fw-bold">{selected.stats.instagram}</div>
-                </div>
-                <div>
-                  <FaFacebook color="#1877F2" size={26} />
-                  <div className="fw-bold">
-                    {selected.data?.facebook?.friends?.summary?.total_count ??
-                      "0"}
-                  </div>
-                </div>
-                <div>
-                  <FaYoutube color="#FF0000" size={26} />
-                  <div className="fw-bold">{selected.stats.youtube}</div>
-                </div>
-                <div>
-                  <FaTwitter color="#1DA1F2" size={26} />
-                  <div className="fw-bold">{selected.stats.twitter}</div>
-                </div>
-              </div>
-            </div>
-            {/* Tabs */}
-            <div className="d-flex mb-4 w-100">
-              {["services", "prices", "data"].map((tab) => (
-                <button
-                  key={tab}
-                  className={`btn w-100 text-center fw-semibold py-2 shadow-sm border-0 ${
-                    activeTab === tab
-                      ? " border-bottom border-4 border-primary"
-                      : "bg-light text-dark"
-                  }`}
-                  style={{
-                    width: "33.33%",
-                    borderBottom:
-                      activeTab === tab
-                        ? "4px solid #0d6efd"
-                        : "4px solid transparent",
-                  }}
-                  onClick={() => setActiveTab(tab)}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </button>
-              ))}
-            </div>
-            {/* Services */}
-            {activeTab === "services" && selected && (
-              <Row className="g-4">
-                {(() => {
-                  const posts = [];
-
-                  // Facebook Posts
-                  if (selected.posts?.facebook?.data) {
-                    posts.push(
-                      ...selected.posts.facebook.data.map((fb) => ({
-                        platform: "facebook",
-                        id: fb.id,
-                        created_time: fb.created_time,
-                        image: `https://graph.facebook.com/${fb.fb_id}/picture?access_token=${fb.fb_access_token}`,
-                        likes: 0,
-                        views: 0,
-                        comments: 0,
-                        shares: 0,
-                      }))
-                    );
-                  }
-
-                  // Instagram Posts
-                  if (selected.posts?.instagram?.data) {
-                    posts.push(
-                      ...selected.posts.instagram.data.map((ig) => ({
-                        platform: "instagram",
-                        id: ig.id,
-                        created_time: ig.timestamp,
-                        image: ig.media_url,
-                        likes: ig.like_count || 0,
-                        views: ig.view_count || 0,
-                        comments: ig.comments_count || 0,
-                        shares: 0,
-                      }))
-                    );
-                  }
-
-                  // YouTube Posts
-                  if (selected.posts?.youtube?.data) {
-                    posts.push(
-                      ...selected.posts.youtube.data.map((yt) => ({
-                        platform: "youtube",
-                        id: yt.id.videoId,
-                        created_time: yt.snippet.publishedAt,
-                        image: yt.snippet.thumbnails?.medium?.url,
-                        likes: yt.likes || 0,
-                        views: yt.views || 0,
-                        comments: yt.comments || 0,
-                        shares: 0,
-                      }))
-                    );
-                  }
-
-                  if (posts.length === 0) {
-                    return (
-                      <Col>
-                        <div className="text-center text-muted">
-                          No posts available.
-                        </div>
-                      </Col>
-                    );
-                  }
-
-                  return posts.map((post, index) => (
-                    <Col xs={12} sm={6} md={4} key={index}>
-                      <Card className="h-100 shadow-sm border-0">
-                        {post.image && (
-                          <Card.Img
-                            variant="top"
-                            src={post.image}
-                            height="140"
-                            className="rounded-top object-fit-cover"
-                          />
-                        )}
-                        <Card.Body className="p-3">
-                          <div className="d-flex justify-content-around small text-muted">
-                            <div>
-                              <FaHeart className="text-danger" />{" "}
-                              {post.likes || 0}
-                            </div>
-                            <div>
-                              <FaEye /> {post.views || 0}
-                            </div>
-                            <div>
-                              <FaComment /> {post.comments || 0}
-                            </div>
-                            <div>
-                              <FaShare /> {post.shares || 0}
-                            </div>
-                          </div>
-                          <div className="mt-2 text-center">
-                            <small className="text-secondary">
-                              {post.platform?.toUpperCase()}
-                            </small>
-                          </div>
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                  ));
-                })()}
-              </Row>
-            )}
-            {/* Prices */}
+            {activeTab === "services" && <ServicesTab selected={selected} />}
 
             {activeTab === "prices" && (
-              <div className="border rounded-4 p-4 bg-light shadow-sm">
-                {/* Tab Options */}
-                <div className="mb-3 d-flex gap-3">
-                  {["Platform Based", "Combo Package", "Custom Package"].map(
-                    (tab) => (
-                      <div className="form-check" key={tab}>
-                        <input
-                          className="form-check-input"
-                          type="radio"
-                          name="serviceTypeTab"
-                          id={`tab-${tab}`}
-                          checked={selectedService === tab}
-                          onChange={() => {
-                            setSelectedService(tab);
-                            setSelectedPlatformServices({});
-                            setSelectedCombos([]);
-                            setSelectedComboData([]);
-                            setSelectedCustomData([]);
-                            setSelectedFilter("");
-                            setExpandedPlatform("instagram");
-                          }}
-                        />
-                        <label
-                          className="form-check-label ms-2"
-                          htmlFor={`tab-${tab}`}
-                          style={{ cursor: "pointer" }}
-                        >
-                          {tab}
-                        </label>
-                      </div>
-                    )
-                  )}
-                </div>
-
-                {/* Platform Based Content */}
-                {selectedService === "Platform Based" && (
-                  <>
-                    {["facebook", "instagram", "youtube", "twitter"].map(
-                      (platform) =>
-                        selected.prices[platform] && (
-                          <div
-                            key={platform}
-                            className="mb-3 rounded border shadow-sm bg-light overflow-hidden"
-                          >
-                            <button
-                              className="btn w-100 text-start d-flex justify-content-between align-items-center px-3 py-2 border-bottom fw-bold text-white"
-                              style={{ backgroundColor: "#37517e" }}
-                              onClick={() =>
-                                setExpandedPlatform((prev) =>
-                                  prev === platform ? null : platform
-                                )
-                              }
-                            >
-                              <span className="text-capitalize">
-                                {platform}
-                              </span>
-                              <i
-                                className={`bi ${
-                                  expandedPlatform === platform
-                                    ? "bi-chevron-up"
-                                    : "bi-chevron-down"
-                                } fs-5`}
-                              ></i>
-                            </button>
-
-                            {expandedPlatform === platform && (
-                              <div className="px-3 pt-2 pb-3 bg-white">
-                                {Object.entries(selected.prices[platform])
-                                  .filter(([service]) => service !== "combo")
-                                  .map(([service, price], idx) => (
-                                    <div
-                                      key={idx}
-                                      className="d-flex justify-content-between align-items-center border-bottom py-2"
-                                    >
-                                      <div className="form-check">
-                                        <input
-                                          className="form-check-input"
-                                          type="checkbox"
-                                          id={`platform-${platform}-${service}`}
-                                          checked={selectedPlatformServices[
-                                            platform
-                                          ]?.includes(service)}
-                                          onChange={() =>
-                                            handlePlatformChange(
-                                              `${platform}-${service}`
-                                            )
-                                          }
-                                        />
-                                        <label
-                                          className="form-check-label ms-2"
-                                          htmlFor={`platform-${platform}-${service}`}
-                                        >
-                                          {service}
-                                        </label>
-                                      </div>
-                                      <div className="fw-semibold text-success">
-                                        ₹{price}
-                                      </div>
-                                    </div>
-                                  ))}
-                              </div>
-                            )}
-                          </div>
-                        )
-                    )}
-                  </>
-                )}
-
-                {/* Combo Package Content */}
-                {selectedService === "Combo Package" && (
-                  <div className="row">
-                    {(selected.prices.combos || []).map((combo) => {
-                      const isSelected = selectedCombos.includes(combo.name);
-                      return (
-                        <div
-                          key={combo.name}
-                          className="col-12 col-md-6 col-lg-4 mb-4"
-                          style={{ cursor: "pointer" }}
-                          onClick={() => handleComboChange(combo.name)}
-                        >
-                          <div
-                            className={`card h-100 shadow-sm border-0 rounded-4 p-3 ${
-                              isSelected
-                                ? "border border-primary border-2"
-                                : "border"
-                            }`}
-                          >
-                            <div className="card-body d-flex flex-column justify-content-between h-100">
-                              <div>
-                                <h5 className="fw-bold">{combo.name}</h5>
-                                <p className="text-muted small mb-3">
-                                  {combo.description ||
-                                    "No description available."}
-                                </p>
-
-                                {combo.platforms?.length > 0 && (
-                                  <>
-                                    <div className="text-muted small fw-semibold">
-                                      Platforms:
-                                    </div>
-                                    <div className="d-flex flex-wrap gap-2 mb-2">
-                                      {combo.platforms.map((platform, i) => (
-                                        <span
-                                          key={i}
-                                          className="badge bg-light text-dark border border-1"
-                                        >
-                                          {platform}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  </>
-                                )}
-
-                                {combo.services?.length > 0 && (
-                                  <>
-                                    <div className="text-muted small fw-semibold">
-                                      Includes:
-                                    </div>
-                                    <div className="d-flex flex-wrap gap-2 mb-2">
-                                      {combo.services.map((service, idx) => (
-                                        <span
-                                          key={idx}
-                                          className="badge bg-secondary-subtle text-dark border border-secondary"
-                                        >
-                                          {service}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-
-                              <div className="d-flex justify-content-end">
-                                <span className="badge bg-primary-subtle text-primary fs-6 px-3 py-2 rounded-pill">
-                                  ₹{combo.price}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Custom Package Content */}
-                {selectedService === "Custom Package" && (
-                  <div className="row">
-                    {(selected.prices.custom || []).map((combo) => (
-                      <div
-                        key={combo.name}
-                        className="col-12 col-md-6 col-lg-4 mb-4 d-flex"
-                      >
-                        <div className="card h-100 shadow-sm rounded-4 border-0 w-100">
-                          <div className="card-body p-4 d-flex flex-column justify-content-between">
-                            <div>
-                              <h5 className="fw-semibold mb-2">{combo.name}</h5>
-                              <p className="text-muted small mb-3">
-                                {combo.description ||
-                                  "No description available."}
-                              </p>
-
-                              {combo.platforms?.length > 0 && (
-                                <>
-                                  <div className="text-muted small fw-semibold">
-                                    Platforms:
-                                  </div>
-                                  <div className="d-flex flex-wrap gap-2 mt-1 mb-3">
-                                    {combo.platforms.map((platform, i) => (
-                                      <span
-                                        key={i}
-                                        className="badge bg-light text-dark border border-1"
-                                      >
-                                        {platform}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </>
-                              )}
-
-                              {combo.services?.length > 0 && (
-                                <>
-                                  <div className="text-muted small fw-semibold">
-                                    Includes:
-                                  </div>
-                                  <div className="d-flex flex-wrap gap-2 mt-1 mb-3">
-                                    {combo.services.map((service, idx) => (
-                                      <span
-                                        key={idx}
-                                        className="badge bg-secondary-subtle text-dark border border-secondary"
-                                      >
-                                        {service}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </>
-                              )}
-                            </div>
-
-                            <div className="d-flex justify-content-end">
-                              <span className="badge bg-primary-subtle text-primary fs-6 px-3 py-2 rounded-pill">
-                                ₹{combo.price}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Book Button */}
-                <div className="text-end mt-3">
-                  <button
-                    className="btn btn-success rounded-pill px-4 shadow-sm"
-                    onClick={handleProceed}
-                  >
-                    Book
-                  </button>
-                </div>
-              </div>
+              <PricesTab
+                selected={selected}
+                selectedService={selectedService}
+                setSelectedService={setSelectedService}
+                selectedPlatformServices={selectedPlatformServices}
+                setSelectedPlatformServices={setSelectedPlatformServices}
+                selectedCombos={selectedCombos}
+                setSelectedCombos={setSelectedCombos}
+                expandedPlatform={expandedPlatform}
+                setExpandedPlatform={setExpandedPlatform}
+                handlePlatformChange={handlePlatformChange}
+                handleComboChange={handleComboChange}
+                handleProceed={handleProceed}
+              />
             )}
 
-            {/* Data */}
-            {activeTab === "data" && (
-              <Row className="g-4">
-                {Object.entries(selected.data || {}).length === 0 ? (
-                  <Col>
-                    <div className="text-muted text-center">
-                      No data available.
-                    </div>
-                  </Col>
-                ) : (
-                  Object.entries(selected.data).map(([label, value]) => (
-                    <Col xs={6} md={3} key={label}>
-                      <div className="bg-light border rounded-4 p-3 text-center shadow-sm">
-                        <div className="fs-5 fw-bold">
-                          {typeof value === "object"
-                            ? value?.name || value?.id || JSON.stringify(value)
-                            : value}
-                        </div>
-                        <div className="small text-muted">
-                          {label
-                            .replace(/([A-Z])/g, " $1")
-                            .replace(/^./, (str) => str.toUpperCase())}
-                        </div>
-                      </div>
-                    </Col>
-                  ))
-                )}
-
-                {/* Area Chart */}
-                <Col md={6}>
-                  <div className="bg-white rounded-4 p-3 shadow-sm">
-                    <h6 className="fw-bold mb-3">Engagement Rate Over Time</h6>
-                    <ResponsiveContainer width="100%" height={200}>
-                      <AreaChart
-                        data={[
-                          { month: "Feb", rate: 52 },
-                          { month: "Mar", rate: 56 },
-                          { month: "Apr", rate: 59 },
-                          { month: "May", rate: 62 },
-                          { month: "Jun", rate: 65 },
-                        ]}
-                      >
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <Tooltip />
-                        <Area
-                          type="monotone"
-                          dataKey="rate"
-                          stroke="#4c75f2"
-                          fill="#aecbfa"
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </Col>
-
-                {/* Pie Chart */}
-                <Col md={6}>
-                  <div className="bg-white rounded-4 p-3 shadow-sm">
-                    <h6 className="fw-bold mb-3">
-                      Content Performance by Platform
-                    </h6>
-                    <ResponsiveContainer width="100%" height={200}>
-                      <PieChart>
-                        <Pie
-                          data={[
-                            { name: "Instagram", value: 40 },
-                            { name: "Facebook", value: 30 },
-                            { name: "Twitter", value: 15 },
-                            { name: "YouTube", value: 15 },
-                          ]}
-                          dataKey="value"
-                          nameKey="name"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={60}
-                          label
-                        >
-                          <Cell fill="#4c75f2" />
-                          <Cell fill="#90ee90" />
-                          <Cell fill="#ffa500" />
-                          <Cell fill="#ffcccb" />
-                        </Pie>
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </Col>
-              </Row>
-            )}
+            {activeTab === "data" && <DataTab selected={selected} />}
           </>
         )}
       </div>
 
-      {/* Filters Offcanvas */}
-      <Offcanvas
-        show={showFilters}
-        onHide={() => setShowFilters(false)}
-        placement="end"
-        backdrop={true}
-        style={{ zIndex: 1100 }}
-      >
-        <Offcanvas.Header className="d-flex justify-content-between align-items-center">
-          <Offcanvas.Title className="fw-bold">Filters</Offcanvas.Title>
-          <div>
-            <button
-              className="btn btn-outline-secondary btn-sm me-2"
-              onClick={resetFilters}
-            >
-              Reset Filters
-            </button>
-            <button
-              type="button"
-              className="btn-close"
-              onClick={() => setShowFilters(false)}
-              aria-label="Close"
-            ></button>
-          </div>
-        </Offcanvas.Header>
-
-        <Offcanvas.Body className="px-4 py-3 bg-light">
-          {/* Custom Styles */}
-          <style>
-            {`
-            .form-select {
-              background-color: #e6f3ff !important;
-              border-color: #b3d7ff !important;
-              transition: all 0.2s ease-in-out;
-            }
-            .form-select:hover {
-              background-color: #d1e7ff !important;
-              border-color: #80bfff !important;
-              box-shadow: 0 0 8px rgba(0, 123, 255, 0.3) !important;
-            }
-            .form-select:focus {
-              background-color: #e6f3ff !important;
-              border-color: #80bfff !important;
-              box-shadow: 0 0 8px rgba(0, 123, 255, 0.3) !important;
-            }
-          `}
-          </style>
-
-          {/* Location Section */}
-          <div className="mb-3">
-            <label className="form-label fw-semibold text-dark">Location</label>
-            <div className="mb-2">
-              <select
-                className="form-select border-2 shadow-sm"
-                value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value)}
-              >
-                <option value="">Select Country</option>
-                {countries.map((c) => (
-                  <option key={c.isoCode} value={c.isoCode}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="mb-2">
-              <select
-                className="form-select border-2 shadow-sm"
-                value={stateCode}
-                onChange={(e) => setStateCode(e.target.value)}
-                disabled={!countryCode}
-              >
-                <option value="">Select State</option>
-                {states.map((s) => (
-                  <option key={s.isoCode} value={s.isoCode}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <select
-                className="form-select border-2 shadow-sm"
-                value={selectedCity}
-                onChange={(e) => setSelectedCity(e.target.value)}
-                disabled={!stateCode}
-              >
-                <option value="">Select City</option>
-                {cities.map((ci) => (
-                  <option key={ci.name} value={ci.name}>
-                    {ci.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Niche & Content Type */}
-          <div className="d-flex gap-2 mb-3">
-            <div className="w-50">
-              <label className="form-label fw-semibold text-dark">Niche</label>
-              <select
-                className="form-select border-2 shadow-sm"
-                value={niche}
-                onChange={(e) => setNiche(e.target.value)}
-              >
-                <option value="">Select Niche</option>
-                <option>Education</option>
-                <option>Fashion</option>
-                <option>Food</option>
-                <option>Gaming</option>
-                <option>Business</option>
-              </select>
-            </div>
-            <div className="w-50">
-              <label className="form-label fw-semibold text-dark">
-                Content Type
-              </label>
-              <select
-                className="form-select border-2 shadow-sm"
-                value={contentType}
-                onChange={(e) => setContentType(e.target.value)}
-              >
-                <option value="">Select Type</option>
-                <option>Video</option>
-                <option>Image</option>
-                <option>Reel</option>
-                <option>Short</option>
-                <option>Story</option>
-                <option>Live</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Engagement Rate */}
-          <div className="mb-3">
-            <label className="form-label fw-semibold text-dark">
-              Engagement Rate:{" "}
-              <span className="text-primary">{engagementRate}%</span>
-            </label>
-            <input
-              type="range"
-              className="form-range"
-              min="0"
-              max="100"
-              value={engagementRate}
-              onChange={(e) => setEngagementRate(e.target.value)}
-              style={{ direction: "ltr" }}
-            />
-            <div className="d-flex justify-content-between small">
-              <span>0%</span>
-              <span>100%</span>
-            </div>
-          </div>
-
-          {/* Follower Count */}
-          <div className="mb-3">
-            <label className="form-label fw-semibold text-dark">
-              Follower Count:{" "}
-              <span className="text-primary">{formatFollowers(followers)}</span>
-            </label>
-            <input
-              type="range"
-              className="form-range"
-              min="0"
-              max="10000000"
-              step="10000"
-              value={followers}
-              onChange={(e) => setFollowers(parseInt(e.target.value))}
-            />
-            <div className="d-flex justify-content-between small">
-              <span>0</span>
-              <span>10M</span>
-            </div>
-          </div>
-
-          {/* Platform */}
-          <div className="mb-3">
-            <label className="form-label fw-semibold text-dark">Platform</label>
-            <select
-              className="form-select border-2 shadow-sm"
-              value={platform}
-              onChange={(e) => setPlatform(e.target.value)}
-            >
-              <option value="">Select Platform</option>
-              <option>Instagram</option>
-              <option>Facebook</option>
-              <option>YouTube</option>
-              <option>Twitter</option>
-              <option>Threads</option>
-            </select>
-          </div>
-
-          {/* Price Range */}
-          <div className="mb-3">
-            <label className="form-label fw-semibold text-dark">
-              Price Range
-            </label>
-            <div className="d-flex gap-2">
-              <input
-                type="number"
-                className="form-control border-2 shadow-sm"
-                value={priceRange.min}
-                onChange={(e) =>
-                  setPriceRange({
-                    ...priceRange,
-                    min: parseInt(e.target.value) || 0,
-                  })
-                }
-                placeholder="0"
-              />
-              <input
-                type="number"
-                className="form-control border-2 shadow-sm"
-                value={priceRange.max}
-                onChange={(e) =>
-                  setPriceRange({
-                    ...priceRange,
-                    max: parseInt(e.target.value) || 5000,
-                  })
-                }
-                placeholder="5000"
-              />
-            </div>
-          </div>
-
-          {/* Hashtags */}
-          <div className="mb-3">
-            <label className="form-label fw-semibold text-dark">Hashtags</label>
-            <input
-              type="text"
-              className="form-control border-2 shadow-sm"
-              value={hashtags}
-              onChange={(e) => setHashtags(e.target.value)}
-              placeholder="Enter hashtags"
-            />
-            <div className="mt-2 d-flex flex-wrap gap-2">
-              {["#travel", "#food"].map((tag, idx) => (
-                <span
-                  key={idx}
-                  className="badge bg-secondary bg-opacity-10 text-dark border border-secondary px-2 py-1"
-                  style={{ fontSize: "0.85rem", cursor: "pointer" }}
-                  onClick={() =>
-                    setHashtags(hashtags ? `${hashtags}, ${tag}` : tag)
-                  }
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Age & Gender */}
-          <div className="d-flex gap-2 mb-3">
-            <div className="w-50">
-              <label className="form-label fw-semibold text-dark">Age</label>
-              <select
-                className="form-select border-2 shadow-sm"
-                value={age}
-                onChange={(e) => setAge(e.target.value)}
-              >
-                <option value="">Select Age</option>
-                <option value="13-17">13 - 17</option>
-                <option value="18-24">18 - 24</option>
-                <option value="25-34">25 - 34</option>
-                <option value="35-44">35 - 44</option>
-                <option value="45-54">45 - 54</option>
-                <option value="55+">55+</option>
-              </select>
-            </div>
-            <div className="w-50">
-              <label className="form-label fw-semibold text-dark">Gender</label>
-              <select
-                className="form-select border-2 shadow-sm"
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
-              >
-                <option value="">Select Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-                <option value="any">Any</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Top Audience Country */}
-          <div className="mb-3">
-            <label className="form-label fw-semibold text-dark">
-              Top Audience Countries
-            </label>
-            <select
-              className="form-select border-2 shadow-sm"
-              value={audienceCountry}
-              onChange={(e) => setAudienceCountry(e.target.value)}
-            >
-              <option value="">Select Country</option>
-              {countries.map((country) => (
-                <option key={country.isoCode} value={country.name}>
-                  {country.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Top Audience Language */}
-          <div className="mb-3">
-            <label className="form-label fw-semibold text-dark">
-              Top Audience Languages
-            </label>
-            <select
-              className="form-select border-2 shadow-sm"
-              value={selectedLang}
-              onChange={(e) => setSelectedLang(e.target.value)}
-            >
-              <option value="">Select Language</option>
-              {languages.map((lang) => (
-                <option key={lang.code} value={lang.code}>
-                  {lang.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Buttons */}
-          <div className="d-flex justify-content-between position-sticky bottom-0 bg-light py-2">
-            <button
-              className="btn btn-outline-secondary px-4 py-2"
-              onClick={() => setShowFilters(false)}
-            >
-              Cancel
-            </button>
-            <button
-              className="btn btn-primary px-4 py-2"
-              onClick={handleUpdate}
-            >
-              Update
-            </button>
-          </div>
-        </Offcanvas.Body>
-      </Offcanvas>
+      <FiltersOffcanvas
+        showFilters={showFilters}
+        setShowFilters={setShowFilters}
+        resetFilters={resetFilters}
+        handleUpdate={handleUpdate}
+        countryCode={countryCode}
+        setCountryCode={setCountryCode}
+        stateCode={stateCode}
+        setStateCode={setStateCode}
+        selectedCity={selectedCity}
+        setSelectedCity={setSelectedCity}
+        countries={countries}
+        states={states}
+        cities={cities}
+        niche={niche}
+        setNiche={setNiche}
+        contentType={contentType}
+        setContentType={setContentType}
+        engagementRate={engagementRate}
+        setEngagementRate={setEngagementRate}
+        followers={followers}
+        setFollowers={setFollowers}
+        platform={platform}
+        setPlatform={setPlatform}
+        priceRange={priceRange}
+        setPriceRange={setPriceRange}
+        hashtags={hashtags}
+        setHashtags={setHashtags}
+        age={age}
+        setAge={setAge}
+        gender={gender}
+        setGender={setGender}
+        audienceCountry={audienceCountry}
+        setAudienceCountry={setAudienceCountry}
+        selectedLang={selectedLang}
+        setSelectedLang={setSelectedLang}
+        languages={languages}
+        formatFollowers={formatFollowers}
+      />
     </div>
   );
 }

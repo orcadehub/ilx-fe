@@ -300,22 +300,28 @@ const Login = () => {
                     </Button>
                   </div>
                 </Form>
-                <div className="text-center text-muted mb-3">OR</div>
-                <Button
-                  variant="outline-primary"
-                  className="w-100 mb-3 d-flex align-items-center justify-content-center gap-2"
-                  onClick={() => handleFacebookLogin(userType)}
-                >
-                  <i className="bi bi-facebook fs-5" /> Login with Facebook
-                </Button>
 
-                <Button
-                  variant="outline-danger"
-                  className="w-100 mb-3 d-flex align-items-center justify-content-center gap-2"
-                  onClick={() => handleGoogleLogin(userType)}
-                >
-                  <i className="bi bi-google fs-5" /> Login with Google
-                </Button>
+                {/* Only show OR + social logins if NOT admin */}
+                {userType !== "admin" && (
+                  <>
+                    <div className="text-center text-muted mb-3">OR</div>
+                    <Button
+                      variant="outline-primary"
+                      className="w-100 mb-3 d-flex align-items-center justify-content-center gap-2"
+                      onClick={() => handleFacebookLogin(userType)}
+                    >
+                      <i className="bi bi-facebook fs-5" /> Login with Facebook
+                    </Button>
+
+                    <Button
+                      variant="outline-danger"
+                      className="w-100 mb-3 d-flex align-items-center justify-content-center gap-2"
+                      onClick={() => handleGoogleLogin(userType)}
+                    >
+                      <i className="bi bi-google fs-5" /> Login with Google
+                    </Button>
+                  </>
+                )}
               </>
             )}
 

@@ -1,3 +1,4 @@
+// src/components/MakeOrder.js
 import React, { useEffect, useState } from "react";
 import {
   Container,
@@ -11,25 +12,22 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   FaInstagram,
-  FaFacebook,
+  FaFacebookF,
   FaYoutube,
   FaTwitter,
-  FaComment,
-  FaShareAlt,
+  FaCommentDots,
+  FaArrowUp,
   FaHeart,
-  FaFileUpload,
 } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import config from "../config";
 
- const baseURL =
-    import.meta.env.MODE === "development"
-      ? config.LOCAL_BASE_URL
-      : config.BASE_URL;
+const baseURL =
+  import.meta.env.MODE === "development"
+    ? config.LOCAL_BASE_URL
+    : config.BASE_URL;
 
-
-// Helper to build service list from prices
 const extractAllServices = (prices) => {
   const services = [];
   Object.entries(prices).forEach(([platform, platformServices]) => {
@@ -47,6 +45,14 @@ const extractAllServices = (prices) => {
   return services;
 };
 
+// Function to format numbers to K, M, B
+const formatFollowers = (num) => {
+  if (num >= 1000000000) return (num / 1000000000).toFixed(1) + "B";
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+  if (num >= 1000) return (num / 1000).toFixed(1) + "K";
+  return num;
+};
+
 const MakeOrder = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -54,18 +60,13 @@ const MakeOrder = () => {
     selectedPlatformServices = {},
     selectedCombos = [],
     selected = {},
-  } = location.state;
+  } = location.state || {};
 
   const allServices = extractAllServices(selected.prices || {});
-  const allCombos = selected.prices?.combos || [];
-  const allCustom = selected.prices?.custom || [];
 
-  const [selectedServicesData, setSelectedServicesData] = useState({});
-  const [selectedComboData, setSelectedComboData] = useState([]);
-  const [selectedCustomData, setSelectedCustomData] = useState([]);
-  const [selectedService, setSelectedService] = useState("Platform Based");
-  const [expandedPlatform, setExpandedPlatform] = useState("instagram");
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [selectedServicesData, setSelectedServicesData] = useState(
+    selectedPlatformServices
+  );
   const [selectedServices, setSelectedServices] = useState([]);
   const [file, setFile] = useState(null);
   const [description, setDescription] = useState("");
@@ -75,93 +76,13 @@ const MakeOrder = () => {
   const [postDateTime, setPostDateTime] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const toggleWishlist = () => {
-    setIsWishlisted((prev) => !prev);
-  };
+  // UI Controls
+  const [orderType, setOrderType] = useState("Platform Based");
+  const [contentType, setContentType] = useState("Post Image/Video");
+  const [platform, setPlatform] = useState("Instagram");
 
-  const handlePlatformChange = (key) => {
-    const [platform, service] = key.split("-");
-
-    setSelectedServicesData((prev) => {
-      const updated = { ...prev };
-      if (!updated[platform]) updated[platform] = [];
-
-      if (updated[platform].includes(service)) {
-        updated[platform] = updated[platform].filter((s) => s !== service);
-        if (updated[platform].length === 0) delete updated[platform];
-        setSelectedServices((prev) =>
-          prev.filter(
-            (s) =>
-              !(
-                s.platform === platform &&
-                s.name === service &&
-                s.type === "Platform Based"
-              )
-          )
-        );
-      } else {
-        updated[platform].push(service);
-        const price = selected?.prices?.[platform]?.[service] || 0;
-
-        setSelectedServices((prev) => {
-          const exists = prev.some(
-            (s) =>
-              s.platform === platform &&
-              s.name === service &&
-              s.type === "Platform Based"
-          );
-          if (exists) return prev;
-          return [
-            ...prev,
-            {
-              name: service,
-              platform,
-              type: "Platform Based",
-              price: Number(price),
-            },
-          ];
-        });
-      }
-
-      return updated;
-    });
-  };
-
-  const handleComboChange = (name, type) => {
-    const isCombo = type === "Combo Package";
-    const setData = isCombo ? setSelectedComboData : setSelectedCustomData;
-    const data = isCombo ? selectedComboData : selectedCustomData;
-    const items = isCombo ? allCombos : allCustom;
-
-    const isSelected = data.includes(name);
-
-    if (isSelected) {
-      setData((prev) => prev.filter((n) => n !== name));
-      setSelectedServices((prev) =>
-        prev.filter((s) => !(s.type === type && s.name === name))
-      );
-    } else {
-      const item = items.find((c) => c.name === name);
-      if (item) {
-        setData((prev) => [...prev, name]);
-
-        setSelectedServices((prev) => {
-          const exists = prev.some((s) => s.name === name && s.type === type);
-          if (exists) return prev;
-
-          return [
-            ...prev,
-            {
-              name: item.name,
-              platform: item.platforms?.join(", ") || "Custom",
-              type,
-              price: Number(item.price),
-            },
-          ];
-        });
-      }
-    }
-  };
+  // Provision Method (Upload Files or Provide Content)
+  const [provisionMethod, setProvisionMethod] = useState("Upload Files");
 
   const handleLinkInput = (e) => {
     if (e.key === "Enter" || e.key === ",") {
@@ -185,33 +106,19 @@ const MakeOrder = () => {
       );
       return;
     }
-
     const localUser = JSON.parse(localStorage.getItem("user"));
     const token = localStorage.getItem("token");
     const userId = localUser?.id;
     const influencerId = selected?.id;
-    const username = localUser.fullname;
+    const username = localUser?.fullname;
     const influencerName =
       selected?.name || (selected?.username ? selected.username : "Unknown");
 
-    if (!userId || !influencerId) {
-      toast.error("Missing user or influencer info.");
-      return;
-    }
-
-    console.log("Order Data:", {
-      userId,
-      influencerId,
-      username,
-      selectedServices,
-      totalPrice,
-      description,
-      affiliatedLinks,
-      couponCode,
-      postDateTime,
-      file,
-    });
-    debugger;
+    // Calculate totalPrice
+    const totalPrice = selectedServices.reduce(
+      (sum, s) => sum + Number(s.price || 0),
+      0
+    );
 
     setIsLoading(true);
     const formData = new FormData();
@@ -219,9 +126,9 @@ const MakeOrder = () => {
     formData.append("influencerId", influencerId);
     formData.append("username", username);
     formData.append("influencer_name", influencerName);
-    formData.append("type", selectedService);
+    formData.append("type", orderType);
     formData.append("services", JSON.stringify(selectedServices));
-    formData.append("totalPrice", totalPrice);
+    formData.append("totalPrice", totalPrice); // Add totalPrice here
     formData.append("description", description || "");
     formData.append("affiliatedLinks", JSON.stringify(affiliatedLinks));
     formData.append("couponCode", couponCode || "");
@@ -236,612 +143,655 @@ const MakeOrder = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-
       const data = await response.json();
-      if (response.ok) {
-        toast.success("Order placed successfully!");
-        setTimeout(() => navigate("/dashboard/orders"), 2000);
-      } else {
+      if (!response.ok)
         throw new Error(data.message || "Failed to place order");
-      }
+      toast.success("Order placed successfully!");
+      setTimeout(() => navigate("/dashboard/orders"), 2000);
     } catch (error) {
-      console.error("Error:", error.message);
       toast.error(error.message || "Failed to place order");
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Update selectedServices on dropdown change for demonstration
   useEffect(() => {
-    const services = [];
-    const platformState = {};
-
-    Object.entries(selectedPlatformServices).forEach(([platform, names]) => {
-      names.forEach((name) => {
-        const found = allServices.find(
-          (s) => s.platform === platform && s.name === name
-        );
-        if (found) {
-          services.push({ ...found, type: "Platform Based" });
-          if (!platformState[platform]) platformState[platform] = [];
-          platformState[platform].push(name);
-        }
-      });
-    });
-
-    const combos = selectedCombos.map((comboId) =>
-      allCombos.find((c) => c.name === comboId || c.id === comboId)
-    );
-
-    const comboServices = combos.filter(Boolean).map((combo) => ({
-      name: combo.name,
-      platform: combo.platforms?.join(", "),
-      type: "Combo Package",
-      price: Number(combo.price),
-    }));
-
-    const customServices = selectedCombos
-      .map((customId) =>
-        allCustom.find((c) => c.name === customId || c.id === customId)
-      )
-      .filter(Boolean)
-      .map((custom) => ({
-        name: custom.name,
-        platform: "Custom",
-        type: "Custom Package",
-        price: Number(custom.price),
-      }));
-
-    setSelectedServicesData(platformState);
-    setSelectedComboData(combos.map((c) => c.name));
-    setSelectedCustomData(customServices.map((c) => c.name));
-    setSelectedServices([...services, ...comboServices, ...customServices]);
-  }, [selectedPlatformServices, selectedCombos]);
+    if (orderType === "Platform Based") {
+      // For demo: Set dummy selectedServices based on selection
+      setSelectedServices([
+        {
+          name: contentType,
+          platform,
+          type: "Platform Based",
+          price: 1000,
+        },
+      ]);
+    }
+  }, [orderType, contentType, platform]);
 
   const totalPrice = selectedServices.reduce(
     (sum, s) => sum + Number(s.price || 0),
     0
   );
 
-  const groupedServices = selectedServices.reduce((acc, service) => {
-    const key =
-      service.type === "Platform Based" ? service.platform : service.type;
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(service);
-    return acc;
-  }, {});
+  // Handle file input trigger
+  const handleFileUploadClick = () => {
+    document.getElementById("fileInput").click();
+  };
+
+  const platformOptions = ["Instagram", "Facebook", "YouTube", "Twitter"];
+
+  const contentOptions = {
+    "Platform Based": [
+      "Post Image/Video",
+      "Reels/Shorts",
+      "Story Image/Video",
+      "In Video Promotion <10min",
+      "Promotion >10min",
+      "Polls",
+      "Visit and Promote",
+    ],
+    "Combo Package": [
+      "Combo Post Image/Video",
+      "Combo Reels/Shorts",
+      "Combo Story Image/Video",
+      "Combo In Video Promotion <10min",
+      "Combo Promotion >10min",
+      "Combo Polls",
+      "Combo Visit and Promote",
+    ],
+    "Custom Package": ["In Video Promotion", "Promotion", "Visit and Promote"],
+  };
 
   return (
-    <Container className="py-5">
+    <Container
+      className="d-flex flex-column flex-md-row"
+      style={{ background: "#fff", minHeight: "100vh", padding: 0 }}
+    >
       <ToastContainer position="top-right" autoClose={3000} />
-      <Card className="mb-4 shadow-sm rounded-4 border-0 p-3 bg-white">
-        <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <div className="d-flex align-items-center gap-3 flex-grow-1">
+      <Row className="w-100">
+        <Col md={8} style={{ padding: "48px" }}>
+          <div className="d-flex align-items-center mb-4">
             <img
-              src={selected.profilePic || "https://via.placeholder.com/70"}
-              className="rounded border border-1"
-              width="70"
-              height="70"
+              src={selected.profilePic || "https://via.placeholder.com/64"}
               alt="Profile"
+              width={64}
+              height={64}
+              className="rounded-circle"
+              style={{ objectFit: "cover", marginRight: "24px" }}
             />
             <div>
-              <h5 className="fw-semibold mb-1 d-flex align-items-center gap-3">
-                {selected.name || "Unknown User"}
-                <FaHeart
+              <div
+                style={{
+                  fontWeight: 600,
+                  fontSize: "1.25rem",
+                  color: "#22223b",
+                  marginBottom: "6px",
+                }}
+              >
+                {selected.name || "Gary Vaynerchuk"}
+              </div>
+              <div style={{ color: "#5f5f5f", fontSize: "0.98rem" }}>
+                {selected.email || "garyv@example.com"}
+              </div>
+            </div>
+            <div className="ms-auto d-flex" style={{ gap: "34px" }}>
+              <div
+                className="d-flex flex-column align-items-center"
+                style={{ minWidth: 75 }}
+              >
+                <FaInstagram size={22} color="#E1306C" />
+                <span
                   style={{
-                    cursor: "pointer",
-                    color: isWishlisted ? "#e63946" : "#6b7280",
-                    transition: "all 0.2s ease",
+                    fontWeight: 500,
+                    color: "#202020",
+                    fontSize: "1.09rem",
                   }}
-                  onClick={toggleWishlist}
-                />
-                <FaComment
-                  className="text-primary cursor-pointer"
-                  title="Chat"
-                  onClick={() => navigate(`/dashboard/chats/${selected.id}`)}
-                />
-                <FaShareAlt
-                  className="text-secondary cursor-pointer"
-                  title="Share"
-                />
-              </h5>
-              <div className="text-muted small">
-                @{selected.username || "username"}
+                >
+                  {formatFollowers(selected.data.instagram.total_followers)}
+                </span>
+                <span style={{ color: "#BDBDBD", fontSize: "12px" }}>
+                  Instagram
+                </span>
+              </div>
+              <div
+                className="d-flex flex-column align-items-center"
+                style={{ minWidth: 75 }}
+              >
+                <FaFacebookF size={22} color="#3B5998" />
+                <span
+                  style={{
+                    fontWeight: 500,
+                    color: "#202020",
+                    fontSize: "1.09rem",
+                  }}
+                >
+                  {formatFollowers(selected.data.facebook.total_followers)}
+                </span>
+                <span style={{ color: "#BDBDBD", fontSize: "12px" }}>
+                  Facebook
+                </span>
+              </div>
+              <div
+                className="d-flex flex-column align-items-center"
+                style={{ minWidth: 75 }}
+              >
+                <FaYoutube size={22} color="#C4302B" />
+                <span
+                  style={{
+                    fontWeight: 500,
+                    color: "#202020",
+                    fontSize: "1.09rem",
+                  }}
+                >
+                  {formatFollowers(selected.data.youtube.total_followers)}
+                </span>
+                <span style={{ color: "#BDBDBD", fontSize: "12px" }}>
+                  YouTube
+                </span>
+              </div>
+              <div
+                className="d-flex flex-column align-items-center"
+                style={{ minWidth: 75 }}
+              >
+                <FaTwitter size={22} color="#00ACEE" />
+                <span
+                  style={{
+                    fontWeight: 500,
+                    color: "#202020",
+                    fontSize: "1.09rem",
+                  }}
+                >
+                  {formatFollowers(selected.data.twitter.total_followers)}
+                </span>
+                <span style={{ color: "#BDBDBD", fontSize: "12px" }}>
+                  Twitter
+                </span>
               </div>
             </div>
           </div>
-
-          <div className="d-flex gap-4 flex-wrap text-center">
-            <div>
-              <FaInstagram color="#833AB4" size={26} />
-              <div className="fw-bold">{selected.stats?.instagram || "0"}</div>
-            </div>
-            <div>
-              <FaFacebook color="#3B5998" size={26} />
-              <div className="fw-bold">
-                {selected.data?.facebook?.friends?.summary?.total_count ?? "0"}
-              </div>
-            </div>
-            <div>
-              <FaYoutube color="#C4302B" size={26} />
-              <div className="fw-bold">{selected.stats?.youtube || "0"}</div>
-            </div>
-            <div>
-              <FaTwitter color="#00ACEE" size={26} />
-              <div className="fw-bold">{selected.stats?.twitter || "0"}</div>
-            </div>
+          <div
+            className="d-flex align-items-center"
+            style={{ gap: 24, marginBottom: 24 }}
+          >
+            <Form.Group style={{ width: "25%" }}>
+              <Form.Label
+                style={{
+                  fontWeight: 500,
+                  color: "#545454",
+                  fontSize: "14px",
+                  marginBottom: 8,
+                }}
+              >
+                Order Type
+              </Form.Label>
+              <Form.Select
+                value={orderType}
+                onChange={(e) => setOrderType(e.target.value)}
+              >
+                <option>Platform Based</option>
+                <option>Combo Package</option>
+                <option>Custom Package</option>
+              </Form.Select>
+            </Form.Group>
+            <Form.Group style={{ width: "25%" }}>
+              <Form.Label
+                style={{
+                  fontWeight: 500,
+                  color: "#545454",
+                  fontSize: "14px",
+                  marginBottom: 8,
+                }}
+              >
+                Content
+              </Form.Label>
+              <Form.Select
+                value={contentType}
+                onChange={(e) => setContentType(e.target.value)}
+              >
+                {contentOptions[orderType].map((option) => (
+                  <option key={option}>{option}</option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+            <Form.Group style={{ width: "25%" }}>
+              <Form.Label
+                style={{
+                  fontWeight: 500,
+                  color: "#545454",
+                  fontSize: "14px",
+                  marginBottom: 8,
+                }}
+              >
+                Platform
+              </Form.Label>
+              <Form.Select
+                value={platform}
+                onChange={(e) => setPlatform(e.target.value)}
+              >
+                <option>Instagram</option>
+                <option>Facebook</option>
+                <option>YouTube</option>
+                <option>Twitter</option>
+              </Form.Select>
+            </Form.Group>
           </div>
-        </div>
-      </Card>
-
-      <Row className="g-4">
-        <Col lg={7}>
-          <div className="border rounded-4 p-4 bg-light shadow-sm">
-            <div className="mb-3 d-flex gap-3">
-              {["Platform Based", "Combo Package", "Custom Package"].map(
-                (tab) => (
-                  <div className="form-check" key={tab}>
-                    <input
-                      className="form-check-input"
-                      type="radio"
-                      name="serviceTypeTab"
-                      id={`tab-${tab}`}
-                      checked={selectedService === tab}
-                      onChange={() => {
-                        setSelectedService(tab);
-                        setSelectedServicesData({});
-                        setSelectedComboData([]);
-                        setSelectedCustomData([]);
-                        setSelectedServices([]);
-                        setExpandedPlatform("instagram");
-                      }}
-                    />
-                    <label
-                      className="form-check-label ms-2"
-                      htmlFor={`tab-${tab}`}
-                      style={{ cursor: "pointer", color: "#1e293b" }}
-                    >
-                      {tab}
-                    </label>
-                  </div>
-                )
-              )}
-            </div>
-
-            {selectedService === "Platform Based" && (
-              <>
-                {["facebook", "instagram", "youtube", "twitter"].map(
-                  (platform) =>
-                    selected.prices[platform] && (
-                      <div
-                        key={platform}
-                        className="mb-3 rounded border shadow-sm bg-light overflow-hidden"
-                      >
-                        <button
-                          className="btn w-100 text-start d-flex justify-content-between align-items-center px-3 py-2 border-bottom fw-bold text-white"
-                          style={{ backgroundColor: "#2c3e50" }}
-                          onClick={() =>
-                            setExpandedPlatform((prev) =>
-                              prev === platform ? null : platform
-                            )
-                          }
-                        >
-                          <span className="text-capitalize">{platform}</span>
-                          <i
-                            className={`bi ${
-                              expandedPlatform === platform
-                                ? "bi-chevron-up"
-                                : "bi-chevron-down"
-                            } fs-5`}
-                          ></i>
-                        </button>
-
-                        {expandedPlatform === platform && (
-                          <div className="px-3 pt-2 pb-3 bg-white">
-                            {Object.entries(selected.prices[platform])
-                              .filter(([service]) => service !== "combo")
-                              .map(([service, price], idx) => (
-                                <div
-                                  key={idx}
-                                  className="d-flex justify-content-between align-items-center border-bottom py-2"
-                                >
-                                  <div className="form-check">
-                                    <input
-                                      className="form-check-input"
-                                      type="checkbox"
-                                      id={`platform-${platform}-${service}`}
-                                      checked={
-                                        selectedServicesData[
-                                          platform
-                                        ]?.includes(service) || false
-                                      }
-                                      onChange={() =>
-                                        handlePlatformChange(
-                                          `${platform}-${service}`
-                                        )
-                                      }
-                                    />
-                                    <label
-                                      className="form-check-label ms-2"
-                                      htmlFor={`platform-${platform}-${service}`}
-                                    >
-                                      {service}
-                                    </label>
-                                  </div>
-                                  <div
-                                    className="fw-semibold text-success"
-                                    style={{ color: "#059669" }}
-                                  >
-                                    ₹{price}
-                                  </div>
-                                </div>
-                              ))}
-                          </div>
-                        )}
-                      </div>
-                    )
-                )}
-              </>
-            )}
-
-            {(selectedService === "Combo Package" ||
-              selectedService === "Custom Package") && (
-              <div className="row">
-                {(selectedService === "Combo Package"
-                  ? allCombos
-                  : allCustom
-                ).map((item) => {
-                  const isSelected = (
-                    selectedService === "Combo Package"
-                      ? selectedComboData
-                      : selectedCustomData
-                  ).includes(item.name);
-
-                  return (
-                    <div
-                      key={item.name}
-                      className="col-12 col-md-6 col-lg-4 mb-4"
-                    >
-                      <div
-                        className="card h-100 shadow-sm border-0"
-                        style={{ backgroundColor: "#f8fafc" }}
-                      >
-                        <div className="card-body d-flex flex-column justify-content-between">
-                          <div className="d-flex justify-content-between align-items-start mb-3">
-                            <div className="form-check">
-                              <input
-                                type="checkbox"
-                                className="form-check-input"
-                                id={`item-${item.name}`}
-                                checked={isSelected}
-                                onChange={() =>
-                                  handleComboChange(item.name, selectedService)
-                                }
-                              />
-                            </div>
-                            <span
-                              className="badge rounded-pill bg-gradient text-white"
-                              style={{
-                                background:
-                                  "linear-gradient(135deg, #4c1d95, #db2777)",
-                              }}
-                            >
-                              ₹{item.price}
-                            </span>
-                          </div>
-
-                          <h5
-                            className="card-title text-primary"
-                            style={{ color: "#1e40af" }}
-                          >
-                            {item.name}
-                          </h5>
-                          <p
-                            className="card-text text-muted"
-                            style={{ fontSize: "0.9rem" }}
-                          >
-                            {item.description || "No description available."}
-                          </p>
-
-                          {item.platforms?.length > 0 && (
-                            <>
-                              <h6
-                                className="mt-3 mb-2 text-secondary"
-                                style={{ color: "#475569" }}
-                              >
-                                Platforms
-                              </h6>
-                              <div className="d-flex flex-wrap gap-2">
-                                {item.platforms.map((platform, index) => (
-                                  <span
-                                    key={index}
-                                    className="badge bg-light text-dark border"
-                                    style={{
-                                      backgroundColor: "#e5e7eb",
-                                      color: "#1e293b",
-                                    }}
-                                  >
-                                    {platform}
-                                  </span>
-                                ))}
-                              </div>
-                            </>
-                          )}
-
-                          {item.services?.length > 0 && (
-                            <>
-                              <h6
-                                className="mt-3 mb-2 text-secondary"
-                                style={{ color: "#475569" }}
-                              >
-                                Includes
-                              </h6>
-                              <div className="d-flex flex-wrap gap-2">
-                                {item.services.map((service, index) => (
-                                  <span
-                                    key={index}
-                                    className="badge bg-white text-dark border"
-                                    style={{
-                                      backgroundColor: "#ffffff",
-                                      color: "#1e293b",
-                                    }}
-                                  >
-                                    {service}
-                                  </span>
-                                ))}
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            <div
-              className="border rounded-4 p-4 mt-4"
-              style={{
-                background: "linear-gradient(135deg, #f1f5f9, #fef2f2)",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
-              }}
-            >
-              <h6 className="text-lg fw-bold text-dark mb-4">
-                📋 Additional Details
-              </h6>
-              <div className="space-y-4">
-                <div>
-                  <label
-                    className="form-label text-secondary"
-                    style={{ color: "#475569" }}
-                  >
-                    File Upload
-                  </label>
-                  <input
-                    type="file"
-                    className="form-control"
-                    onChange={(e) => setFile(e.target.files[0])}
-                    style={{
-                      borderColor: "#a5b4fc",
-                      backgroundColor: "#f8fafc",
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label
-                    className="form-label text-secondary"
-                    style={{ color: "#475569" }}
-                  >
-                    Manual Description
-                  </label>
-                  <textarea
-                    className="form-control"
-                    rows={4}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Enter any specific instructions or details"
-                    style={{
-                      borderColor: "#a5b4fc",
-                      backgroundColor: "#f8fafc",
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label
-                    className="form-label text-secondary"
-                    style={{ color: "#475569" }}
-                  >
-                    Affiliated Links
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={linkInput}
-                    onChange={(e) => setLinkInput(e.target.value)}
-                    onKeyDown={handleLinkInput}
-                    placeholder="Enter link and press Enter or comma"
-                    style={{
-                      borderColor: "#a5b4fc",
-                      backgroundColor: "#f8fafc",
-                    }}
-                  />
-                  <div className="d-flex flex-wrap gap-2 mt-2">
-                    {affiliatedLinks.map((link, index) => (
-                      <span
-                        key={index}
-                        className="badge rounded-pill px-3 py-2"
-                        style={{ backgroundColor: "#a5b4fc", color: "#ffffff" }}
-                      >
-                        {link}
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-link text-white ms-2"
-                          onClick={() => removeLink(link)}
-                          style={{ fontSize: "1.2rem", lineHeight: "1rem" }}
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    className="form-label text-secondary"
-                    style={{ color: "#475569" }}
-                  >
-                    Coupon Code
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    placeholder="Enter coupon code"
-                    style={{
-                      backgroundColor: "#f8fafc",
-                      borderColor: "#a5b4fc",
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label
-                    className="form-label text-secondary"
-                    style={{ color: "#475569" }}
-                  >
-                    Schedule Post Date & Time
-                  </label>
-                  <input
-                    type="datetime-local"
-                    className="form-control"
-                    value={postDateTime}
-                    onChange={(e) => setPostDateTime(e.target.value)}
-                    style={{
-                      backgroundColor: "#f8fafc",
-                      borderColor: "#a5b4fc",
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </Col>
-
-        <Col lg={5}>
-          <Card
-            className="p-4 shadow rounded-4 border-0"
+          <hr
             style={{
-              background: "linear-gradient(to bottom right, #f8fafc, #e6f0fa)",
+              margin: "30px 0 28px 0",
+              border: "none",
+              borderBottom: "1px solid #ededed",
+            }}
+          />
+          <div
+            style={{
+              fontWeight: 600,
+              fontSize: "16px",
+              color: "#4957ba",
+              marginBottom: 12,
             }}
           >
-            <h5 className="fw-bold mb-4 text-dark" style={{ color: "#4b0082" }}>
-              <i className="bi bi-receipt me-2 text-indigo"></i>Order Summary
-            </h5>
-
-            {selectedServices.length > 0 ? (
-              <>
-                <div className="mb-4">
-                  <h6 className="fw-semibold text-secondary mb-2">
-                    <i className="bi bi-tag-fill me-2 text-cyan"></i>Order Type
-                  </h6>
-                  <div className="border rounded p-3 bg-white shadow-sm text-dark">
-                    {selectedService}
-                  </div>
+            How would you like to provide the content?
+          </div>
+          <div className="d-flex" style={{ gap: "0px", marginBottom: "24px" }}>
+            <Button
+              variant="link"
+              style={{
+                color:
+                  provisionMethod === "Upload Files" ? "#324bff" : "#939393",
+                textDecoration: "none",
+                fontWeight: 500,
+                fontSize: 15,
+                borderBottom:
+                  provisionMethod === "Upload Files"
+                    ? "3px solid #324bff"
+                    : "none",
+                borderRadius: 0,
+                background: "transparent",
+                width: 155,
+                marginRight: 8,
+                padding: "0 0 5px 0",
+              }}
+              onClick={() => setProvisionMethod("Upload Files")}
+            >
+              Upload Files
+            </Button>
+            <Button
+              variant="link"
+              style={{
+                color:
+                  provisionMethod === "Provide Content" ? "#324bff" : "#939393",
+                textDecoration: "none",
+                fontWeight: 500,
+                fontSize: 15,
+                borderBottom:
+                  provisionMethod === "Provide Content"
+                    ? "3px solid #324bff"
+                    : "none",
+                borderRadius: 0,
+                background: "transparent",
+                width: 155,
+                padding: "0 0 5px 0",
+              }}
+              onClick={() => setProvisionMethod("Provide Content")}
+            >
+              Provide Content
+            </Button>
+          </div>
+          <div>
+            <Form.Group>
+              <Form.Label
+                style={{
+                  fontWeight: 500,
+                  color: "#545454",
+                  fontSize: "14px",
+                  marginBottom: 8,
+                }}
+              >
+                {provisionMethod === "Provide Content"
+                  ? "Content Description"
+                  : "Description"}
+              </Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={2}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                maxLength={500}
+                style={{
+                  marginBottom: 7,
+                  background: "#fafbfc",
+                  border: "1px solid #dedede",
+                  fontSize: 15,
+                  borderRadius: 8,
+                  padding: "12px",
+                }}
+                placeholder="Add any specific instructions or details about your request..."
+              />
+              <span
+                style={{
+                  fontSize: 13,
+                  color: "#b0b0b0",
+                  float: "right",
+                }}
+              >
+                {description.length}/500 characters
+              </span>
+            </Form.Group>
+          </div>
+          <div style={{ marginTop: 18, marginBottom: 0 }}>
+            <Form.Group>
+              <Form.Label
+                style={{
+                  fontWeight: 500,
+                  color: "#545454",
+                  fontSize: "14px",
+                  marginBottom: 8,
+                }}
+              >
+                {provisionMethod === "Provide Content"
+                  ? "Reference Files Upload"
+                  : "Upload Files"}
+              </Form.Label>
+              <div
+                style={{
+                  background: "#F7F8FA",
+                  borderRadius: "12px",
+                  border: "1.7px dashed #d5dfea",
+                  textAlign: "center",
+                  padding: "32px 0",
+                  marginBottom: 5,
+                  position: "relative",
+                  cursor: "pointer",
+                }}
+                onClick={handleFileUploadClick}
+              >
+                <FaArrowUp
+                  style={{ fontSize: 19, color: "#6153cc", marginBottom: 5 }}
+                />
+                <div style={{ color: "#939393", fontSize: 14 }}>
+                  Drag & drop files here
+                  <br />
+                  or{" "}
+                  <span style={{ color: "#324bff", cursor: "pointer" }}>
+                    click to browse
+                  </span>
                 </div>
-
-                <div className="mb-4">
-                  <h6 className="fw-semibold text-secondary mb-3">
-                    <i className="bi bi-box-seam me-2 text-amber"></i>Selected
-                    Services
-                  </h6>
-                  {Object.entries(groupedServices).map(([group, services]) => (
-                    <div key={group} className="mb-3">
-                      <div
-                        className="px-3 py-2 rounded fw-bold text-capitalize text-white"
-                        style={{
-                          backgroundColor: "#f4a261",
-                          borderLeft: "5px solid #f7b731",
-                        }}
-                      >
-                        {group}
-                      </div>
-                      <ul className="list-group mt-2">
-                        {services.map((service, index) => (
-                          <li
-                            key={index}
-                            className="list-group-item d-flex justify-content-between align-items-start border-0 shadow-sm mb-2 rounded"
-                            style={{ backgroundColor: "#fff" }}
-                          >
-                            <div className="me-3">
-                              <div className="fw-semibold text-dark">
-                                {service.name}
-                              </div>
-                              <small className="text-muted">
-                                {service.type}
-                              </small>
-                            </div>
-                            <span
-                              className="badge rounded-pill fs-6"
-                              style={{
-                                backgroundColor: "#48cae4",
-                                color: "#1e293b",
-                              }}
-                            >
-                              ₹{service.price}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                  <div className="fw-bold fs-5 text-dark">Total Price</div>
-                  <div className="fw-bold fs-5" style={{ color: "#0077b6" }}>
-                    ₹{totalPrice}
-                  </div>
-                </div>
-
-                <Button
-                  className="mt-4 w-100 fw-semibold border-0"
-                  style={{
-                    background: "linear-gradient(to right, #56cfe1, #a3bffa)",
-                    color: "#1e293b",
-                  }}
-                  onClick={handleMakeOrder}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Spinner
-                        as="span"
-                        animation="border"
-                        size="sm"
-                        role="status"
-                        aria-hidden="true"
-                        className="me-2"
-                      />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <i className="bi bi-check2-circle me-2"></i>Make Order
-                    </>
-                  )}
-                </Button>
-              </>
-            ) : (
-              <div className="text-muted text-center py-5">
-                <i className="bi bi-info-circle fs-4 mb-2 d-block"></i>
-                No services selected yet
+                <input
+                  type="file"
+                  id="fileInput"
+                  onChange={(e) => setFile(e.target.files[0])}
+                  style={{ display: "none" }}
+                />
               </div>
-            )}
+
+              {file && (
+                <div
+                  style={{
+                    marginTop: 10,
+                    textAlign: "left",
+                    paddingLeft: 10,
+                    fontSize: 14,
+                    color: "#333",
+                  }}
+                >
+                  {/* Show image preview if image file */}
+                  {file.type.startsWith("image/") ? (
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt="Preview"
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: 150,
+                        borderRadius: 8,
+                      }}
+                    />
+                  ) : file.type.startsWith("video/") ? (
+                    <video
+                      width="100%"
+                      height={150}
+                      controls
+                      src={URL.createObjectURL(file)}
+                      style={{ borderRadius: 8 }}
+                    />
+                  ) : (
+                    <div>
+                      <strong>Selected File:</strong> {file.name}
+                    </div>
+                  )}
+                </div>
+              )}
+            </Form.Group>
+          </div>
+        </Col>
+        <Col lg={4}>
+          <Card
+            style={{
+              background: "#fff",
+              border: "none",
+              boxShadow: "0 2px 12px rgba(143,143,143,0.07)",
+              borderRadius: 16,
+              padding: "27px 35px 25px 35px",
+              marginBottom: "32px",
+            }}
+          >
+            <div
+              style={{
+                fontWeight: 600,
+                color: "#3a3a56",
+                fontSize: "16px",
+                marginBottom: "18px",
+              }}
+            >
+              Select Date & Time
+            </div>
+            <Form.Group className="mb-4">
+              <Form.Control
+                type="datetime-local"
+                value={postDateTime}
+                onChange={(e) => setPostDateTime(e.target.value)}
+                style={{
+                  background: "#f7f8fa",
+                  borderWidth: "1.7px",
+                  borderColor: "#d5dfea",
+                  borderRadius: "8px",
+                  padding: "11px",
+                  fontSize: 15,
+                }}
+              />
+            </Form.Group>
+            <div
+              style={{
+                fontWeight: 600,
+                color: "#3a3a56",
+                fontSize: "16px",
+                marginBottom: "18px",
+              }}
+            >
+              Affiliate Link (Optional)
+            </div>
+            <Form.Group className="mb-4">
+              <Form.Control
+                type="text"
+                value={linkInput}
+                onChange={(e) => setLinkInput(e.target.value)}
+                onKeyDown={handleLinkInput}
+                placeholder="https://example.com/your-affiliate-link"
+                style={{
+                  background: "#f7f8fa",
+                  borderWidth: "1.7px",
+                  borderColor: "#d5dfea",
+                  borderRadius: "8px",
+                  padding: "11px",
+                  fontSize: 15,
+                }}
+              />
+              <div
+                className="d-flex flex-wrap"
+                style={{ marginTop: 9, gap: "6px" }}
+              >
+                {affiliatedLinks.map((link, idx) => (
+                  <span
+                    key={idx}
+                    style={{
+                      background: "#324bff",
+                      color: "#fff",
+                      borderRadius: "15px",
+                      padding: "7px 13px",
+                      marginRight: 5,
+                      fontSize: "13px",
+                    }}
+                  >
+                    {link}
+                    <button
+                      type="button"
+                      className="ms-2"
+                      onClick={() => removeLink(link)}
+                      style={{
+                        border: "none",
+                        background: "none",
+                        color: "#fff",
+                        fontWeight: "bold",
+                        fontSize: "1rem",
+                      }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </Form.Group>
+            <div
+              style={{
+                fontWeight: 600,
+                color: "#3a3a56",
+                fontSize: "16px",
+                marginBottom: "18px",
+              }}
+            >
+              Coupon Code
+            </div>
+            <Form.Group>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <Form.Control
+                  type="text"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  style={{
+                    background: "#f7f8fa",
+                    borderWidth: "1.7px",
+                    borderColor: "#d5dfea",
+                    borderRadius: "8px",
+                    padding: "11px",
+                    fontSize: 15,
+                  }}
+                  placeholder="Enter coupon code"
+                />
+                <Button
+                  style={{
+                    background: "#324bff",
+                    color: "#fff",
+                    fontWeight: 500,
+                    borderRadius: 8,
+                    border: "none",
+                    padding: "0 19px",
+                    fontSize: 15,
+                  }}
+                >
+                  Apply
+                </Button>
+              </div>
+            </Form.Group>
+          </Card>
+          <Card
+            style={{
+              background: "#fff",
+              border: "none",
+              boxShadow: "0 2px 12px rgba(143,143,143,0.07)",
+              borderRadius: 16,
+              padding: "27px 35px 25px 35px",
+            }}
+          >
+            <div
+              style={{
+                fontWeight: 600,
+                color: "#5e60ce",
+                fontSize: "16px",
+                marginBottom: "18px",
+              }}
+            >
+              Order Summary
+            </div>
+            <div
+              style={{
+                color: "#767676",
+                fontWeight: 500,
+                fontSize: "15px",
+                marginBottom: "6px",
+              }}
+            >
+              Order Details
+            </div>
+            <div
+              style={{
+                marginBottom: "18px",
+                color: "#383838",
+                fontWeight: 500,
+                fontSize: "15.5px",
+              }}
+            >
+              Type: {orderType}
+              <br />
+              Content: {contentType}
+              <br />
+              Platform: {platform}
+            </div>
+            <hr
+              style={{
+                margin: "10px 0 18px 0",
+                border: "none",
+                borderBottom: "1px solid #ededed",
+              }}
+            />
+            <div
+              style={{
+                color: "#767676",
+                fontWeight: 500,
+                fontSize: "15px",
+                marginBottom: "6px",
+              }}
+            >
+              Price
+            </div>
+            <div
+              style={{
+                color: "#324bff",
+                fontWeight: 700,
+                fontSize: "22px",
+              }}
+            >
+              ₹{totalPrice}
+            </div>
+            <Button
+              className="w-100 mt-4"
+              style={{
+                background: "#324bff",
+                border: "none",
+                borderRadius: "8px",
+                padding: "14px",
+                fontSize: "16px",
+                fontWeight: "600",
+              }}
+              onClick={handleMakeOrder}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Spinner animation="border" size="sm" />
+              ) : (
+                "Place Order"
+              )}
+            </Button>
           </Card>
         </Col>
       </Row>

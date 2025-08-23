@@ -252,17 +252,18 @@ const HeaderD = ({ handleDrawerToggle }) => {
           </ListItemIcon>
           Billing
         </MenuItem>
-        <MenuItem onClick={() => handleNavigate("/dashboard/settings")}>
-          <ListItemIcon>
-            <Settings fontSize="small" />
-          </ListItemIcon>
-          Settings
-        </MenuItem>
+
         <MenuItem onClick={() => handleNavigate("/dashboard/payments")}>
           <ListItemIcon>
             <Payment fontSize="small" />
           </ListItemIcon>
           Payments
+        </MenuItem>
+        <MenuItem onClick={() => handleNavigate("/dashboard/settings")}>
+          <ListItemIcon>
+            <Settings fontSize="small" />
+          </ListItemIcon>
+          Settings
         </MenuItem>
         <MenuItem onClick={() => handleNavigate("/dashboard/support")}>
           <ListItemIcon>

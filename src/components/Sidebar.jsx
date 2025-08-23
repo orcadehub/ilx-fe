@@ -49,13 +49,13 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
       { text: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
       { text: "Influencers", icon: <People />, path: "/dashboard/influencers" },
       { text: "Chats", icon: <Chat />, path: "/dashboard/chats" },
-      { text: "Reach", icon: <BarChart />, path: "/dashboard/reach" },
+      // { text: "Reach", icon: <BarChart />, path: "/dashboard/reach" },
       { text: "Services", icon: <Settings />, path: "/dashboard/services" },
-      {
-        text: "Reports",
-        icon: <InsertChartOutlined />,
-        path: "/dashboard/reports",
-      },
+      // {
+      //   text: "Reports",
+      //   icon: <InsertChartOutlined />,
+      //   path: "/dashboard/reports",
+      // },
       { text: "Orders", icon: <ShoppingBag />, path: "/dashboard/orders" },
     ];
   } else if (role === "influencer") {
@@ -63,20 +63,20 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
       { text: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
       { text: "Influencers", icon: <People />, path: "/dashboard/influencers" },
       { text: "Chats", icon: <Chat />, path: "/dashboard/chats" },
-      { text: "Reach", icon: <BarChart />, path: "/dashboard/reach" },
+      // { text: "Reach", icon: <BarChart />, path: "/dashboard/reach" },
       { text: "Services", icon: <Settings />, path: "/dashboard/services" },
-      {
-        text: "Reports",
-        icon: <InsertChartOutlined />,
-        path: "/dashboard/reports",
-      },
+      // {
+      //   text: "Reports",
+      //   icon: <InsertChartOutlined />,
+      //   path: "/dashboard/reports",
+      // },
       { text: "Orders", icon: <ShoppingBag />, path: "/dashboard/orders" },
-      {
-        text: "Campaigns",
-        icon: <InsertChartOutlined />,
-        path: "/dashboard/campaigns",
-      },
-      { text: "Earnings", icon: <ShoppingBag />, path: "/dashboard/earnings" },
+      // {
+      //   text: "Campaigns",
+      //   icon: <InsertChartOutlined />,
+      //   path: "/dashboard/campaigns",
+      // },
+      // { text: "Earnings", icon: <ShoppingBag />, path: "/dashboard/earnings" },
     ];
   } else if (role === "admin") {
     menuItems = [

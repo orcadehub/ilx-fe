@@ -1,19 +1,17 @@
 // ```jsx
+// src/components/Chats.js
 import React, { useState, useEffect, useRef } from "react";
 import {
   Container,
   Row,
   Col,
-  ListGroup,
-  Form,
-  InputGroup,
-  FormControl,
-  Button,
   Alert,
 } from "react-bootstrap";
 import io from "socket.io-client";
 import { useParams } from "react-router-dom";
 import config from "../config";
+import ContactsSidebar from "../components/chat/ContactsSidebar";
+import ChatPane from "../components/chat/ChatPane";
 
 const baseURL =
   import.meta.env.MODE === "development"
@@ -61,30 +59,25 @@ function Chats() {
       return;
     }
 
-    // Create socket connection with enhanced options
     socketRef.current = io(baseURL, {
       auth: { token },
-      transports: ["websocket", "polling"], // Prefer WebSocket, fallback to polling
+      transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 2000,
       timeout: 10000,
     });
 
-    // Set up event listeners
     socketRef.current.on("connect", () => {
-      console.log("🟢 Socket connected:", socketRef.current.id);
       setConnectionError(null);
       socketRef.current.emit("join", user.id);
     });
 
     socketRef.current.on("disconnect", (reason) => {
-      console.log("🔴 Socket disconnected:", reason);
       setConnectionError("Disconnected from server. Attempting to reconnect...");
     });
 
     socketRef.current.on("connect_error", (err) => {
-      console.error("Connection error:", err.message);
       setConnectionError(`Failed to connect: ${err.message}`);
     });
 
@@ -100,25 +93,46 @@ function Chats() {
   useEffect(() => {
     if (!socketRef.current) return;
 
-    const handleNewMessage = (msg) => {
-      console.log("📩 New message received:", msg);
-      const user = JSON.parse(localStorage.getItem("user"));
-      if (!user) return;
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) return;
 
+    const handleNewMessage = (msg) => {
       const isForCurrentChat =
         active && (msg.from === active.id || msg.to === active.id);
       const isFromOtherUser = msg.from !== user.id;
 
       if (isForCurrentChat) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: msg.id,
-            fromMe: msg.from === user.id,
-            text: msg.text,
-            timestamp: new Date(),
-          },
-        ]);
+        setMessages((prev) => {
+          // Check if this is a confirmation of an optimistic message
+          const existingMessageIndex = prev.findIndex(
+            (m) => m.tempId && m.tempId === msg.tempId
+          );
+          if (existingMessageIndex !== -1 && msg.from === user.id) {
+            // Replace optimistic message
+            const updatedMessages = [...prev];
+            updatedMessages[existingMessageIndex] = {
+              id: msg.id,
+              fromMe: true,
+              text: msg.text,
+              timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+              tempId: undefined,
+              isExpanded: false,
+            };
+            return updatedMessages;
+          } else {
+            // Add new message
+            return [
+              ...prev,
+              {
+                id: msg.id,
+                fromMe: msg.from === user.id,
+                text: msg.text,
+                timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+                isExpanded: false,
+              },
+            ];
+          }
+        });
       }
 
       if (isFromOtherUser) {
@@ -179,11 +193,9 @@ function Chats() {
 
           setContacts(formattedContacts);
         } else {
-          console.error("Failed to fetch chats:", data.message);
           setConnectionError(`Failed to fetch chats: ${data.message}`);
         }
       } catch (err) {
-        console.error("Error fetching chats:", err);
         setConnectionError("Error loading chat contacts.");
       }
     };
@@ -228,11 +240,9 @@ function Chats() {
 
             handleContactSelect(newContact);
           } else {
-            console.error("User not found:", data.message);
             setConnectionError(`User not found: ${data.message}`);
           }
         } catch (err) {
-          console.error("Error fetching new user:", err);
           setConnectionError("Error loading user details.");
         }
       }
@@ -255,7 +265,7 @@ function Chats() {
 
     const interval = setInterval(() => {
       fetchMessages(contact.id);
-    }, 5000); // Increased to 5s to reduce server load
+    }, 5000);
 
     setRefreshInterval(interval);
   };
@@ -276,15 +286,14 @@ function Chats() {
           fromMe: msg.sender_id !== contactId,
           text: msg.content,
           timestamp: new Date(msg.timestamp),
+          isExpanded: false,
         }));
 
         setMessages(mappedMessages);
       } else {
-        console.error("Failed to fetch messages:", data.message);
         setConnectionError(`Failed to fetch messages: ${data.message}`);
       }
     } catch (err) {
-      console.error("Error fetching messages:", err);
       setConnectionError("Error loading messages.");
     }
   };
@@ -298,7 +307,7 @@ function Chats() {
     };
   }, [refreshInterval]);
 
-  const sendMessage = async () => {
+  const sendMessage = () => {
     if (!message.trim() || !active || !socketRef.current) return;
 
     const user = JSON.parse(localStorage.getItem("user"));
@@ -306,13 +315,12 @@ function Chats() {
 
     const tempId = Date.now();
     const newMessage = {
-      id: tempId,
+      tempId,
       fromMe: true,
       text: message,
       timestamp: new Date(),
+      isExpanded: false,
     };
-
-    setMessages((prev) => [...prev, newMessage]);
     setMessage("");
 
     setContacts((prev) =>
@@ -332,23 +340,21 @@ function Chats() {
         .sort((a, b) => b.timestamp - a.timestamp)
     );
 
-    try {
-      socketRef.current.emit("send_message", {
+    socketRef.current.emit(
+      "send_message",
+      {
         to: active.id,
         content: message,
+        tempId, // Include tempId for server acknowledgment
         token: localStorage.getItem("token"),
-      }, (ack) => {
+      },
+      (ack) => {
         if (ack && ack.error) {
-          console.error("Message send failed:", ack.error);
-          setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
+          setMessages((prev) => prev.filter((m) => m.tempId !== tempId));
           setConnectionError("Failed to send message. Please try again.");
         }
-      });
-    } catch (err) {
-      console.error("Error sending message:", err);
-      setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
-      setConnectionError("Error sending message.");
-    }
+      }
+    );
   };
 
   const handleFileUpload = (e) => {
@@ -356,9 +362,19 @@ function Chats() {
     if (file) {
       setMessages((prev) => [
         ...prev,
-        { id: Date.now(), fromMe: true, text: `📎 File: ${file.name}` },
+        { tempId: Date.now(), fromMe: true, text: `📎 File: ${file.name}`, timestamp: new Date(), isExpanded: false },
       ]);
     }
+  };
+
+  const toggleMessageExpansion = (messageId) => {
+    setMessages((prev) =>
+      prev.map((msg) =>
+        (msg.id === messageId || msg.tempId === messageId)
+          ? { ...msg, isExpanded: !msg.isExpanded }
+          : msg
+      )
+    );
   };
 
   return (
@@ -391,215 +407,33 @@ function Chats() {
         {/* Sidebar */}
         {(!isMobile || !showChat) && (
           <Col xs={12} md={3} className="border-end px-0">
-            <div className="px-4 py-3 border-bottom bg-white">
-              <h5 className="mb-0 fw-bold fs-4 text-dark">Chats</h5>
-            </div>
-            <div className="p-3 border-bottom bg-white">
-              <Form.Control
-                placeholder="Search..."
-                className="rounded-pill border border-dark shadow-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <ListGroup
-              variant="flush"
-              style={{ overflowY: "auto", height: "calc(100vh - 250px)" }}
-            >
-              {contacts
-                .filter((c) =>
-                  c.name.toLowerCase().includes(searchTerm.toLowerCase())
-                )
-                .map((c) => (
-                  <ListGroup.Item
-                    key={c.id}
-                    onClick={() => handleContactSelect(c)}
-                    className="d-flex align-items-center gap-3 px-3 py-3 border-0 border-bottom"
-                    style={{
-                      cursor: "pointer",
-                      backgroundColor:
-                        active?.id === c.id ? "#e0e7ff" : "transparent",
-                    }}
-                  >
-                    <img
-                      src={c.avatar}
-                      alt="avatar"
-                      className="rounded-circle"
-                      width={40}
-                      height={40}
-                    />
-                    <div className="flex-grow-1 overflow-hidden">
-                      <div className="d-flex justify-content-between">
-                        <div className="fw-semibold text-dark text-truncate">
-                          {c.name}
-                        </div>
-                        <div className="text-muted small">
-                          {c.timestamp?.toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </div>
-                      </div>
-                      <div className="text-muted small text-truncate">
-                        {c.preview}
-                      </div>
-                    </div>
-                  </ListGroup.Item>
-                ))}
-            </ListGroup>
+            <ContactsSidebar
+              contacts={contacts}
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              active={active}
+              onSelectContact={handleContactSelect}
+            />
           </Col>
         )}
 
         {/* Chat Pane */}
         {(isMobile ? showChat : true) && (
           <Col xs={12} md={9} className="d-flex flex-column">
-            {/* Chat Header */}
-            <div className="d-flex align-items-center justify-content-start border-bottom p-3 bg-white">
-              {isMobile && (
-                <Button
-                  variant="light"
-                  className="me-2"
-                  onClick={() => setShowChat(false)}
-                >
-                  ⬅
-                </Button>
-              )}
-              {active && (
-                <>
-                  <img
-                    src={active.avatar}
-                    alt="avatar"
-                    className="rounded-circle me-2"
-                    width={40}
-                    height={40}
-                  />
-                  <div>
-                    <div className="fw-semibold text-dark fs-5">
-                      {active.name}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Messages */}
-            <div
-              className="flex-grow-1 px-3 py-3"
-              style={{
-                backgroundColor: "#fff",
-                overflowY: "auto",
-                height: "calc(100vh - 250px)",
-              }}
-            >
-              {(() => {
-                const grouped = {};
-                messages.forEach((msg) => {
-                  const rawTimestamp = msg.timestamp
-                    ? new Date(msg.timestamp)
-                    : new Date();
-                  const dateKey = rawTimestamp.toDateString();
-                  if (!grouped[dateKey]) grouped[dateKey] = [];
-                  grouped[dateKey].push({ ...msg, timestamp: rawTimestamp });
-                });
-
-                return Object.entries(grouped).map(([dateKey, msgs]) => (
-                  <div key={dateKey}>
-                    <div className="text-center my-3">
-                      <span
-                        className="px-3 py-1 rounded-pill"
-                        style={{
-                          background: "#e5e7eb",
-                          fontSize: "0.9rem",
-                          fontWeight: "500",
-                          color: "#374151",
-                        }}
-                      >
-                        {formatDateLabel(dateKey)}
-                      </span>
-                    </div>
-                    {msgs.map((m) => (
-                      <div
-                        key={m.id}
-                        className={`d-flex ${
-                          m.fromMe
-                            ? "justify-content-end"
-                            : "justify-content-start"
-                        } mb-2`}
-                      >
-                        <div
-                          className={`rounded-3 shadow-sm ${
-                            m.fromMe
-                              ? "bg-primary text-white"
-                              : "bg-white border"
-                          }`}
-                          style={{ maxWidth: "70%", padding: "8px 12px" }}
-                        >
-                          <div>{m.text}</div>
-                          <div
-                            className="text-end"
-                            style={{
-                              fontSize: "0.7rem",
-                              color: m.fromMe ? "#e5e7eb" : "#6b7280",
-                              marginTop: "2px",
-                            }}
-                          >
-                            {m.timestamp &&
-                              new Date(m.timestamp).toLocaleTimeString(
-                                "en-IN",
-                                {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: true,
-                                  timeZone: "Asia/Kolkata",
-                                }
-                              )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ));
-              })()}
-              <div ref={messagesEndRef}></div>
-            </div>
-
-            {/* Message Input */}
-            <div className="border-top p-3 bg-white">
-              <InputGroup className="rounded-pill border shadow-sm overflow-hidden">
-                <Button
-                  variant="light"
-                  onClick={() => document.getElementById("fileInput").click()}
-                  className="px-3"
-                >
-                  <i className="bi bi-paperclip text-secondary"></i>
-                </Button>
-                <FormControl
-                  placeholder="Type your message..."
-                  className="border-0"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                  disabled={!!connectionError}
-                />
-                <Button variant="light" className="px-3">
-                  <i className="bi bi-mic text-secondary"></i>
-                </Button>
-                <Button
-                  variant="primary"
-                  className="px-3"
-                  onClick={sendMessage}
-                  disabled={!!connectionError}
-                >
-                  <i className="bi bi-send text-white"></i>
-                </Button>
-              </InputGroup>
-              <input
-                type="file"
-                id="fileInput"
-                onChange={handleFileUpload}
-                style={{ display: "none" }}
-              />
-            </div>
+            <ChatPane
+              active={active}
+              isMobile={isMobile}
+              onBack={() => setShowChat(false)}
+              messages={messages}
+              formatDateLabel={formatDateLabel}
+              messagesEndRef={messagesEndRef}
+              message={message}
+              onMessageChange={setMessage}
+              onSend={sendMessage}
+              connectionError={connectionError}
+              onFileUpload={handleFileUpload}
+              onToggleExpansion={toggleMessageExpansion}
+            />
           </Col>
         )}
       </Row>

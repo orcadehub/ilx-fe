@@ -1,3 +1,4 @@
+// src/components/Services.js
 import React, { useState } from "react";
 import {
   Container,
@@ -8,9 +9,17 @@ import {
   Button,
   Image,
   Modal,
+  Alert,
+  Spinner,
 } from "react-bootstrap";
 import { motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
+import config from "../config";
+
+const baseURL =
+  import.meta.env.MODE === "development"
+    ? config.LOCAL_BASE_URL
+    : config.BASE_URL;
 
 const servicesData = {
   "Design Services": [
@@ -45,9 +54,71 @@ const servicesData = {
 const Services = () => {
   const [selectedService, setSelectedService] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    phoneNumber: "",
+    projectDescription: "",
+    budget: "",
+    timeline: "",
+  });
+  const [formStatus, setFormStatus] = useState(null); // { type: 'success'|'error', message: string }
+  const [isLoading, setIsLoading] = useState(false); // Loading state
 
   const handleOpenModal = () => setShowModal(true);
   const handleCloseModal = () => setShowModal(false);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedService) {
+      setFormStatus({ type: "error", message: "Please select a service" });
+      return;
+    }
+
+    setIsLoading(true); // Show loading screen
+    try {
+      const response = await fetch(`${baseURL}/api/service-request`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...formData,
+          serviceTitle: selectedService.title,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setFormStatus({
+          type: "success",
+          message: "Service request submitted successfully! You'll receive a confirmation email soon.",
+        });
+        setFormData({
+          fullName: "",
+          email: "",
+          phoneNumber: "",
+          projectDescription: "",
+          budget: "",
+          timeline: "",
+        });
+        setSelectedService(null);
+      } else {
+        setFormStatus({ type: "error", message: data.message || "Failed to submit service request" });
+      }
+    } catch (error) {
+      console.error("Error submitting service request:", error);
+      setFormStatus({ type: "error", message: "Server error. Please try again later." });
+    } finally {
+      setIsLoading(false); // Hide loading screen
+    }
+  };
 
   const renderForm = () => {
     return !selectedService ? (
@@ -69,40 +140,106 @@ const Services = () => {
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        style={{ position: "relative" }}
       >
+        {isLoading && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(255, 255, 255, 0.8)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 1000,
+              borderRadius: "1rem",
+            }}
+          >
+            <Spinner animation="border" variant="primary" />
+            <span className="ms-2">Submitting...</span>
+          </div>
+        )}
         <Card
           className="p-4 shadow-sm border-0 rounded-4"
           style={{
             background: "hsl(214.3, 31.8%, 98%)",
+            opacity: isLoading ? 0.5 : 1,
           }}
         >
           <h5 className="mb-4" style={{ color: "#1a237e" }}>
             Request {selectedService.title} Service
           </h5>
-          <Form>
+          {formStatus && (
+            <Alert
+              variant={formStatus.type === "success" ? "success" : "danger"}
+              onClose={() => setFormStatus(null)}
+              dismissible
+            >
+              {formStatus.message}
+            </Alert>
+          )}
+          <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3">
               <Form.Label>Full Name</Form.Label>
-              <Form.Control type="text" placeholder="Enter your full name" />
+              <Form.Control
+                type="text"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleInputChange}
+                placeholder="Enter your full name"
+                required
+                disabled={isLoading}
+              />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Email</Form.Label>
-              <Form.Control type="email" placeholder="Enter your email" />
+              <Form.Control
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="Enter your email"
+                required
+                disabled={isLoading}
+              />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Phone Number</Form.Label>
-              <Form.Control type="text" placeholder="Enter your phone number" />
+              <Form.Control
+                type="text"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleInputChange}
+                placeholder="Enter your phone number"
+                required
+                disabled={isLoading}
+              />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Project Description</Form.Label>
               <Form.Control
                 as="textarea"
                 rows={4}
+                name="projectDescription"
+                value={formData.projectDescription}
+                onChange={handleInputChange}
                 placeholder="Describe your requirements"
+                required
+                disabled={isLoading}
               />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Budget Range</Form.Label>
-              <Form.Select>
+              <Form.Select
+                name="budget"
+                value={formData.budget}
+                onChange={handleInputChange}
+                required
+                disabled={isLoading}
+              >
                 <option value="">Select Budget</option>
                 <option value="0-5000">₹0 - ₹5,000</option>
                 <option value="5000-10000">₹5,000 - ₹10,000</option>
@@ -112,7 +249,13 @@ const Services = () => {
             </Form.Group>
             <Form.Group className="mb-4">
               <Form.Label>Timeline</Form.Label>
-              <Form.Select>
+              <Form.Select
+                name="timeline"
+                value={formData.timeline}
+                onChange={handleInputChange}
+                required
+                disabled={isLoading}
+              >
                 <option value="">Select Timeline</option>
                 <option value="1week">1 Week</option>
                 <option value="2weeks">2 Weeks</option>
@@ -122,12 +265,13 @@ const Services = () => {
             </Form.Group>
             <Button
               style={{
-                background: "linear-gradient(135deg, #1976d2),rgb(87, 52, 226)",
+                background: "linear-gradient(135deg, #1976d2, rgb(87, 52, 226))",
                 border: "none",
                 borderRadius: "30px",
               }}
               className="w-100 fw-bold"
               type="submit"
+              disabled={isLoading}
             >
               Submit Request
             </Button>
@@ -253,6 +397,7 @@ const Services = () => {
                 border: "none",
                 borderRadius: "10px",
               }}
+              disabled={isLoading}
             >
               Select Service
             </Button>
