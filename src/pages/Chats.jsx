@@ -1,12 +1,7 @@
 // ```jsx
 // src/components/Chats.js
 import React, { useState, useEffect, useRef } from "react";
-import {
-  Container,
-  Row,
-  Col,
-  Alert,
-} from "react-bootstrap";
+import { Container, Row, Col, Alert } from "react-bootstrap";
 import io from "socket.io-client";
 import { useParams } from "react-router-dom";
 import config from "../config";
@@ -61,11 +56,9 @@ function Chats() {
 
     socketRef.current = io(baseURL, {
       auth: { token },
-      transports: ["websocket"],
+      transports: ["websocket"], // ✅ force websocket only
+      secure: true,
       reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 2000,
-      timeout: 10000,
     });
 
     socketRef.current.on("connect", () => {
@@ -74,7 +67,9 @@ function Chats() {
     });
 
     socketRef.current.on("disconnect", (reason) => {
-      setConnectionError("Disconnected from server. Attempting to reconnect...");
+      setConnectionError(
+        "Disconnected from server. Attempting to reconnect..."
+      );
     });
 
     socketRef.current.on("connect_error", (err) => {
@@ -362,7 +357,13 @@ function Chats() {
     if (file) {
       setMessages((prev) => [
         ...prev,
-        { tempId: Date.now(), fromMe: true, text: `📎 File: ${file.name}`, timestamp: new Date(), isExpanded: false },
+        {
+          tempId: Date.now(),
+          fromMe: true,
+          text: `📎 File: ${file.name}`,
+          timestamp: new Date(),
+          isExpanded: false,
+        },
       ]);
     }
   };
@@ -370,7 +371,7 @@ function Chats() {
   const toggleMessageExpansion = (messageId) => {
     setMessages((prev) =>
       prev.map((msg) =>
-        (msg.id === messageId || msg.tempId === messageId)
+        msg.id === messageId || msg.tempId === messageId
           ? { ...msg, isExpanded: !msg.isExpanded }
           : msg
       )
