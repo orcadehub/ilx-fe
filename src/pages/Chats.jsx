@@ -1,5 +1,3 @@
-// ```jsx
-// src/components/Chats.js
 import React, { useState, useEffect, useRef } from "react";
 import { Container, Row, Col, Alert } from "react-bootstrap";
 import io from "socket.io-client";
@@ -8,10 +6,8 @@ import config from "../config";
 import ContactsSidebar from "../components/chat/ContactsSidebar";
 import ChatPane from "../components/chat/ChatPane";
 
-const baseURL =
-  import.meta.env.MODE === "development"
-    ? config.LOCAL_BASE_URL
-    : config.BASE_URL;
+const baseURL = import.meta.env.MODE === "development" ? config.LOCAL_BASE_URL : config.BASE_URL;
+const wsURL = import.meta.env.MODE === "development" ? config.WS_BASE_URL : config.WS_PROD_URL;
 
 const formatDateLabel = (dateStr) => {
   const today = new Date();
@@ -54,32 +50,43 @@ function Chats() {
       return;
     }
 
-    socketRef.current = io(baseURL, {
+    console.log("Connecting to WebSocket URL:", wsURL); // Debug log
+    socketRef.current = io(wsURL, {
       auth: { token },
-      transports: ["websocket"], // ✅ force websocket only
+      transports: ["websocket", "polling"], // Fallback to polling for debugging
       secure: true,
       reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
     });
 
     socketRef.current.on("connect", () => {
       setConnectionError(null);
       socketRef.current.emit("join", user.id);
+      console.log("🟢 WebSocket connected");
     });
 
     socketRef.current.on("disconnect", (reason) => {
-      setConnectionError(
-        "Disconnected from server. Attempting to reconnect..."
-      );
+      setConnectionError(`Disconnected from server. Reason: ${reason}. Attempting to reconnect...`);
+      console.log("🔴 WebSocket disconnected:", reason);
     });
 
     socketRef.current.on("connect_error", (err) => {
+      console.error("WebSocket connection error:", err);
       setConnectionError(`Failed to connect: ${err.message}`);
+    });
+
+    socketRef.current.on("error", (err) => {
+      console.error("WebSocket error:", err);
+      setConnectionError(`WebSocket error: ${err.message || err}`);
     });
 
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
+        console.log("🧹 WebSocket disconnected and cleaned up");
       }
     };
   }, []);
@@ -92,18 +99,17 @@ function Chats() {
     if (!user) return;
 
     const handleNewMessage = (msg) => {
+      console.log("📩 Received new message:", msg); // Debug log
       const isForCurrentChat =
         active && (msg.from === active.id || msg.to === active.id);
       const isFromOtherUser = msg.from !== user.id;
 
       if (isForCurrentChat) {
         setMessages((prev) => {
-          // Check if this is a confirmation of an optimistic message
           const existingMessageIndex = prev.findIndex(
             (m) => m.tempId && m.tempId === msg.tempId
           );
           if (existingMessageIndex !== -1 && msg.from === user.id) {
-            // Replace optimistic message
             const updatedMessages = [...prev];
             updatedMessages[existingMessageIndex] = {
               id: msg.id,
@@ -115,7 +121,6 @@ function Chats() {
             };
             return updatedMessages;
           } else {
-            // Add new message
             return [
               ...prev,
               {
@@ -168,6 +173,7 @@ function Chats() {
   useEffect(() => {
     const fetchChats = async () => {
       try {
+        console.log("Fetching chats from:", `${baseURL}/api/chats`); // Debug log
         const response = await fetch(`${baseURL}/api/chats`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -192,6 +198,7 @@ function Chats() {
         }
       } catch (err) {
         setConnectionError("Error loading chat contacts.");
+        console.error("Fetch chats error:", err);
       }
     };
 
@@ -239,6 +246,7 @@ function Chats() {
           }
         } catch (err) {
           setConnectionError("Error loading user details.");
+          console.error("Fetch user error:", err);
         }
       }
     };
@@ -262,11 +270,12 @@ function Chats() {
     //   fetchMessages(contact.id);
     // }, 5000);
 
-    setRefreshInterval(interval);
+    // setRefreshInterval(interval);
   };
 
   const fetchMessages = async (contactId) => {
     try {
+      console.log("Fetching messages from:", `${baseURL}/api/chat/${contactId}`); // Debug log
       const response = await fetch(`${baseURL}/api/chat/${contactId}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -290,6 +299,7 @@ function Chats() {
       }
     } catch (err) {
       setConnectionError("Error loading messages.");
+      console.error("Fetch messages error:", err);
     }
   };
 
@@ -316,6 +326,7 @@ function Chats() {
       timestamp: new Date(),
       isExpanded: false,
     };
+    setMessages((prev) => [...prev, newMessage]); // Add optimistic message
     setMessage("");
 
     setContacts((prev) =>
@@ -340,13 +351,16 @@ function Chats() {
       {
         to: active.id,
         content: message,
-        tempId, // Include tempId for server acknowledgment
+        tempId,
         token: localStorage.getItem("token"),
       },
       (ack) => {
         if (ack && ack.error) {
           setMessages((prev) => prev.filter((m) => m.tempId !== tempId));
           setConnectionError("Failed to send message. Please try again.");
+          console.error("Send message error:", ack.error);
+        } else {
+          console.log("✅ Message sent successfully:", ack);
         }
       }
     );
@@ -392,7 +406,6 @@ function Chats() {
           boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
         }}
       >
-        {/* Connection Error Alert */}
         {connectionError && (
           <Alert
             variant="danger"
@@ -405,7 +418,6 @@ function Chats() {
           </Alert>
         )}
 
-        {/* Sidebar */}
         {(!isMobile || !showChat) && (
           <Col xs={12} md={3} className="border-end px-0">
             <ContactsSidebar
@@ -418,7 +430,6 @@ function Chats() {
           </Col>
         )}
 
-        {/* Chat Pane */}
         {(isMobile ? showChat : true) && (
           <Col xs={12} md={9} className="d-flex flex-column">
             <ChatPane
@@ -443,4 +454,3 @@ function Chats() {
 }
 
 export default Chats;
-// ```
