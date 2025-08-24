@@ -253,7 +253,7 @@ function Chats() {
       >
         {/* Sidebar */}
         {(!isMobile || !showChat) && (
-          <Col xs={12} md={3} className="bg-white border-end px-0">
+          <Col xs={12} md={3} className="border-end px-0">
             <div className="px-4 py-3 border-bottom">
               <h5 className="mb-0 fw-bold fs-4">Chats</h5>
             </div>
