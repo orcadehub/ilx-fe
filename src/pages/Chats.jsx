@@ -1,13 +1,25 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Container, Row, Col, Alert } from "react-bootstrap";
+import {
+  Container,
+  Row,
+  Col,
+  ListGroup,
+  Form,
+  InputGroup,
+  FormControl,
+  Button,
+  Dropdown,
+} from "react-bootstrap";
 import io from "socket.io-client";
 import { useParams } from "react-router-dom";
 import config from "../config";
-import ContactsSidebar from "../components/chat/ContactsSidebar";
-import ChatPane from "../components/chat/ChatPane";
 
-const baseURL = import.meta.env.MODE === "development" ? config.LOCAL_BASE_URL : config.BASE_URL;
-const wsURL = import.meta.env.MODE === "development" ? config.WS_BASE_URL : config.WS_PROD_URL;
+const baseURL =
+  import.meta.env.MODE === "development"
+    ? config.LOCAL_BASE_URL
+    : config.BASE_URL;
+
+const socket = io(baseURL);
 
 const formatDateLabel = (dateStr) => {
   const today = new Date();
@@ -18,7 +30,9 @@ const formatDateLabel = (dateStr) => {
   if (diffDays === 0) return "Today";
   if (diffDays === 1) return "Yesterday";
   if (diffDays < 7)
-    return date.toLocaleDateString("en-IN", { weekday: "long" });
+    return date.toLocaleDateString("en-IN", {
+      weekday: "long",
+    });
 
   return date.toLocaleDateString("en-IN", {
     day: "numeric",
@@ -29,154 +43,65 @@ const formatDateLabel = (dateStr) => {
 
 function Chats() {
   const { id: selectedId } = useParams();
-  const socketRef = useRef(null);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [active, setActive] = useState(null);
-  const [refreshInterval, setRefreshInterval] = useState(null);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [contacts, setContacts] = useState([]);
-  const [connectionError, setConnectionError] = useState(null);
+
   const isMobile = window.innerWidth <= 768;
   const [showChat, setShowChat] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Initialize socket connection
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
-    const token = localStorage.getItem("token");
-    if (!user || !token) {
-      setConnectionError("Please log in to access chats.");
-      return;
-    }
+    if (!user) return;
+    const userId = user.id;
+    socket.emit("join", userId);
 
-    console.log("Connecting to WebSocket URL:", wsURL); // Debug log
-    socketRef.current = io(wsURL, {
-      auth: { token },
-      transports: ["websocket", "polling"], // Fallback to polling for debugging
-      secure: true,
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-    });
-
-    socketRef.current.on("connect", () => {
-      setConnectionError(null);
-      socketRef.current.emit("join", user.id);
-      console.log("🟢 WebSocket connected");
-    });
-
-    socketRef.current.on("disconnect", (reason) => {
-      setConnectionError(`Disconnected from server. Reason: ${reason}. Attempting to reconnect...`);
-      console.log("🔴 WebSocket disconnected:", reason);
-    });
-
-    socketRef.current.on("connect_error", (err) => {
-      console.error("WebSocket connection error:", err);
-      setConnectionError(`Failed to connect: ${err.message}`);
-    });
-
-    socketRef.current.on("error", (err) => {
-      console.error("WebSocket error:", err);
-      setConnectionError(`WebSocket error: ${err.message || err}`);
+    socket.on("connect", () => {
+      console.log("🟢 Connected to socket:", socket.id);
     });
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-        console.log("🧹 WebSocket disconnected and cleaned up");
-      }
+      socket.off("connect");
     };
   }, []);
 
-  // Handle incoming messages
-  useEffect(() => {
-    if (!socketRef.current) return;
-
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) return;
-
-    const handleNewMessage = (msg) => {
-      console.log("📩 Received new message:", msg); // Debug log
-      const isForCurrentChat =
-        active && (msg.from === active.id || msg.to === active.id);
-      const isFromOtherUser = msg.from !== user.id;
-
-      if (isForCurrentChat) {
-        setMessages((prev) => {
-          const existingMessageIndex = prev.findIndex(
-            (m) => m.tempId && m.tempId === msg.tempId
-          );
-          if (existingMessageIndex !== -1 && msg.from === user.id) {
-            const updatedMessages = [...prev];
-            updatedMessages[existingMessageIndex] = {
-              id: msg.id,
-              fromMe: true,
-              text: msg.text,
-              timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
-              tempId: undefined,
-              isExpanded: false,
-            };
-            return updatedMessages;
-          } else {
-            return [
-              ...prev,
-              {
-                id: msg.id,
-                fromMe: msg.from === user.id,
-                text: msg.text,
-                timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
-                isExpanded: false,
-              },
-            ];
-          }
-        });
-      }
-
-      if (isFromOtherUser) {
-        setContacts((prev) =>
-          prev
-            .map((contact) =>
-              contact.id === msg.from
-                ? {
-                    ...contact,
-                    preview:
-                      msg.text.length > 30
-                        ? `${msg.text.substring(0, 30)}...`
-                        : msg.text,
-                    timestamp: new Date(),
-                  }
-                : contact
-            )
-            .sort((a, b) => b.timestamp - a.timestamp)
-        );
-      }
-    };
-
-    socketRef.current.on("new_message", handleNewMessage);
-
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.off("new_message", handleNewMessage);
-      }
-    };
-  }, [active]);
-
-  // Scroll to bottom when messages change
+  // Scroll to bottom on messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    socket.on("new_message", (msg) => {
+      console.log("📩 Received new message:", msg);
+
+      if (active && (msg.from === active.id || msg.to === active.id)) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: msg.id,
+            fromMe: msg.from !== active.id,
+            text: msg.text,
+          },
+        ]);
+      }
+    });
+
+    return () => {
+      socket.off("new_message");
+    };
+  }, [active]);
 
   // Fetch all chat contacts
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        console.log("Fetching chats from:", `${baseURL}/api/chats`); // Debug log
         const response = await fetch(`${baseURL}/api/chats`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: "Bearer " + localStorage.getItem("token"),
           },
         });
         const data = await response.json();
@@ -186,7 +111,7 @@ function Chats() {
             .map((chat) => ({
               id: chat.other_user_id,
               name: chat.other_user_name,
-              avatar: chat.profile_pic,
+              avatar: `https://picsum.photos/seed/${chat.other_user_id}/100`,
               preview: chat.last_message,
               timestamp: new Date(chat.timestamp),
             }))
@@ -194,11 +119,10 @@ function Chats() {
 
           setContacts(formattedContacts);
         } else {
-          setConnectionError(`Failed to fetch chats: ${data.message}`);
+          console.error("Failed to fetch chats:", data.message);
         }
       } catch (err) {
-        setConnectionError("Error loading chat contacts.");
-        console.error("Fetch chats error:", err);
+        console.error("Error fetching chats:", err);
       }
     };
 
@@ -220,7 +144,7 @@ function Chats() {
         try {
           const res = await fetch(`${baseURL}/api/users/${selectedId}`, {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              Authorization: "Bearer " + localStorage.getItem("token"),
             },
           });
 
@@ -230,7 +154,7 @@ function Chats() {
             const newContact = {
               id: data.id,
               name: data.name,
-              avatar: data.profilePic,
+              avatar: `https://picsum.photos/seed/${data.id}/100`,
               preview: "",
               timestamp: new Date(),
             };
@@ -242,11 +166,10 @@ function Chats() {
 
             handleContactSelect(newContact);
           } else {
-            setConnectionError(`User not found: ${data.message}`);
+            console.error("User not found:", data.message);
           }
         } catch (err) {
-          setConnectionError("Error loading user details.");
-          console.error("Fetch user error:", err);
+          console.error("Error fetching new user:", err);
         }
       }
     };
@@ -260,25 +183,10 @@ function Chats() {
     setMessages([]);
     if (isMobile) setShowChat(true);
 
-    if (refreshInterval) {
-      clearInterval(refreshInterval);
-    }
-
-    await fetchMessages(contact.id);
-
-    // const interval = setInterval(() => {
-    //   fetchMessages(contact.id);
-    // }, 5000);
-
-    // setRefreshInterval(interval);
-  };
-
-  const fetchMessages = async (contactId) => {
     try {
-      console.log("Fetching messages from:", `${baseURL}/api/chat/${contactId}`); // Debug log
-      const response = await fetch(`${baseURL}/api/chat/${contactId}`, {
+      const response = await fetch(`${baseURL}/api/chat/${contact.id}`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: "Bearer " + localStorage.getItem("token"),
         },
       });
 
@@ -287,83 +195,40 @@ function Chats() {
       if (response.ok) {
         const mappedMessages = data.messages.map((msg) => ({
           id: msg.id,
-          fromMe: msg.sender_id !== contactId,
+          fromMe: msg.sender_id !== contact.id,
           text: msg.content,
-          timestamp: new Date(msg.timestamp),
-          isExpanded: false,
+          timestamp: new Date(msg.timestamp), // ✅ include timestamp
         }));
 
         setMessages(mappedMessages);
       } else {
-        setConnectionError(`Failed to fetch messages: ${data.message}`);
+        console.error("Failed to fetch messages:", data.message);
       }
     } catch (err) {
-      setConnectionError("Error loading messages.");
-      console.error("Fetch messages error:", err);
+      console.error("Error fetching messages:", err);
     }
   };
 
-  // Clean up interval on component unmount
-  useEffect(() => {
-    return () => {
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
-      }
-    };
-  }, [refreshInterval]);
+  const sendMessage = async () => {
+    if (!message.trim() || !active) return;
 
-  const sendMessage = () => {
-    if (!message.trim() || !active || !socketRef.current) return;
+    const now = new Date();
 
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) return;
-
-    const tempId = Date.now();
     const newMessage = {
-      tempId,
+      id: Date.now(),
       fromMe: true,
       text: message,
-      timestamp: new Date(),
-      isExpanded: false,
+      timestamp: now.toISOString(), // ✅ Ensure timestamp exists
     };
-    setMessages((prev) => [...prev, newMessage]); // Add optimistic message
+
+    // setMessages((prev) => [...prev, newMessage]);
     setMessage("");
 
-    setContacts((prev) =>
-      prev
-        .map((contact) =>
-          contact.id === active.id
-            ? {
-                ...contact,
-                preview:
-                  message.length > 30
-                    ? `${message.substring(0, 30)}...`
-                    : message,
-                timestamp: new Date(),
-              }
-            : contact
-        )
-        .sort((a, b) => b.timestamp - a.timestamp)
-    );
-
-    socketRef.current.emit(
-      "send_message",
-      {
-        to: active.id,
-        content: message,
-        tempId,
-        token: localStorage.getItem("token"),
-      },
-      (ack) => {
-        if (ack && ack.error) {
-          setMessages((prev) => prev.filter((m) => m.tempId !== tempId));
-          setConnectionError("Failed to send message. Please try again.");
-          console.error("Send message error:", ack.error);
-        } else {
-          console.log("✅ Message sent successfully:", ack);
-        }
-      }
-    );
+    socket.emit("send_message", {
+      to: active.id,
+      content: newMessage.text,
+      token: localStorage.getItem("token"),
+    });
   };
 
   const handleFileUpload = (e) => {
@@ -371,25 +236,9 @@ function Chats() {
     if (file) {
       setMessages((prev) => [
         ...prev,
-        {
-          tempId: Date.now(),
-          fromMe: true,
-          text: `📎 File: ${file.name}`,
-          timestamp: new Date(),
-          isExpanded: false,
-        },
+        { id: Date.now(), fromMe: true, text: `📎 File: ${file.name}` },
       ]);
     }
-  };
-
-  const toggleMessageExpansion = (messageId) => {
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === messageId || msg.tempId === messageId
-          ? { ...msg, isExpanded: !msg.isExpanded }
-          : msg
-      )
-    );
   };
 
   return (
@@ -400,52 +249,226 @@ function Chats() {
     >
       <Row
         className="flex-grow-1 w-100"
-        style={{
-          overflow: "hidden",
-          backgroundColor: "var(--primary-color)",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-        }}
+        style={{ overflow: "hidden", boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}
       >
-        {connectionError && (
-          <Alert
-            variant="danger"
-            onClose={() => setConnectionError(null)}
-            dismissible
-            className="m-3 position-absolute"
-            style={{ zIndex: 1000 }}
-          >
-            {connectionError}
-          </Alert>
-        )}
-
+        {/* Sidebar */}
         {(!isMobile || !showChat) && (
-          <Col xs={12} md={3} className="border-end px-0">
-            <ContactsSidebar
-              contacts={contacts}
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              active={active}
-              onSelectContact={handleContactSelect}
-            />
+          <Col xs={12} md={3} className="bg-white border-end px-0">
+            <div className="px-4 py-3 border-bottom">
+              <h5 className="mb-0 fw-bold fs-4">Chats</h5>
+            </div>
+            <div className="p-3 border-bottom">
+              <Form.Control
+                placeholder="Search..."
+                className="rounded-pill border border-dark shadow-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <ListGroup
+              variant="flush"
+              style={{ overflowY: "auto", height: "calc(100vh - 250px)" }}
+            >
+              {contacts
+                .filter((c) =>
+                  c.name.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .map((c) => (
+                  <ListGroup.Item
+                    key={c.id}
+                    onClick={() => handleContactSelect(c)}
+                    className="d-flex align-items-center gap-3 px-3 py-3 border-0 border-bottom"
+                    style={{
+                      cursor: "pointer",
+                      backgroundColor:
+                        active?.id === c.id ? "#EEF2FF" : "transparent",
+                    }}
+                  >
+                    <img
+                      src={c.avatar}
+                      alt="avatar"
+                      className="rounded-circle"
+                      width={40}
+                      height={40}
+                    />
+                    <div>
+                      <div className="fw-semibold text-dark">{c.name}</div>
+                      <div className="text-muted small">{c.preview}</div>
+                    </div>
+                  </ListGroup.Item>
+                ))}
+            </ListGroup>
           </Col>
         )}
 
+        {/* Chat Pane */}
         {(isMobile ? showChat : true) && (
           <Col xs={12} md={9} className="d-flex flex-column">
-            <ChatPane
-              active={active}
-              isMobile={isMobile}
-              onBack={() => setShowChat(false)}
-              messages={messages}
-              formatDateLabel={formatDateLabel}
-              messagesEndRef={messagesEndRef}
-              message={message}
-              onMessageChange={setMessage}
-              onSend={sendMessage}
-              connectionError={connectionError}
-              onFileUpload={handleFileUpload}
-              onToggleExpansion={toggleMessageExpansion}
-            />
+            {/* Chat Header */}
+            <div className="d-flex align-items-center justify-content-between border-bottom p-3 bg-white">
+              <div className="d-flex align-items-center">
+                {isMobile && (
+                  <Button
+                    variant="light"
+                    className="me-2"
+                    onClick={() => setShowChat(false)}
+                  >
+                    ⬅
+                  </Button>
+                )}
+                {active && (
+                  <>
+                    <img
+                      src={active.avatar}
+                      alt="avatar"
+                      className="rounded-circle me-2"
+                      width={40}
+                      height={40}
+                    />
+                    <div>
+                      <div className="fw-semibold text-dark">{active.name}</div>
+                    </div>
+                  </>
+                )}
+              </div>
+              <Dropdown align="end">
+                <Dropdown.Toggle
+                  as="span"
+                  bsPrefix="p-0 border-0 bg-transparent"
+                >
+                  <i
+                    className="bi bi-three-dots-vertical"
+                    style={{ fontSize: "1.3rem", cursor: "pointer" }}
+                  ></i>
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  <Dropdown.Item>Profile</Dropdown.Item>
+                  <Dropdown.Item>Settings</Dropdown.Item>
+                  <Dropdown.Divider />
+                  <Dropdown.Item>Logout</Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            </div>
+
+            {/* Messages */}
+            <div
+              className="flex-grow-1 px-3 py-3"
+              style={{
+                backgroundColor: "#F8FAFC",
+                overflowY: "auto",
+                height: "calc(100vh - 250px)",
+              }}
+            >
+              {(() => {
+                const grouped = {};
+                messages.forEach((msg) => {
+                  const rawTimestamp = msg.timestamp
+                    ? new Date(msg.timestamp)
+                    : new Date();
+                  const dateKey = rawTimestamp.toDateString();
+                  if (!grouped[dateKey]) grouped[dateKey] = [];
+                  grouped[dateKey].push({ ...msg, timestamp: rawTimestamp });
+                });
+
+                return Object.entries(grouped).map(([dateKey, msgs]) => (
+                  <div key={dateKey}>
+                    <div className="text-center my-3">
+                      <span
+                        style={{
+                          background: "#e5e7eb",
+                          padding: "6px 16px",
+                          borderRadius: "20px",
+                          fontSize: "0.9rem",
+                          fontWeight: "500",
+                          color: "#374151",
+                        }}
+                      >
+                        {formatDateLabel(dateKey)}
+                      </span>
+                    </div>
+                    {msgs.map((m) => (
+                      <div
+                        key={m.id}
+                        className={`d-flex ${
+                          m.fromMe
+                            ? "justify-content-end"
+                            : "justify-content-start"
+                        }`}
+                        style={{ marginBottom: "6px" }}
+                      >
+                        <div
+                          className={`rounded-4 shadow-sm d-inline-block ${
+                            m.fromMe
+                              ? "bg-primary text-white"
+                              : "bg-white border"
+                          }`}
+                          style={{ maxWidth: "70%", padding: "8px 12px" }}
+                        >
+                          <div>{m.text}</div>
+                          <div
+                            style={{
+                              fontSize: "0.7rem",
+                              color: m.fromMe ? "#e5e7eb" : "#6b7280",
+                              textAlign: "right",
+                              marginTop: "2px",
+                            }}
+                          >
+                            {m.timestamp &&
+                              new Date(m.timestamp).toLocaleTimeString(
+                                "en-IN",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                  timeZone: "Asia/Kolkata",
+                                }
+                              )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ));
+              })()}
+
+              <div ref={messagesEndRef}></div>
+            </div>
+
+            {/* Message Input */}
+            <div className="border-top bg-white p-3">
+              <InputGroup className="rounded-pill border shadow-sm overflow-hidden">
+                <Button
+                  variant="light"
+                  onClick={() => document.getElementById("fileInput").click()}
+                  className="px-3"
+                >
+                  <i className="bi bi-paperclip text-secondary"></i>
+                </Button>
+                <FormControl
+                  placeholder="Type your message..."
+                  className="border-0"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                />
+                <Button variant="light" className="px-3">
+                  <i className="bi bi-mic text-secondary"></i>
+                </Button>
+                <Button
+                  variant="primary"
+                  className="px-3"
+                  onClick={sendMessage}
+                >
+                  <i className="bi bi-send text-white"></i>
+                </Button>
+              </InputGroup>
+              <input
+                type="file"
+                id="fileInput"
+                onChange={handleFileUpload}
+                style={{ display: "none" }}
+              />
+            </div>
           </Col>
         )}
       </Row>
