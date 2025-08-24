@@ -61,7 +61,7 @@ function Chats() {
 
     socketRef.current = io(baseURL, {
       auth: { token },
-      transports: ["websocket", "polling"],
+      transports: ["websocket"],
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 2000,
@@ -228,7 +228,7 @@ function Chats() {
             const newContact = {
               id: data.id,
               name: data.name,
-              avatar: `https://picsum.photos/seed/${data.id}/100`,
+              avatar: data.profilePic,
               preview: "",
               timestamp: new Date(),
             };
@@ -263,9 +263,9 @@ function Chats() {
 
     await fetchMessages(contact.id);
 
-    const interval = setInterval(() => {
-      fetchMessages(contact.id);
-    }, 5000);
+    // const interval = setInterval(() => {
+    //   fetchMessages(contact.id);
+    // }, 5000);
 
     setRefreshInterval(interval);
   };
