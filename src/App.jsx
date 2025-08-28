@@ -22,6 +22,9 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import SocialSuccess from "./pages/SocialSuccess";
 import MakeOrder from "./pages/MakeOrder";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsAndConditions from "./pages/TermsAndConditions";
+import CancellationRefundPolicy from "./pages/CancellationRefundPolicy";
 
 const AppContent = () => {
   const location = useLocation();
@@ -41,8 +44,9 @@ const AppContent = () => {
         <Route exact path="/pricing" element={<Price />} />
         <Route exact path="/features" element={<Features />} />
         <Route exact path="/checkout" element={<Checkout />} />
-        <Route exact path="/privacy-policy" element={<Privacy />} />
-        <Route exact path="/terms-of-service" element={<Terms />} />
+        <Route exact path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route exact path="/terms-of-service" element={<TermsAndConditions />} />
+        <Route exact path="/cancellation-refund-policy" element={<CancellationRefundPolicy />} />
         <Route exact path="/social-success" element={<SocialSuccess />} />
         <Route path="/dashboard/*" element={<DashboardPage />} />
       </Routes>

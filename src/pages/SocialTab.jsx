@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Instagram, Facebook, Youtube, Twitter } from "react-bootstrap-icons";
-import Spinner from "react-bootstrap/Spinner";
+import { Container, Card, Spinner, Button } from "react-bootstrap";
 import config from "../config";
 
 const icons = {
@@ -16,14 +16,12 @@ const baseURL =
     : config.BASE_URL;
 
 const SocialTab = () => {
-  const [editing, setEditing] = useState(null);
   const [hovered, setHovered] = useState(null);
   const [connectedPlatforms, setConnectedPlatforms] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user")) || {};
-
     const fetchStatus = async () => {
       try {
         const res = await fetch(`${baseURL}/api/connect/status/${user?.email}`);
@@ -35,7 +33,6 @@ const SocialTab = () => {
         setLoading(false);
       }
     };
-
     fetchStatus();
   }, []);
 
@@ -46,7 +43,7 @@ const SocialTab = () => {
     const oauthUrlMap = {
       facebook: `${baseURL}/api/connect/auth/facebook?userId=${userId}`,
       instagram: `${baseURL}/api/auth/instagram?userId=${userId}`,
-      youtube: `${baseURL}/auth/youtube?userId=${userId}`,
+      youtube: `${baseURL}/api/connect/auth/google?userId=${userId}`,
       twitter: `${baseURL}/auth/twitter?userId=${userId}`,
     };
 
@@ -85,82 +82,82 @@ const SocialTab = () => {
     return (
       <div
         key={platform}
-        className="d-flex align-items-center py-3 border-bottom"
+        className="d-flex align-items-center justify-content-between py-3 border-bottom"
         style={{ borderColor: "rgba(0, 0, 0, 0.05)" }}
       >
-        {profilePic && (
-          <img
-            src={profilePic}
-            alt={`${platform} profile`}
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              marginRight: 10,
-              objectFit: "cover",
-            }}
-          />
-        )}
-        {icons[platform]}
-        <div className="d-flex flex-grow-1 align-items-center">
-          <span className={username ? "" : "text-muted"} style={{ fontSize: "0.9rem" }}>
-            {isConnected ? `Connected to ${username || "Unknown"}` : "Not connected"}
-          </span>
-          <button
-            className={`btn btn-sm ms-auto ${
-              isConnected ? "btn-danger" : "btn-success"
-            }`}
-            onClick={() =>
-              isConnected ? handleDisconnect(platform) : handleConnectClick(platform)
-            }
-            onMouseEnter={() => setHovered(platform)}
-            onMouseLeave={() => setHovered(null)}
-            style={{
-              borderRadius: "6px",
-              padding: "6px 12px",
-              boxShadow: hovered === platform ? "0 4px 15px rgba(0, 0, 0, 0.1)" : "none",
-            }}
-          >
-            <i
-              className={`bi ${isConnected ? "bi-unplug" : "bi-plug"} ${
-                hovered === platform ? "text-white" : ""
-              }`}
+        {/* Left side: Icon + Info */}
+        <div className="d-flex align-items-center">
+          {profilePic ? (
+            <img
+              src={profilePic}
+              alt={`${platform} profile`}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                marginRight: 10,
+                objectFit: "cover",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+              }}
             />
-            <span className="ms-1">{isConnected ? "Disconnect" : "Connect"}</span>
-          </button>
+          ) : (
+            icons[platform]
+          )}
+          <span
+            className={`fw-semibold ${isConnected ? "text-dark" : "text-muted"}`}
+            style={{ fontSize: "0.95rem" }}
+          >
+            {isConnected
+              ? `${username || "Connected Account"}`
+              : "Not connected"}
+          </span>
         </div>
+
+        {/* Right side: Action Button */}
+        <Button
+          size="sm"
+          variant={isConnected ? "outline-danger" : "success"}
+          className="px-3 rounded-3 fw-semibold shadow-sm"
+          onClick={() =>
+            isConnected ? handleDisconnect(platform) : handleConnectClick(platform)
+          }
+          onMouseEnter={() => setHovered(platform)}
+          onMouseLeave={() => setHovered(null)}
+          style={{
+            transition: "all 0.2s ease-in-out",
+            transform: hovered === platform ? "scale(1.05)" : "scale(1)",
+          }}
+        >
+          <i className={`bi ${isConnected ? "bi-unplug" : "bi-plug"} me-1`} />
+          {isConnected ? "Disconnect" : "Connect"}
+        </Button>
       </div>
     );
   };
 
   return (
-    <div className="container py-4">
-      <div
-        className="card border-0 shadow-sm rounded-4"
-        style={{
-          background: "#ffffffdd",
-          backdropFilter: "blur(10px)",
-        }}
-      >
-        <div className="card-body">
-          <h2 className="h5 mb-3 d-flex align-items-center text-dark fw-bold">
-            <i className="bi bi-share me-2 text-warning"></i> Social Media Profiles
-          </h2>
-          <p className="text-muted small mb-4">
-            Connect your social media accounts to enhance your profile visibility.
-          </p>
+    <Container fluid className="px-3 px-md-5 py-3 w-100">
+      <h2 className="h5 fw-bold text-dark mb-4">
+        <i className="bi bi-share me-2 text-warning"></i>
+        Social Media Profiles
+      </h2>
+      <p className="text-muted mb-4" style={{ fontSize: "0.95rem" }}>
+        Connect your social accounts to enhance your profile and enable extra features.
+      </p>
 
+      <Card className="shadow-sm border-0 rounded-4">
+        <Card.Body className="p-4">
           {loading ? (
             <div className="text-center py-5">
               <Spinner animation="border" variant="primary" />
-              <p className="mt-3">Fetching social connections...</p>
+              <p className="mt-3 text-muted">Fetching social connections...</p>
             </div>
           ) : (
             ["instagram", "facebook", "youtube", "twitter"].map(renderRow)
           )}
-        </div>
-      </div>
-    </div>
+        </Card.Body>
+      </Card>
+    </Container>
   );
 };
 

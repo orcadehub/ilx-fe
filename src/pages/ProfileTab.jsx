@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Container, Card, Form, Button } from "react-bootstrap";
+import { Container, Card, Form, Button, Alert } from "react-bootstrap";
 import config from "../config";
-export default function ProfileTab() {
 
+export default function ProfileTab() {
   const baseURL =
     import.meta.env.MODE === "development"
       ? config.LOCAL_BASE_URL
@@ -44,7 +44,6 @@ export default function ProfileTab() {
     setSuccess(null);
 
     try {
-      // Hypothetical API endpoint to update user profile
       const token = localStorage.getItem("token");
       const response = await fetch(`${baseURL}/api/user/update`, {
         method: "PUT",
@@ -58,63 +57,54 @@ export default function ProfileTab() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to update profile");
-      }
+      if (!response.ok) throw new Error("Failed to update profile");
 
       const updatedUser = await response.json();
 
-      // Update localStorage with new user data
       localStorage.setItem(
         "user",
         JSON.stringify({
           ...updatedUser,
-          accountType: profile.accountType, // Preserve accountType if not updated
+          accountType: profile.accountType,
         })
       );
 
-      // Update state
       setProfile(draft);
       setIsEditing(false);
-      setSuccess("Profile updated successfully!");
-      console.log("Profile updated:", draft);
+      setSuccess("✅ Profile updated successfully");
     } catch (err) {
       setError(err.message);
-      console.error("Error updating profile:", err);
     }
   };
 
   return (
     <Container fluid className="px-3 px-md-5 py-3 w-100">
-      <h2 className="h5 fw-bold text-dark mb-4">
-        <i className="bi bi-person me-2 text-primary"></i>
-        Account Settings
+      {/* Section Title */}
+      <h2 className="fw-bold text-dark mb-3">
+        <i className="bi bi-person-circle me-2 text-primary"></i>
+        Profile
       </h2>
+      <p className="text-muted mb-4" style={{ fontSize: "0.95rem" }}>
+        Manage your personal information and account details.
+      </p>
 
       <Card className="shadow-sm border-0 rounded-4">
         <Card.Body className="p-4">
-          <h3 className="h6 fw-bold text-secondary mb-2">
-            Profile Information
-          </h3>
-          <p className="text-muted mb-4" style={{ fontSize: "0.95rem" }}>
-            Update your account profile information.
-          </p>
-
           {error && (
-            <div className="alert alert-danger" role="alert">
+            <Alert variant="danger" className="rounded-3 py-2">
               {error}
-            </div>
+            </Alert>
           )}
           {success && (
-            <div className="alert alert-success" role="alert">
+            <Alert variant="success" className="rounded-3 py-2">
               {success}
-            </div>
+            </Alert>
           )}
 
           <Form onSubmit={handleSubmit}>
             {/* Full Name */}
             <Form.Group className="mb-4">
-              <Form.Label className="fw-semibold text-dark">
+              <Form.Label className="fw-semibold text-dark small">
                 Full Name
               </Form.Label>
               {isEditing ? (
@@ -127,7 +117,7 @@ export default function ProfileTab() {
                 />
               ) : (
                 <div
-                  className="p-3 bg-light rounded shadow-sm"
+                  className="p-3 bg-light rounded-3 border text-dark fw-medium"
                   style={{ cursor: "pointer" }}
                   onClick={handleEdit}
                 >
@@ -138,7 +128,9 @@ export default function ProfileTab() {
 
             {/* Email */}
             <Form.Group className="mb-4">
-              <Form.Label className="fw-semibold text-dark">Email</Form.Label>
+              <Form.Label className="fw-semibold text-dark small">
+                Email
+              </Form.Label>
               {isEditing ? (
                 <Form.Control
                   type="email"
@@ -150,7 +142,7 @@ export default function ProfileTab() {
                 />
               ) : (
                 <div
-                  className="p-3 bg-light rounded shadow-sm"
+                  className="p-3 bg-light rounded-3 border text-dark fw-medium"
                   style={{ cursor: "pointer" }}
                   onClick={handleEdit}
                 >
@@ -161,10 +153,10 @@ export default function ProfileTab() {
 
             {/* Account Type */}
             <Form.Group className="mb-4">
-              <Form.Label className="fw-semibold text-dark">
+              <Form.Label className="fw-semibold text-dark small">
                 Account Type
               </Form.Label>
-              <div className="p-3 bg-light rounded shadow-sm">
+              <div className="p-3 bg-light rounded-3 border text-dark fw-medium">
                 {profile.accountType}
               </div>
             </Form.Group>

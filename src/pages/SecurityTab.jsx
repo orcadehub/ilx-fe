@@ -1,13 +1,21 @@
-/SecurityTab.jsx/
-import React, { useState } from 'react';
-import { Container, Card, Form, Button, Accordion, Alert, Spinner, Modal } from 'react-bootstrap';
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import React, { useState } from "react";
+import {
+  Container,
+  Card,
+  Form,
+  Button,
+  Accordion,
+  Alert,
+  Spinner,
+  Modal,
+} from "react-bootstrap";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 export default function SecurityTab() {
   const [form, setForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmNewPassword: '',
+    currentPassword: "",
+    newPassword: "",
+    confirmNewPassword: "",
     twoFactor: false,
     sessionTimeout: 15,
   });
@@ -17,16 +25,18 @@ export default function SecurityTab() {
     confirm: false,
   });
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ text: '', variant: '' });
+  const [message, setMessage] = useState({ text: "", variant: "" });
   const [showModal, setShowModal] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-    
-    // Calculate password strength when new password changes
-    if (name === 'newPassword') {
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+
+    if (name === "newPassword") {
       calculatePasswordStrength(value);
     }
   };
@@ -40,224 +50,283 @@ export default function SecurityTab() {
     setPasswordStrength(strength);
   };
 
-  const togglePassword = field =>
-    setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
+  const togglePassword = (field) =>
+    setShowPasswords((prev) => ({ ...prev, [field]: !prev[field] }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage({ text: '', variant: '' });
+    setMessage({ text: "", variant: "" });
 
-    // Validate form
     if (form.newPassword !== form.confirmNewPassword) {
-      setMessage({ text: 'New passwords do not match!', variant: 'danger' });
+      setMessage({ text: "New passwords do not match!", variant: "danger" });
       setLoading(false);
       return;
     }
 
     if (form.newPassword.length < 8) {
-      setMessage({ text: 'Password must be at least 8 characters long', variant: 'danger' });
+      setMessage({
+        text: "Password must be at least 8 characters long",
+        variant: "danger",
+      });
       setLoading(false);
       return;
     }
 
     if (passwordStrength < 3) {
-      setMessage({ text: 'Password is too weak. Include uppercase letters, numbers, and special characters', variant: 'danger' });
+      setMessage({
+        text: "Password is too weak. Use uppercase, numbers & special characters.",
+        variant: "danger",
+      });
       setLoading(false);
       return;
     }
 
-    // Simulate API call
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock success response
-      setMessage({ text: 'Password updated successfully!', variant: 'success' });
-      setForm(prev => ({
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      setMessage({ text: "Password updated successfully!", variant: "success" });
+      setForm((prev) => ({
         ...prev,
-        currentPassword: '',
-        newPassword: '',
-        confirmNewPassword: ''
+        currentPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
       }));
       setShowModal(true);
     } catch (error) {
-      setMessage({ text: 'Failed to update password. Please try again.', variant: 'danger' });
+      setMessage({
+        text: "Failed to update password. Please try again.",
+        variant: "danger",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const getPasswordStrengthColor = () => {
-    switch(passwordStrength) {
-      case 0: return 'bg-secondary';
-      case 1: return 'bg-danger';
-      case 2: return 'bg-warning';
-      case 3: return 'bg-info';
-      case 4: return 'bg-success';
-      default: return 'bg-secondary';
+    switch (passwordStrength) {
+      case 1:
+        return "bg-danger";
+      case 2:
+        return "bg-warning";
+      case 3:
+        return "bg-info";
+      case 4:
+        return "bg-success";
+      default:
+        return "bg-secondary";
     }
   };
 
   const getPasswordStrengthLabel = () => {
-    switch(passwordStrength) {
-      case 0: return 'Very Weak';
-      case 1: return 'Weak';
-      case 2: return 'Moderate';
-      case 3: return 'Strong';
-      case 4: return 'Very Strong';
-      default: return '';
+    switch (passwordStrength) {
+      case 1:
+        return "Weak";
+      case 2:
+        return "Moderate";
+      case 3:
+        return "Strong";
+      case 4:
+        return "Very Strong";
+      default:
+        return "Very Weak";
     }
   };
 
   return (
     <Container fluid className="px-3 px-md-5 py-3">
-      <h2 className="h4 mb-4">Security Settings</h2>
-      
-      {/* Status Message */}
+      <h2 className="h4 fw-bold text-dark mb-4">
+        <i className="bi bi-shield-lock-fill text-primary me-2"></i>
+        Security Settings
+      </h2>
+
       {message.text && (
-        <Alert variant={message.variant} className="mb-4" dismissible onClose={() => setMessage({ text: '', variant: '' })}>
+        <Alert
+          variant={message.variant}
+          className="mb-4"
+          dismissible
+          onClose={() => setMessage({ text: "", variant: "" })}
+        >
           {message.text}
         </Alert>
       )}
 
-      <Accordion defaultActiveKey="0">
-        <Accordion.Item eventKey="0">
-          <Accordion.Header>Change Password</Accordion.Header>
-          <Accordion.Body>
-            <p className="text-muted mb-4">Update your password to keep your account secure</p>
-            <Form onSubmit={handleSubmit}>
-              {['current', 'new', 'confirm'].map((f, idx) => {
-                const nameMap = {
-                  current: 'currentPassword',
-                  new: 'newPassword',
-                  confirm: 'confirmNewPassword'
-                };
-                const labels = {
-                  current: 'Current Password',
-                  new: 'New Password',
-                  confirm: 'Confirm New Password'
-                };
-                const placeholders = {
-                  current: 'Enter your current password',
-                  new: 'Enter your new password',
-                  confirm: 'Confirm your new password'
-                };
-                const field = nameMap[f];
-
-                return (
-                  <Form.Group controlId={field} className="mb-3" key={f}>
-                    <Form.Label className="fw-semibold">{labels[f]}</Form.Label>
-                    <div className="input-group">
-                      <Form.Control
-                        type={showPasswords[f] ? 'text' : 'password'}
-                        name={field}
-                        placeholder={placeholders[f]}
-                        value={form[field]}
-                        onChange={handleChange}
-                        required
-                        className={f === 'new' && form.newPassword ? 'border-end-0' : ''}
-                      />
-                      <span 
-                        className="input-group-text" 
-                        style={{ cursor: 'pointer' }} 
-                        onClick={() => togglePassword(f)}
-                      >
-                        <i className={`bi ${showPasswords[f] ? 'bi-eye-fill' : 'bi-eye-slash-fill'}`}></i>
-                      </span>
-                    </div>
-                    
-                    {/* Password strength indicator for new password */}
-                    {f === 'new' && form.newPassword && (
-                      <div className="mt-2">
-                        <div className="d-flex justify-content-between mb-1">
-                          <small>Password Strength: {getPasswordStrengthLabel()}</small>
-                          <small>{form.newPassword.length}/32</small>
+      <Card className="shadow-sm border-0 rounded-4">
+        <Card.Body className="p-4">
+          <Accordion defaultActiveKey="0" flush>
+            {/* Change Password */}
+            <Accordion.Item eventKey="0">
+              <Accordion.Header>
+                <span className="fw-semibold">Change Password</span>
+              </Accordion.Header>
+              <Accordion.Body>
+                <p className="text-muted mb-4">
+                  Update your password to keep your account secure.
+                </p>
+                <Form onSubmit={handleSubmit}>
+                  {["current", "new", "confirm"].map((f) => {
+                    const map = {
+                      current: {
+                        name: "currentPassword",
+                        label: "Current Password",
+                        placeholder: "Enter your current password",
+                      },
+                      new: {
+                        name: "newPassword",
+                        label: "New Password",
+                        placeholder: "Enter a strong new password",
+                      },
+                      confirm: {
+                        name: "confirmNewPassword",
+                        label: "Confirm New Password",
+                        placeholder: "Re-enter your new password",
+                      },
+                    };
+                    return (
+                      <Form.Group className="mb-4" key={f}>
+                        <Form.Label className="fw-semibold">
+                          {map[f].label}
+                        </Form.Label>
+                        <div className="input-group">
+                          <Form.Control
+                            type={showPasswords[f] ? "text" : "password"}
+                            name={map[f].name}
+                            placeholder={map[f].placeholder}
+                            value={form[map[f].name]}
+                            onChange={handleChange}
+                            required
+                            className="rounded-start shadow-sm"
+                          />
+                          <span
+                            className="input-group-text bg-light rounded-end"
+                            style={{ cursor: "pointer" }}
+                            onClick={() => togglePassword(f)}
+                          >
+                            <i
+                              className={`bi ${
+                                showPasswords[f]
+                                  ? "bi-eye-fill"
+                                  : "bi-eye-slash-fill"
+                              }`}
+                            ></i>
+                          </span>
                         </div>
-                        <div className="progress" style={{ height: '4px' }}>
-                          <div 
-                            className={`progress-bar ${getPasswordStrengthColor()}`} 
-                            role="progressbar" 
-                            style={{ width: `${(passwordStrength / 4) * 100}%` }}
-                            aria-valuenow={passwordStrength}
-                            aria-valuemin="0"
-                            aria-valuemax="4"
-                          ></div>
-                        </div>
-                      </div>
-                    )}
-                  </Form.Group>
-                );
-              })}
 
-              <div className="d-flex justify-content-end">
-                <Button 
-                  type="submit" 
-                  variant="primary" 
-                  className="mt-3"
-                  disabled={loading}
+                        {f === "new" && form.newPassword && (
+                          <div className="mt-2">
+                            <div className="d-flex justify-content-between mb-1">
+                              <small>
+                                Strength: {getPasswordStrengthLabel()}
+                              </small>
+                              <small>{form.newPassword.length}/32</small>
+                            </div>
+                            <div className="progress" style={{ height: "5px" }}>
+                              <div
+                                className={`progress-bar ${getPasswordStrengthColor()}`}
+                                style={{
+                                  width: `${(passwordStrength / 4) * 100}%`,
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+                      </Form.Group>
+                    );
+                  })}
+
+                  <div className="text-end">
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      className="px-4 py-2 fw-semibold rounded-3 shadow-sm"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <>
+                          <Spinner
+                            animation="border"
+                            size="sm"
+                            role="status"
+                            className="me-2"
+                          />
+                          Updating...
+                        </>
+                      ) : (
+                        "Update Password"
+                      )}
+                    </Button>
+                  </div>
+                </Form>
+              </Accordion.Body>
+            </Accordion.Item>
+
+            {/* Two-Factor */}
+            <Accordion.Item eventKey="1">
+              <Accordion.Header>
+                <span className="fw-semibold">
+                  Two-Factor Authentication
+                </span>
+              </Accordion.Header>
+              <Accordion.Body>
+                <p className="text-muted mb-2">
+                  Add an extra layer of security to your account.
+                </p>
+                <Form.Check
+                  type="switch"
+                  id="twoFactor"
+                  name="twoFactor"
+                  label="Enable Two-Factor Authentication"
+                  checked={form.twoFactor}
+                  onChange={handleChange}
+                />
+              </Accordion.Body>
+            </Accordion.Item>
+
+            {/* Session Timeout */}
+            <Accordion.Item eventKey="2">
+              <Accordion.Header>
+                <span className="fw-semibold">Session Timeout</span>
+              </Accordion.Header>
+              <Accordion.Body>
+                <p className="text-muted mb-2">
+                  Automatically log out after inactivity.
+                </p>
+                <Form.Select
+                  name="sessionTimeout"
+                  value={form.sessionTimeout}
+                  onChange={handleChange}
+                  className="shadow-sm"
                 >
-                  {loading ? (
-                    <>
-                      <Spinner
-                        as="span"
-                        animation="border"
-                        size="sm"
-                        role="status"
-                        aria-hidden="true"
-                        className="me-2"
-                      />
-                      Updating...
-                    </>
-                  ) : 'Update Password'}
+                  {[5, 10, 15, 30, 60].map((min) => (
+                    <option key={min} value={min}>
+                      {min} minutes
+                    </option>
+                  ))}
+                </Form.Select>
+              </Accordion.Body>
+            </Accordion.Item>
+
+            {/* Activity */}
+            <Accordion.Item eventKey="3">
+              <Accordion.Header>
+                <span className="fw-semibold">Account Activity</span>
+              </Accordion.Header>
+              <Accordion.Body>
+                <p className="text-muted">
+                  Check recent logins and active sessions.
+                </p>
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  className="fw-semibold px-3"
+                  onClick={() => console.log("Viewing activity")}
+                >
+                  View Activity
                 </Button>
-              </div>
-            </Form>
-          </Accordion.Body>
-        </Accordion.Item>
-
-        {/* Other accordion items remain the same */}
-        <Accordion.Item eventKey="1">
-          <Accordion.Header>Two‑Factor Authentication</Accordion.Header>
-          <Accordion.Body>
-            <p className="mb-2">Add an extra layer of security to your account</p>
-            <Form.Check
-              type="switch"
-              id="twoFactor"
-              name="twoFactor"
-              label="Enable Two‑Factor Authentication"
-              checked={form.twoFactor}
-              onChange={handleChange}
-            />
-          </Accordion.Body>
-        </Accordion.Item>
-
-        <Accordion.Item eventKey="2">
-          <Accordion.Header>Session Timeout</Accordion.Header>
-          <Accordion.Body>
-            <p className="mb-2">Automatically log out after inactivity</p>
-            <Form.Select
-              name="sessionTimeout"
-              value={form.sessionTimeout}
-              onChange={handleChange}
-            >
-              {[5,10,15,30,60].map(min => (
-                <option key={min} value={min}>
-                  {min} minutes
-                </option>
-              ))}
-            </Form.Select>
-          </Accordion.Body>
-        </Accordion.Item>
-
-        <Accordion.Item eventKey="3">
-          <Accordion.Header>View Account Activity</Accordion.Header>
-          <Accordion.Body>
-            <Button variant="link" onClick={() => console.log('Viewing activity')}>
-              View recent logins & sessions
-            </Button>
-          </Accordion.Body>
-        </Accordion.Item>
-      </Accordion>
+              </Accordion.Body>
+            </Accordion.Item>
+          </Accordion>
+        </Card.Body>
+      </Card>
 
       {/* Success Modal */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
@@ -265,13 +334,20 @@ export default function SecurityTab() {
           <Modal.Title>Password Updated</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div className="text-center py-3">
-            <i className="bi bi-check-circle-fill text-success" style={{ fontSize: '3rem' }}></i>
-            <p className="mt-3">Your password has been successfully updated.</p>
+          <div className="text-center py-4">
+            <i
+              className="bi bi-check-circle-fill text-success mb-3"
+              style={{ fontSize: "3rem" }}
+            ></i>
+            <p>Your password has been successfully updated.</p>
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="success" onClick={() => setShowModal(false)}>
+          <Button
+            variant="success"
+            className="fw-semibold px-4"
+            onClick={() => setShowModal(false)}
+          >
             Continue
           </Button>
         </Modal.Footer>

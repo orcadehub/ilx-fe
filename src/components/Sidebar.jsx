@@ -131,7 +131,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
           justifyContent: "space-between",
           alignItems: "center",
           px: open ? 2 : 1,
-          background: "#f1f5f9 !important",
+          background: "var(--primary-color",
         }}
       >
         <Box display="flex" alignItems="center" gap={1}>

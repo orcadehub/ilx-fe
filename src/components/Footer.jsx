@@ -87,6 +87,7 @@ function Footer() {
                 { label: "Help Center", href: "/help-center" },
                 { label: "Privacy Policy", href: "/privacy-policy" },
                 { label: "Terms of Service", href: "/terms-of-service" },
+                { label: "Cancellation & Refund", href: "/cancellation-refund-policy" },
               ].map(({ label, href }) => (
                 <li key={label}>
                   <a

@@ -1,5 +1,15 @@
 import React, { useState } from "react";
-import { Container, Row, Col, Card, Button, Tabs, Tab, Form, Badge } from "react-bootstrap";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Button,
+  Tabs,
+  Tab,
+  Form,
+  Badge,
+} from "react-bootstrap";
 
 const Support = () => {
   const [activeTab, setActiveTab] = useState("active");
@@ -34,7 +44,7 @@ const Support = () => {
         },
       ]);
       setNewTicket({ subject: "", message: "" });
-      setActiveTab("active"); // Switch to active tickets tab on submit
+      setActiveTab("active");
     }
   };
 
@@ -48,7 +58,9 @@ const Support = () => {
             type="text"
             placeholder="Briefly describe the issue"
             value={newTicket.subject}
-            onChange={(e) => setNewTicket({ ...newTicket, subject: e.target.value })}
+            onChange={(e) =>
+              setNewTicket({ ...newTicket, subject: e.target.value })
+            }
             className="rounded-3 py-2"
           />
         </Form.Group>
@@ -59,12 +71,20 @@ const Support = () => {
             rows={5}
             placeholder="Provide detailed information about your issue..."
             value={newTicket.message}
-            onChange={(e) => setNewTicket({ ...newTicket, message: e.target.value })}
+            onChange={(e) =>
+              setNewTicket({ ...newTicket, message: e.target.value })
+            }
             className="rounded-3"
           />
         </Form.Group>
         <div className="text-end">
-          <Button variant="success" className="rounded-pill px-4 py-2" onClick={handleCreateTicket}>
+          <Button
+            className="rounded-pill px-4 py-2 fw-semibold shadow-sm border-0"
+            style={{
+              background: "linear-gradient(to right, #605cff, #4a00e0)",
+            }}
+            onClick={handleCreateTicket}
+          >
             Submit Ticket
           </Button>
         </div>
@@ -98,8 +118,12 @@ const Support = () => {
                   {ticket.status}
                 </Badge>
               </div>
-              <p className="mb-3 text-muted small">{ticket.message || "No description provided."}</p>
-              <small className="text-secondary">📅 Submitted on: {ticket.date}</small>
+              <p className="mb-3 text-muted small">
+                {ticket.message || "No description provided."}
+              </p>
+              <small className="text-secondary">
+                📅 Submitted on: {ticket.date}
+              </small>
             </Card>
           </Col>
         ))}
@@ -108,35 +132,66 @@ const Support = () => {
   };
 
   return (
-    <Container fluid style={{ backgroundColor: "#f1f5f9", minHeight: "100vh" }} className="py-5">
-      <Row className="justify-content-center">
-        {/* Left column always shows Create Ticket */}
-        <Col lg={3} md={12} className="mb-4">
-          {renderCreateTicket()}
-        </Col>
+    <div style={{ minHeight: "100vh", backgroundColor: "#f8fafc" }}>
+      {/* Gradient Header */}
+      <div
+        style={{
+          background: "linear-gradient(to right, #605cff, #4a00e0)",
+          color: "#fff",
+          padding: "20px 0",
+          borderBottomLeftRadius: 20,
+          borderBottomRightRadius: 20,
+        }}
+      >
+        <Container>
+          <Row className="align-items-center justify-content-between">
+            <Col>
+              <h5 className="fw-bold mb-0 d-flex align-items-center gap-2 text-light">
+                Support Center
+              </h5>
+              <small
+                className="mb-0 text-white-50"
+                style={{ fontSize: "0.95rem" }}
+              >
+                Submit and manage your support tickets here
+              </small>
+            </Col>
+          </Row>
+        </Container>
+      </div>
 
-        {/* Right column shows tabs for Active / Resolved tickets */}
-        <Col lg={9} md={12}>
-          <Card className="shadow-sm rounded-4 border-0 bg-white">
-            <Tabs
-              id="support-ticket-tabs"
-              activeKey={activeTab}
-              onSelect={(k) => setActiveTab(k)}
-              className="m-3"
-              justify
-              fill
-            >
-              <Tab eventKey="active" title="Active Tickets">
-                <div className="p-3">{renderTickets("active")}</div>
-              </Tab>
-              <Tab eventKey="resolved" title="Resolved Tickets">
-                <div className="p-3">{renderTickets("resolved")}</div>
-              </Tab>
-            </Tabs>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+      {/* Main Content */}
+      <Container fluid className="px-3 px-md-5 pb-5">
+        <Row className="justify-content-center">
+          {/* Left column: Create Ticket */}
+          <Col lg={3} md={12} className="mb-4">
+            {renderCreateTicket()}
+          </Col>
+
+          {/* Right column: Tickets */}
+          <Col lg={9} md={12}>
+            <Card className="shadow-sm rounded-4 border-0 bg-white">
+              <Tabs
+                id="support-ticket-tabs"
+                activeKey={activeTab}
+                onSelect={(k) => setActiveTab(k)}
+                justify
+                fill
+                variant="underline"
+                className="px-3 pt-2"
+              >
+                <Tab eventKey="active" title="Active Tickets">
+                  <div className="p-3">{renderTickets("active")}</div>
+                </Tab>
+                <Tab eventKey="resolved" title="Resolved Tickets">
+                  <div className="p-3">{renderTickets("resolved")}</div>
+                </Tab>
+              </Tabs>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
+    </div>
   );
 };
 

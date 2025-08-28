@@ -9,7 +9,6 @@ import Reports from "../pages/Reports";
 import Orders from "../pages/Orders";
 import Wallet from "../pages/Wallet";
 import Profile from "../pages/Profile";
-import NotificationsTab from "../pages/NotificationsTab";
 import Settings from "../pages/Settings";
 import Notifications from "../pages/Notifications";
 import Billing from "../pages/Billing";
@@ -17,6 +16,7 @@ import OffersPage from "../pages/OffersPage";
 import Support from "../pages/Support";
 import FacebookCallback from "../pages/FacebookCallback";
 import GoogleCallback from "../pages/GoogleCallback";
+import Wishlist from "../pages/Wishlist";
 
 const Content = () => {
   return (
@@ -38,6 +38,7 @@ const Content = () => {
       <Route path="profile" element={<Profile />} />
       <Route path="settings" element={<Settings />} />
       <Route path="billing" element={<Billing />} />
+      <Route path="mywishlist" element={<Wishlist />} />
       <Route path="notifications" element={<Notifications />} />
     </Routes>
   );
