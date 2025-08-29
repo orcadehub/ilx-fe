@@ -23,21 +23,19 @@ const bodyFont = `'Inter', sans-serif`;
 
 // Updated color palette
 const primaryColor = "#0A1A4C"; // Deep navy
-const accentColor = "#bfa046";  // Gold
+const accentColor = "#000000ff";  // Gold
 const textColor = "#1C1C1C";    // Neutral dark
 
 const navLinks = [
   { label: "Home", path: "/" },
   { label: "Features", path: "/features" },
   { label: "Pricing", path: "/pricing" },
-  { label: "Contact", path: "/contact" },
   { label: "About", path: "/about" },
-  { label: "Dashboard", path: "/dashboard" },
+  { label: "Contact", path: "/contact" },
 ];
 
 const Header = () => {
   const location = useLocation();
-  const isDashboard = location.pathname.startsWith("/dashboard");
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -54,7 +52,7 @@ const Header = () => {
             <ListItemText
               primary={label}
               primaryTypographyProps={{
-                sx: { fontFamily: bodyFont, fontWeight: 600, color: textColor },
+                sx: { fontFamily: bodyFont, fontWeight: 400, color: textColor,fontSize:12, },
               }}
             />
           </ListItem>
@@ -69,11 +67,12 @@ const Header = () => {
               borderRadius: "20px",
               fontFamily: bodyFont,
               fontWeight: 600,
+              fontSize:12,
             }}
             component={Link}
             to="/login"
           >
-            Login
+            Sign In
           </Button>
           <Button
             variant="contained"
@@ -83,12 +82,13 @@ const Header = () => {
               borderRadius: "20px",
               fontFamily: bodyFont,
               fontWeight: 600,
+               fontSize:12,
               "&:hover": { backgroundColor: "#08133a" },
             }}
             component={Link}
             to="/signup"
           >
-            Signup
+            Sign Up
           </Button>
         </ListItem>
       </List>
@@ -99,15 +99,13 @@ const Header = () => {
     <AppBar
       position="sticky"
       sx={{
-        backgroundColor: isDashboard ? "transparent" : "white",
+        backgroundColor: "var(--primary-color)",
         color: textColor,
-        boxShadow: isDashboard ? "none" : "0px 4px 10px rgba(0,0,0,0.05)",
+        boxShadow: "0px 4px 10px rgba(0,0,0,0.05)",
         px: 2,
-        visibility: isDashboard ? "hidden" : "visible",
-        pointerEvents: isDashboard ? "none" : "auto",
       }}
     >
-      <Toolbar sx={{ justifyContent: "space-between" }}>
+      <Toolbar sx={{ justifyContent: "space-around" }}>
         <Typography
           variant="h5"
           component={Link}
@@ -116,15 +114,15 @@ const Header = () => {
             fontWeight: 700,
             textDecoration: "none",
             color: primaryColor,
-            fontFamily: headingFont,
             letterSpacing: 1,
+            fontSize:20,
           }}
         >
           InfluexKonnect
         </Typography>
 
         {!isMobile && (
-          <Box sx={{ display: "flex", gap: 4 }}>
+          <Box sx={{ display: "flex", gap: 2 }}>
             {navLinks.map(({ label, path }) => (
               <Typography
                 key={label}
@@ -136,7 +134,8 @@ const Header = () => {
                   textDecoration: "none",
                   color: textColor,
                   fontFamily: bodyFont,
-                  fontWeight: 500,
+                  fontSize:12,
+                  fontWeight: 400,
                   transition: "all 0.3s",
                   "&:hover": { color: primaryColor },
                 }}
@@ -162,7 +161,7 @@ const Header = () => {
               component={Link}
               to="/login"
             >
-              Login
+              Sign In
             </Button>
             <Button
               variant="contained"
@@ -177,7 +176,7 @@ const Header = () => {
               component={Link}
               to="/signup"
             >
-              Signup
+              Sign Up
             </Button>
           </Box>
         )}
