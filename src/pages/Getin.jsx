@@ -6,80 +6,108 @@ function Getin() {
   return (
     <div
       style={{
-        backgroundColor: "#ffffff", // White background
-        padding: "60px 20px",
+        backgroundColor: "#fff",
+        padding: "64px 0",
       }}
     >
       <Container>
         <Row className="align-items-start">
           {/* Contact Info */}
           <Col md={6} className="mb-5">
-            <h2 className="fw-bold mb-3" style={{ color: "#1B263B" }}>
+            <h1 className="fw-bold mb-3" style={{ color: "#111827", fontSize: "2.7rem" }}>
               Get in Touch
-            </h2>
-            <p className="mb-4" style={{ color: "#415A77" }}>
+            </h1>
+            <p className="mb-4" style={{ color: "#50577b", fontSize: "1.27rem", lineHeight: 1.5 }}>
               Have questions about InfluexKonnect? Our team is here to help you
               find the right solution for your business.
             </p>
 
-            <div className="d-flex mb-4">
+            {/* Email */}
+            <div className="d-flex align-items-center mb-4">
               <div className="me-3">
                 <div
-                  className="p-3 rounded-circle shadow-sm"
-                  style={{ backgroundColor: "#1B263B" }}
+                  style={{
+                    background: "#EAECFF",
+                    width: 48,
+                    height: 48,
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
-                  <FaEnvelope color="#F5F5F7" size={20} />
+                  <FaEnvelope color="#5357eb" size={22} />
                 </div>
               </div>
               <div>
-                <h6 className="fw-bold mb-1" style={{ color: "#1B263B" }}>
+                <div className="fw-bold mb-1" style={{ color: "#2b2d31", fontSize: "1.09rem" }}>
                   Email Us
-                </h6>
+                </div>
                 <a
                   href="mailto:contact@influenceconnect.com"
-                  className="text-decoration-none"
-                  style={{ color: "#2575fc" }}
+                  style={{
+                    color: "#5357eb",
+                    fontSize: "1.06rem",
+                    textDecoration: "none",
+                    wordBreak: "break-all"
+                  }}
                 >
-                  contact@influenceconnect.com
+                  contact@influexconnect.com
                 </a>
               </div>
             </div>
 
-            <div className="d-flex mb-4">
+            {/* Phone */}
+            <div className="d-flex align-items-center mb-4">
               <div className="me-3">
                 <div
-                  className="p-3 rounded-circle shadow-sm"
-                  style={{ backgroundColor: "#1B263B" }}
+                  style={{
+                    background: "#EAECFF",
+                    width: 48,
+                    height: 48,
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
-                  <FaPhone color="#F5F5F7" size={20} />
+                  <FaPhone color="#5357eb" size={22} />
                 </div>
               </div>
               <div>
-                <h6 className="fw-bold mb-1" style={{ color: "#1B263B" }}>
+                <div className="fw-bold mb-1" style={{ color: "#2b2d31", fontSize: "1.09rem" }}>
                   Call Us
-                </h6>
-                <p className="mb-0" style={{ color: "#415A77" }}>
-                  +1 (555) 123-4567
-                </p>
+                </div>
+                <div style={{ color: "#50577b", fontSize: "1.06rem" }}>
+                  +91 22222 33333
+                </div>
               </div>
             </div>
 
-            <div className="d-flex">
+            {/* Visit */}
+            <div className="d-flex align-items-center">
               <div className="me-3">
                 <div
-                  className="p-3 rounded-circle shadow-sm"
-                  style={{ backgroundColor: "#1B263B" }}
+                  style={{
+                    background: "#EAECFF",
+                    width: 48,
+                    height: 48,
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
-                  <FaMapMarkerAlt color="#F5F5F7" size={20} />
+                  <FaMapMarkerAlt color="#5357eb" size={22} />
                 </div>
               </div>
               <div>
-                <h6 className="fw-bold mb-1" style={{ color: "#1B263B" }}>
+                <div className="fw-bold mb-1" style={{ color: "#2b2d31", fontSize: "1.09rem" }}>
                   Visit Us
-                </h6>
-                <p className="mb-0" style={{ color: "#415A77" }}>
-                  123 Influence Street, Marketing City, 94105
-                </p>
+                </div>
+                <div style={{ color: "#50577b", fontSize: "1.06rem" }}>
+                  123 Balaji Street, Tirupati City, 11111
+                </div>
               </div>
             </div>
           </Col>
@@ -89,47 +117,83 @@ function Getin() {
             <Form>
               <Row>
                 <Col md={6} className="mb-3">
-                  <Form.Label style={{ color: "#1B263B" }}>Name</Form.Label>
-                  <Form.Control type="text" placeholder="Your name" />
+                  <Form.Label style={{ color: "#2b2d31", fontWeight: 600 }}>
+                    Name
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Your name"
+                    style={{
+                      background: "#F7F8FC",
+                      borderRadius: 10,
+                      border: "1.6px solid #e5e7eb",
+                      fontSize: "1rem"
+                    }}
+                  />
                 </Col>
                 <Col md={6} className="mb-3">
-                  <Form.Label style={{ color: "#1B263B" }}>Email</Form.Label>
-                  <Form.Control type="email" placeholder="Your email" />
+                  <Form.Label style={{ color: "#2b2d31", fontWeight: 600 }}>
+                    Email
+                  </Form.Label>
+                  <Form.Control
+                    type="email"
+                    placeholder="Your email"
+                    style={{
+                      background: "#F7F8FC",
+                      borderRadius: 10,
+                      border: "1.6px solid #e5e7eb",
+                      fontSize: "1rem"
+                    }}
+                  />
                 </Col>
               </Row>
-
               <Form.Group className="mb-3">
-                <Form.Label style={{ color: "#1B263B" }}>
+                <Form.Label style={{ color: "#2b2d31", fontWeight: 600 }}>
                   Company (Optional)
                 </Form.Label>
-                <Form.Control type="text" placeholder="Your company" />
+                <Form.Control
+                  type="text"
+                  placeholder="Your company"
+                  style={{
+                    background: "#F7F8FC",
+                    borderRadius: 10,
+                    border: "1.6px solid #e5e7eb",
+                    fontSize: "1rem"
+                  }}
+                />
               </Form.Group>
-
               <Form.Group className="mb-4">
-                <Form.Label style={{ color: "#1B263B" }}>Message</Form.Label>
+                <Form.Label style={{ color: "#2b2d31", fontWeight: 600 }}>
+                  Message
+                </Form.Label>
                 <Form.Control
                   as="textarea"
                   rows={4}
                   placeholder="How can we help you?"
+                  style={{
+                    background: "#F7F8FC",
+                    borderRadius: 10,
+                    border: "1.6px solid #e5e7eb",
+                    fontSize: "1rem"
+                  }}
                 />
               </Form.Group>
-
               <Button
                 type="submit"
                 className="w-100 fw-bold"
                 style={{
-                  background:
-                    "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)",
+                  background: "#5357eb",
                   border: "none",
-                  padding: "12px",
-                  borderRadius: "50px",
-                  fontSize: "16px",
-                  boxShadow: "0 6px 12px rgba(0, 0, 0, 0.1)",
-                  transition: "all 0.3s ease",
-                  color: "white",
+                  padding: "10px",
+                  borderRadius: "14px",
+                  fontSize: "1.08rem",
+                  marginTop: "8px",
+                  boxShadow: "0 6px 12px rgba(83,87,235,0.08)",
+                  transition: "all 0.32s cubic-bezier(.4,0,.2,1)",
+                  color: "#fff"
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+                onMouseEnter={e => (e.currentTarget.style.background = "#3a3ed4")}
+                onMouseLeave={e => (e.currentTarget.style.background = "#5357eb")}
               >
                 Send Message
               </Button>

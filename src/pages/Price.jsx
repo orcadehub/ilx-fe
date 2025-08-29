@@ -11,6 +11,8 @@ import { useNavigate } from "react-router-dom";
 import Faq from "../components/Faq";
 import Section2 from "../components/Section2";
 import Ready from "../components/Ready";
+import InfluencerFeatureHero from "../components/home/InfluencerFeatureHero";
+import Prices from "../components/home/Prices";
 
 function Price() {
   const navigate = useNavigate();
@@ -71,91 +73,25 @@ function Price() {
   ];
 
   return (
-    <div
-      style={{
-        background: "linear-gradient(to bottom, #f7f9fc 0%, #ffffff 100%)",
-        width: "100%",
-      }}
-      className="py-5"
-    >
+    <div>
+      <InfluencerFeatureHero
+        headlineLine1="Simple, Transparent Pricing"
+        headlineLine2="Plans"
+        description="Choose the perfect plan for your business. Start with a free trial and scale as you grow."
+        primaryButtonLabel="Start Free Trail"
+        secondaryButtonLabel="Contact Sales"
+        onPrimaryClick={() => {
+          // Add your navigation or logic for Get Started button here
+          console.log("Get Started clicked");
+        }}
+        onSecondaryClick={() => {
+          // Add your navigation or logic for Sign In button here
+          console.log("Sign In clicked");
+        }}
+      />
+
       <Container>
-        <div className="text-center mb-5 px-3">
-          <h2 className="fw-bold display-5 text-dark">Our Pricing Plans</h2>
-          <p className="text-muted fs-5">
-            Transparent pricing with no hidden fees. Choose the plan that fits
-            your business needs.
-          </p>
-        </div>
-
-        <Row className="g-4 justify-content-center">
-          {plans.map((plan, idx) => {
-            const isSelected = selectedPlan === idx;
-            return (
-              <Col key={idx} xs={12} md={6} lg={4}>
-                <Card
-                  className={`h-100 shadow-sm text-center border-0 plan-card ${
-                    isSelected ? "selected-plan" : ""
-                  }`}
-                  onClick={() => setSelectedPlan(idx)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ")
-                      setSelectedPlan(idx);
-                  }}
-                >
-                  {plan.title === "Professional" && (
-                    <Badge
-                      bg="warning"
-                      text="dark"
-                      className="most-popular-badge m-2 px-3 py-2 fw-semibold position-absolute"
-                    >
-                      Most Popular
-                    </Badge>
-                  )}
-                  <Card.Body className="p-4 d-flex flex-column">
-                    <div className="mb-3">{plan.icon}</div>
-                    <h4 className="fw-bold text-dark">{plan.title}</h4>
-                    <h2 className="fw-bold my-3">{plan.price}</h2>
-                    <p className="text-muted">{plan.period}</p>
-
-                    <ul className="list-unstyled text-start mb-3 flex-grow-1">
-                      {plan.features.map((feature, i) => (
-                        <li key={i} className="mb-2 d-flex align-items-center">
-                          <FaCheckCircle className="text-success me-2" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-
-                    {plan.limitations.length > 0 && (
-                      <>
-                        <h6 className="text-danger fw-semibold mb-2">
-                          Limitations:
-                        </h6>
-                        <ul className="list-unstyled text-start mb-3 small text-danger">
-                          {plan.limitations.map((limit, i) => (
-                            <li key={i}>— {limit}</li>
-                          ))}
-                        </ul>
-                      </>
-                    )}
-
-                    <Button
-                      variant={isSelected ? "success" : "outline-primary"}
-                      className="rounded-pill w-100 fw-bold py-2 mt-auto"
-                      onClick={() => navigate(plan.path)}
-                    >
-                      {plan.price === "Contact Us"
-                        ? "Contact Sales"
-                        : "Get Started"}
-                    </Button>
-                  </Card.Body>
-                </Card>
-              </Col>
-            );
-          })}
-        </Row>
+        <Prices/>
 
         <div className="text-center mt-5">
           <FaHeadset className="text-primary mb-3" size={36} />

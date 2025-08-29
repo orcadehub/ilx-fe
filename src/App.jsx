@@ -25,6 +25,7 @@ import MakeOrder from "./pages/MakeOrder";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import CancellationRefundPolicy from "./pages/CancellationRefundPolicy";
+import About from "./pages/About";
 
 const AppContent = () => {
   const location = useLocation();
@@ -43,6 +44,7 @@ const AppContent = () => {
         <Route exact path="/contact" element={<Contact />} />
         <Route exact path="/pricing" element={<Price />} />
         <Route exact path="/features" element={<Features />} />
+        <Route exact path="/about" element={<About />} />
         <Route exact path="/checkout" element={<Checkout />} />
         <Route exact path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route exact path="/terms-of-service" element={<TermsAndConditions />} />

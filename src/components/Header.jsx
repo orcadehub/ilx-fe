@@ -23,8 +23,8 @@ const bodyFont = `'Inter', sans-serif`;
 
 // Updated color palette
 const primaryColor = "#0A1A4C"; // Deep navy
-const accentColor = "#000000ff";  // Gold
-const textColor = "#1C1C1C";    // Neutral dark
+const accentColor = "#000000ff"; // Gold
+const textColor = "#1C1C1C"; // Neutral dark
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -42,9 +42,15 @@ const Header = () => {
   const toggleDrawer = (open) => () => setDrawerOpen(open);
 
   const drawerList = (
-    <Box sx={{ width: 250, p: 2 }} role="presentation" onClick={toggleDrawer(false)}>
+    <Box
+      sx={{ width: 250, p: 2 }}
+      role="presentation"
+      onClick={toggleDrawer(false)}
+    >
       <Box>
-        <IconButton onClick={toggleDrawer(false)}><CloseIcon /></IconButton>
+        <IconButton onClick={toggleDrawer(false)}>
+          <CloseIcon />
+        </IconButton>
       </Box>
       <List>
         {navLinks.map(({ label, path }) => (
@@ -52,7 +58,12 @@ const Header = () => {
             <ListItemText
               primary={label}
               primaryTypographyProps={{
-                sx: { fontFamily: bodyFont, fontWeight: 400, color: textColor,fontSize:12, },
+                sx: {
+                  fontFamily: bodyFont,
+                  fontWeight: 400,
+                  color: textColor,
+                  fontSize: 12,
+                },
               }}
             />
           </ListItem>
@@ -67,7 +78,7 @@ const Header = () => {
               borderRadius: "20px",
               fontFamily: bodyFont,
               fontWeight: 600,
-              fontSize:12,
+              fontSize: 12,
             }}
             component={Link}
             to="/login"
@@ -82,7 +93,7 @@ const Header = () => {
               borderRadius: "20px",
               fontFamily: bodyFont,
               fontWeight: 600,
-               fontSize:12,
+              fontSize: 12,
               "&:hover": { backgroundColor: "#08133a" },
             }}
             component={Link}
@@ -99,13 +110,17 @@ const Header = () => {
     <AppBar
       position="sticky"
       sx={{
-        backgroundColor: "var(--primary-color)",
+        backgroundColor: "#f1f5f980", // semi-transparent
+        backdropFilter: "blur(10px)", // apply blur to the background behind it
+        WebkitBackdropFilter: "blur(10px)", // for Safari support
         color: textColor,
         boxShadow: "0px 4px 10px rgba(0,0,0,0.05)",
         px: 2,
       }}
     >
-      <Toolbar sx={{ justifyContent: "space-around" }}>
+      <Toolbar
+        sx={{ justifyContent: isMobile ? "space-between" : "space-around" }}
+      >
         <Typography
           variant="h5"
           component={Link}
@@ -115,7 +130,7 @@ const Header = () => {
             textDecoration: "none",
             color: primaryColor,
             letterSpacing: 1,
-            fontSize:20,
+            fontSize: 20,
           }}
         >
           InfluexKonnect
@@ -134,7 +149,7 @@ const Header = () => {
                   textDecoration: "none",
                   color: textColor,
                   fontFamily: bodyFont,
-                  fontSize:12,
+                  fontSize: 12,
                   fontWeight: 400,
                   transition: "all 0.3s",
                   "&:hover": { color: primaryColor },
@@ -183,8 +198,14 @@ const Header = () => {
 
         {isMobile && (
           <>
-            <IconButton onClick={toggleDrawer(true)}><MenuIcon /></IconButton>
-            <Drawer anchor="top" open={drawerOpen} onClose={toggleDrawer(false)}>
+            <IconButton onClick={toggleDrawer(true)}>
+              <MenuIcon />
+            </IconButton>
+            <Drawer
+              anchor="top"
+              open={drawerOpen}
+              onClose={toggleDrawer(false)}
+            >
               {drawerList}
             </Drawer>
           </>
