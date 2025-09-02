@@ -102,7 +102,7 @@ const Features = () => {
   return (
     <section
       style={{
-        background: "linear-gradient(to right, #f7f7f7, #f0f0f0)",
+        background: "var(--primary-color)",
         padding: "0",
         fontFamily: "Poppins, sans-serif",
       }}

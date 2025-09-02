@@ -1,36 +1,24 @@
-import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Form, Button, Spinner } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useNavigate, Link } from "react-router-dom";
+import { Container, Row, Col, Card, Spinner } from "react-bootstrap";
 import config from "../config";
+import RoleSelect from "../components/signup/RoleSelect";
+import AccountForm from "../components/signup/AccountForm";
+import OtpVerify from "../components/signup/OtpVerify";
 
-const COLORS = {
-  primary: "#007bff",
-  success: "#28a745",
-  textPrimary: "#212529",
-  textSecondary: "#6c757d",
-  background: "#f8f9fa",
-  surface: "#ffffff",
-  border: "#ced4da",
+const palette = {
+  page: "#f7f9fc",
   card: "#ffffff",
+  ink: "#0b1220",
+  muted: "#667085",
+  brand: "#5357eb",
+  border: "rgba(12, 35, 64, 0.08)",
 };
 
-const handleFacebookSignup = (type) => {
-  window.location.href = `${baseURL}/api/auth/facebook?userType=${type}`;
-};
-
-const handleGoogleSignup = (type) => {
-  window.location.href = `${baseURL}/api/auth/google?userType=${type}`;
-};
-
-const baseURL =
-  import.meta.env.MODE === "development"
-    ? config.LOCAL_BASE_URL
-    : config.BASE_URL;
-
-const Signup = () => {
-  const [step, setStep] = useState(1);
+export default function Signup() {
+  const [step, setStep] = useState(1); // 1 role, 2 account, 3 otp
   const [userType, setUserType] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -41,35 +29,32 @@ const Signup = () => {
     password: "",
     confirmPassword: "",
   });
+
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(60);
-  const [isResendEnabled, setIsResendEnabled] = useState(false);
+  const [canResend, setCanResend] = useState(false);
+
   const navigate = useNavigate();
 
-  const baseURL =
-    import.meta.env.MODE === "development"
-      ? config.LOCAL_BASE_URL
-      : config.BASE_URL;
+  const baseURL = useMemo(
+    () => (import.meta.env.MODE === "development" ? config.LOCAL_BASE_URL : config.BASE_URL),
+    []
+  );
 
   useEffect(() => {
     if (step === 3 && timer > 0) {
-      const interval = setInterval(() => setTimer((t) => t - 1), 1000);
-      return () => clearInterval(interval);
+      const id = setInterval(() => setTimer((t) => t - 1), 1000);
+      return () => clearInterval(id);
     }
-    if (timer === 0) setIsResendEnabled(true);
+    if (timer === 0) setCanResend(true);
   }, [step, timer]);
 
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const onChange = (e) => setFormData((s) => ({ ...s, [e.target.name]: e.target.value }));
 
-  const sendOtp = async () => {
+  const handleSendOtp = async () => {
     const { username, email, phone, password, confirmPassword } = formData;
-    if (!username || !email || !phone || !password || !confirmPassword) {
-      return toast.error("❌ Please fill all fields.");
-    }
-    if (password !== confirmPassword) {
-      return toast.error("❌ Passwords do not match.");
-    }
+    if (!username || !email || !phone || !password || !confirmPassword) return toast.error("❌ Please fill all fields.");
+    if (password !== confirmPassword) return toast.error("❌ Passwords do not match.");
 
     try {
       setLoading(true);
@@ -77,7 +62,7 @@ const Signup = () => {
       toast.success("📨 OTP sent successfully!");
       setStep(3);
       setTimer(60);
-      setIsResendEnabled(false);
+      setCanResend(false);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to send OTP");
     } finally {
@@ -85,246 +70,99 @@ const Signup = () => {
     }
   };
 
-  const verifyOtp = async () => {
+  const handleVerifyOtp = async () => {
     const { username, email, phone, password } = formData;
-
     try {
       setLoading(true);
-
       const res = await axios.post(`${baseURL}/api/verify-otp`, { email, otp });
+      if (!res.data?.success) return toast.error(res.data?.message || "❌ OTP verification failed");
 
-      if (res.data.success) {
-        const signupRes = await axios.post(`${baseURL}/api/signup`, {
-          fullname: username,
-          email,
-          phone,
-          password,
-          role: userType,
-        });
+      const signupRes = await axios.post(`${baseURL}/api/signup`, {
+        fullname: username,
+        email,
+        phone,
+        password,
+        role: userType,
+      });
 
-        const user = signupRes.data.user || {
-          fullname: username,
-          email,
-          role: userType,
-        };
-
-        toast.success("✅ Signup successful!");
-        localStorage.setItem("loggedInUser", JSON.stringify(user));
-        navigate("/login");
-      } else {
-        toast.error(res.data.message || "❌ OTP verification failed");
-      }
+      const user = signupRes.data.user || { fullname: username, email, role: userType };
+      toast.success("✅ Signup successful!");
+      localStorage.setItem("loggedInUser", JSON.stringify(user));
+      navigate("/login");
     } catch (err) {
-      toast.error(
-        err.response?.data?.message || "❌ OTP verification or signup failed"
-      );
+      toast.error(err.response?.data?.message || "❌ OTP verification or signup failed");
     } finally {
       setLoading(false);
     }
   };
 
-  const renderOtpField = () => (
-    <>
-      <Form.Group className="mb-3" controlId="otp">
-        <Form.Label style={{ fontWeight: "600", color: COLORS.textSecondary }}>
-          Enter OTP
-        </Form.Label>
-        <Form.Control
-          type="text"
-          name="otp"
-          value={otp}
-          onChange={(e) => setOtp(e.target.value)}
-          required
-          placeholder="Enter OTP"
-          style={inputStyle}
-        />
-      </Form.Group>
-
-      <div className="text-center text-muted mb-3">
-        {timer > 0 ? (
-          <>⏳ Resend OTP in {timer} sec</>
-        ) : (
-          <Button variant="link" onClick={sendOtp} disabled={!isResendEnabled}>
-            🔄 Resend OTP
-          </Button>
-        )}
-      </div>
-
-      <Button
-        onClick={verifyOtp}
-        className="w-100 mb-3"
-        disabled={loading}
-        style={submitBtnStyle(COLORS.success)}
-      >
-        {loading ? <Spinner animation="border" size="sm" /> : "Verify & Signup"}
-      </Button>
-    </>
-  );
-
-  const renderInputField = (name, label, type = "text") => (
-    <Form.Group className="mb-3" controlId={name} key={name}>
-      <Form.Label style={{ fontWeight: "600", color: COLORS.textSecondary }}>
-        {label}
-      </Form.Label>
-      <Form.Control
-        type={type}
-        name={name}
-        value={formData[name]}
-        onChange={handleChange}
-        required
-        placeholder={`Enter ${label.toLowerCase()}`}
-        style={inputStyle}
-      />
-    </Form.Group>
-  );
-
-  const inputStyle = {
-    borderRadius: "10px",
-    borderColor: COLORS.border,
-    padding: "12px 14px",
-    fontSize: "1rem",
-    backgroundColor: COLORS.surface,
-    fontFamily: "'Open Sans', sans-serif",
-    color: COLORS.textPrimary,
+  const resendOtp = async () => {
+    if (!canResend) return;
+    try {
+      setLoading(true);
+      await axios.post(`${baseURL}/api/send-otp`, { email: formData.email, phone: formData.phone });
+      toast.success("🔄 OTP re-sent");
+      setTimer(60);
+      setCanResend(false);
+    } catch {
+      toast.error("Failed to resend OTP");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const submitBtnStyle = (bgColor) => ({
-    borderRadius: "30px",
-    padding: "12px 0",
-    backgroundColor: bgColor,
-    border: "none",
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: "1.1rem",
-  });
-  const renderUserTypeButtons = () =>
-    ["business", "influencer"].map((type) => (
-      <div
-        key={type}
-        onClick={() => {
-          setUserType(type);
-          setStep(2);
-        }}
-        style={{
-          width: "100%",
-          marginBottom: "16px",
-          padding: "14px 20px",
-          borderRadius: "12px",
-          fontWeight: 600,
-          border: `2px solid ${COLORS.primary}`,
-          color: COLORS.primary,
-          backgroundColor: "#fff",
-          textAlign: "center",
-          cursor: "pointer",
-          transition: "all 0.2s ease",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = COLORS.primary;
-          e.currentTarget.style.color = "#fff";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = "#fff";
-          e.currentTarget.style.color = COLORS.primary;
-        }}
-      >
-        {type.charAt(0).toUpperCase() + type.slice(1)} User
-      </div>
-    ));
+  const loginWithFacebook = (type) => {
+    window.location.href = `${baseURL}/api/auth/facebook?userType=${type}`;
+  };
+  const loginWithGoogle = (type) => {
+    window.location.href = `${baseURL}/api/auth/google?userType=${type}`;
+  };
 
   return (
-    <Container
-      fluid
-      className="py-5 d-flex align-items-center justify-content-center"
-      style={{ backgroundColor: COLORS.background }}
-    >
+    <Container fluid className="py-5 d-flex align-items-center justify-content-center" >
       <Row className="w-100 justify-content-center">
-        <Col xs={11} sm={8} md={6} lg={5} xl={4}>
-          <div
-            className="p-4 shadow rounded-4"
-            style={{ backgroundColor: COLORS.card }}
-          >
-            <h2
-              className="text-center fw-bold mb-4"
-              style={{ color: COLORS.textPrimary }}
-            >
-              {step === 1
-                ? "Choose User Type"
-                : step === 2
-                ? "Create Account"
-                : "Verify OTP"}
+        <Col xs={11} sm={9} md={7} lg={5} xl={4}>
+          <Card className="p-4 rounded-4 shadow-lg" style={{ background: palette.card, border: `1px solid ${palette.border}` }}>
+            <h2 className="text-center fw-bold mb-4" style={{ color: palette.ink }}>
+              {step === 1 ? "" : step === 2 ? "Create Account" : "Verify OTP"}
             </h2>
 
-            {step === 1 && renderUserTypeButtons()}
+            {step === 1 && <RoleSelect onSelect={(t) => { setUserType(t); setStep(2); }} />}
 
             {step === 2 && (
-              <>
-                <Form>
-                  {renderInputField("username", "Full Name")}
-                  {renderInputField("email", "Email", "email")}
-                  {renderInputField("phone", "Phone")}
-                  {renderInputField("password", "Password", "password")}
-                  {renderInputField(
-                    "confirmPassword",
-                    "Confirm Password",
-                    "password"
-                  )}
-
-                  <Button
-                    type="button"
-                    className="w-100 mb-3"
-                    onClick={sendOtp}
-                    disabled={loading}
-                    style={submitBtnStyle(COLORS.primary)}
-                  >
-                    {loading ? (
-                      <Spinner animation="border" size="sm" />
-                    ) : (
-                      "Send OTP"
-                    )}
-                  </Button>
-                </Form>
-
-                <div className="text-center text-muted mb-3">OR</div>
-
-                <Button
-                  variant="outline-primary"
-                  className="w-100 mb-3 d-flex align-items-center justify-content-center gap-2"
-                  onClick={() => handleFacebookSignup(userType)}
-                >
-                  <i className="bi bi-facebook fs-5" /> Signup with Facebook
-                </Button>
-
-                <Button
-                  variant="outline-danger"
-                  className="w-100 mb-3 d-flex align-items-center justify-content-center gap-2"
-                  onClick={() => handleGoogleSignup(userType)}
-                >
-                  <i className="bi bi-google fs-5" /> Signup with Google
-                </Button>
-              </>
+              <AccountForm
+                formData={formData}
+                onChange={onChange}
+                onSubmit={handleSendOtp}
+                loading={loading}
+                onFacebook={() => loginWithFacebook(userType)}
+                onGoogle={() => loginWithGoogle(userType)}
+              />
             )}
 
-            {step === 3 && <Form>{renderOtpField()}</Form>}
+            {step === 3 && (
+              <OtpVerify
+                otp={otp}
+                setOtp={setOtp}
+                seconds={timer}
+                canResend={canResend}
+                onResend={resendOtp}
+                onVerify={handleVerifyOtp}
+                loading={loading}
+              />
+            )}
 
             {step > 1 && (
-              <div
-                className="text-center mt-3"
-                style={{ fontSize: "0.9rem", color: COLORS.textSecondary }}
-              >
+              <div className="text-center mt-3" style={{ fontSize: "0.9rem", color: palette.muted }}>
                 Already have an account?{" "}
-                <Link
-                  to="/login"
-                  style={{ color: COLORS.primary, fontWeight: "600" }}
-                >
+                <Link to="/login" style={{ color: palette.brand, fontWeight: 700 }}>
                   Login
                 </Link>
               </div>
             )}
-          </div>
+          </Card>
         </Col>
       </Row>
     </Container>
   );
-};
-
-export default Signup;
+}

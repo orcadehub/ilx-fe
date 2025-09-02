@@ -100,8 +100,10 @@ const HeaderD = ({ handleDrawerToggle }) => {
         ml: { sm: `240px` },
         bgcolor: "var(--primary-color)",
         color: "black",
+        backdropFilter: "blur(20px)", // apply blur to the background behind it
+        WebkitBackdropFilter: "blur(10px)", // for Safari support
         boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-        borderBottom: "1px solid #e0e0e0",
+        // borderBottom: "1px solid #e0e0e0",
       }}
     >
       <Toolbar sx={{ justifyContent: "space-between", px: 1 }}>

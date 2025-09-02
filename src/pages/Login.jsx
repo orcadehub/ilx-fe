@@ -1,84 +1,102 @@
-import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Form, Button, Spinner } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import { Container, Row, Col, Card, Spinner } from "react-bootstrap";
 import config from "../config";
+import RoleSelect from "../components/login/RoleSelect";
+import CredentialsForm from "../components/login/CredentialsForm";
+import OtpForm from "../components/login/OtpForm";
+import ForgotFlow from "../components/login/ForgotFlow";
 
-const Login = () => {
-  const [step, setStep] = useState(1);
+const palette = {
+  ink: "#0b1220",
+  muted: "#64748b",
+  glow: "#90caf9",
+  brand: "#5357eb",
+  brandDark: "#3a3ed4",
+  panel: "#ffffff",
+  page: "#ffffff",
+  border: "rgba(12, 35, 64, 0.08)",
+};
+
+export default function Login() {
+  const [step, setStep] = useState(1); // 1 role, 2 creds, 3 otp
   const [userType, setUserType] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // OTP
   const [otp, setOtp] = useState("");
+  const [timer, setTimer] = useState(0);
+  const [resendEnabled, setResendEnabled] = useState(false);
+
+  // Forgot
   const [isForgot, setIsForgot] = useState(false);
   const [forgotStep, setForgotStep] = useState(1);
   const [forgotOtp, setForgotOtp] = useState("");
   const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
-  const [timer, setTimer] = useState(0);
-  const [isResendEnabled, setIsResendEnabled] = useState(false);
 
+  // Loading flags
   const [loading, setLoading] = useState(false);
-  const [forgotLoading, setForgotLoading] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   const navigate = useNavigate();
 
-  const baseURL =
-    import.meta.env.MODE === "development"
-      ? config.LOCAL_BASE_URL
-      : config.BASE_URL;
+  const baseURL = useMemo(
+    () => (import.meta.env.MODE === "development" ? config.LOCAL_BASE_URL : config.BASE_URL),
+    []
+  );
 
-  const handleFacebookLogin = (type) => {
-    window.location.href = `${baseURL}/api/auth/facebook?userType=${type}`;
-  };
-
-  const handleGoogleLogin = (type) => {
-    window.location.href = `${baseURL}/api/auth/google?userType=${type}`;
-  };
-
+  // OTP resend timer
   useEffect(() => {
     if (timer > 0) {
-      const interval = setInterval(() => setTimer((t) => t - 1), 1000);
-      return () => clearInterval(interval);
+      const id = setInterval(() => setTimer((t) => t - 1), 1000);
+      return () => clearInterval(id);
     }
-    if (timer === 0) setIsResendEnabled(true);
+    if (timer === 0) setResendEnabled(true);
   }, [timer]);
 
-  const handleLoginFlow = async () => {
-    if (!email || !password || !userType)
-      return toast.error("All fields are required");
+  // API helpers
+  const check2FA = async () => {
+    const res = await axios.get(`${baseURL}/api/check-2fa`, { params: { email } });
+    return !!res.data?.is2FAEnabled;
+  };
 
+  const sendOtp = async () => {
+    await axios.post(`${baseURL}/api/send-otp`, { email });
+  };
+
+  const verifyOtp = async (code) => {
+    const res = await axios.post(`${baseURL}/api/verify-otp`, { email, otp: code });
+    return !!res.data?.success;
+  };
+
+  const loginDirect = async () => {
+    const res = await axios.post(`${baseURL}/api/login`, { email, password, role: userType });
+    localStorage.setItem("token", res.data.token);
+    localStorage.setItem("user", JSON.stringify(res.data.user));
+    toast.success(res.data.message);
+    navigate("/dashboard");
+    window.location.reload();
+  };
+
+  // Main flow
+  const handleLoginFlow = async () => {
+    if (!email || !password || !userType) return toast.error("All fields are required");
     try {
       setLoading(true);
-      // Step 1: Check if 2FA is enabled
-
-      const res = await axios.get(`${baseURL}/api/check-2fa`, {
-        params: { email },
-      });
-      const is2FAEnabled = res.data?.is2FAEnabled;
-
-      if (is2FAEnabled) {
-        // Send OTP and go to OTP step
-        await axios.post(`${baseURL}/api/send-otp`, { email });
+      const is2fa = await check2FA();
+      if (is2fa) {
+        await sendOtp();
         toast.success("OTP sent to email");
         setStep(3);
         setTimer(60);
-        setIsResendEnabled(false);
+        setResendEnabled(false);
       } else {
-        // No 2FA, login directly
-        const loginRes = await axios.post(`${baseURL}/api/login`, {
-          email,
-          password,
-          role: userType,
-        });
-
-        localStorage.setItem("token", loginRes.data.token);
-        localStorage.setItem("user", JSON.stringify(loginRes.data.user));
-        toast.success(loginRes.data.message);
-        navigate("/dashboard");
-        window.location.reload();
+        await loginDirect();
       }
     } catch (err) {
       toast.error(err.response?.data?.message || "Login failed");
@@ -87,27 +105,12 @@ const Login = () => {
     }
   };
 
-  const handleLoginWithOtp = async () => {
+  const handleVerifyAndLogin = async () => {
     try {
       setLoading(true);
-      const verifyRes = await axios.post(`${baseURL}/api/verify-otp`, {
-        email,
-        otp,
-      });
-      if (!verifyRes.data.success)
-        return toast.error("OTP verification failed");
-
-      const loginRes = await axios.post(`${baseURL}/api/login`, {
-        email,
-        password,
-        role: userType,
-      });
-
-      localStorage.setItem("token", loginRes.data.token);
-      localStorage.setItem("user", JSON.stringify(loginRes.data.user));
-      toast.success(loginRes.data.message);
-      navigate("/dashboard");
-      window.location.reload();
+      const ok = await verifyOtp(otp);
+      if (!ok) return toast.error("OTP verification failed");
+      await loginDirect();
     } catch (err) {
       toast.error(err.response?.data?.message || "Login failed");
     } finally {
@@ -115,15 +118,31 @@ const Login = () => {
     }
   };
 
+  const handleResendOtp = async () => {
+    if (!resendEnabled) return;
+    try {
+      setOtpLoading(true);
+      await sendOtp();
+      setTimer(60);
+      setResendEnabled(false);
+      toast.success("OTP re-sent");
+    } catch {
+      toast.error("Failed to resend OTP");
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  // Forgot password flow
   const handleForgotSendOtp = async () => {
     if (!email) return toast.error("Enter your email");
     try {
       setForgotLoading(true);
-      await axios.post(`${baseURL}/api/send-otp`, { email });
+      await sendOtp();
       toast.success("OTP sent to email");
       setForgotStep(2);
       setTimer(60);
-      setIsResendEnabled(false);
+      setResendEnabled(false);
     } catch {
       toast.error("Failed to send OTP");
     } finally {
@@ -135,11 +154,8 @@ const Login = () => {
     if (!forgotOtp) return toast.error("Enter OTP");
     try {
       setForgotLoading(true);
-      const verify = await axios.post(`${baseURL}/api/verify-otp`, {
-        email,
-        otp: forgotOtp,
-      });
-      if (!verify.data.success) return toast.error("OTP invalid");
+      const ok = await verifyOtp(forgotOtp);
+      if (!ok) return toast.error("OTP invalid");
       setForgotStep(3);
     } catch {
       toast.error("OTP verification failed");
@@ -151,17 +167,13 @@ const Login = () => {
   const handleResetPassword = async () => {
     if (!newPass || !confirmPass) return toast.error("All fields required");
     if (newPass !== confirmPass) return toast.error("Passwords do not match");
-
     try {
       setForgotLoading(true);
-      await axios.post(`${baseURL}/api/reset-password`, {
-        email,
-        newPassword: newPass,
-      });
+      await axios.post(`${baseURL}/api/reset-password`, { email, newPassword: newPass });
       toast.success("Password reset successfully");
       setIsForgot(false);
-      setStep(1);
       setForgotStep(1);
+      setStep(1);
     } catch (err) {
       toast.error(err.response?.data?.message || "Reset failed");
     } finally {
@@ -169,306 +181,89 @@ const Login = () => {
     }
   };
 
-  const sharedInputStyle = {
-    borderRadius: "12px",
-    borderColor: "#90caf9",
-    padding: "12px 15px",
-    fontSize: "1rem",
-    backgroundColor: "#f9f9f9",
-    fontFamily: "'Open Sans', sans-serif",
-    color: "#1B263B",
-  };
-
   return (
-    <Container
-      fluid
-      className="d-flex flex-column align-items-center justify-content-center py-5 bg-white"
-    >
+    <Container fluid className="d-flex flex-column align-items-center justify-content-center py-5">
       <Row className="w-100 justify-content-center">
-        <Col xs={11} sm={8} md={6} lg={5} xl={4}>
-          <div className="shadow-lg p-4 rounded-4 bg-white">
-            <h2 className="text-center fw-bold mb-4">
-              {isForgot
-                ? "Forgot Password"
-                : step === 1
-                ? "Select Role"
-                : step === 2
-                ? "Login"
-                : "Verify OTP"}
+        <Col xs={11} sm={9} md={7} lg={5} xl={4}>
+          <Card
+            className="shadow-lg p-4 rounded-4"
+            style={{
+              background: palette.panel,
+              border: `1px solid ${palette.border}`,
+              boxShadow: "0 14px 42px rgba(38,50,56,.08)",
+            }}
+          >
+            <h2 className="text-center fw-bold mb-4" style={{ color: palette.ink }}>
+              {isForgot ? "Forgot Password" : step === 1 ? "" : step === 2 ? "Login" : "Verify OTP"}
             </h2>
 
             {!isForgot && step === 1 && (
-              <Row className="g-3">
-                {[
-                  {
-                    type: "business",
-                    label: "Business",
-                    icon: "bi bi-briefcase",
-                  },
-                  {
-                    type: "influencer",
-                    label: "Influencer",
-                    icon: "bi bi-stars",
-                  },
-                  { type: "admin", label: "Admin", icon: "bi bi-shield-lock" },
-                ].map(({ type, label, icon }) => (
-                  <Col xs={12} md={4} key={type}>
-                    <div
-                      onClick={() => {
-                        setUserType(type);
-                        setStep(2);
-                      }}
-                      style={{
-                        cursor: "pointer",
-                        padding: "32px",
-                        borderRadius: "16px",
-                        boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-                        textAlign: "center",
-                        transition: "all 0.3s ease",
-                        height: "100%",
-                        backgroundColor: "#fff",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = "translateY(-5px)";
-                        e.currentTarget.style.boxShadow =
-                          "0 8px 24px rgba(0,0,0,0.08)";
-                        e.currentTarget.style.border = "1px solid #90caf9";
-                        e.currentTarget.style.backgroundColor = "#f8f9fa";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "translateY(0)";
-                        e.currentTarget.style.boxShadow =
-                          "0 2px 10px rgba(0,0,0,0.1)";
-                        e.currentTarget.style.border = "none";
-                        e.currentTarget.style.backgroundColor = "#fff";
-                      }}
-                    >
-                      <i
-                        className={`${icon}`}
-                        style={{
-                          fontSize: "2rem",
-                          marginBottom: "16px",
-                          color: "#0d6efd",
-                        }}
-                      />
-                      <h5 style={{ margin: 0, fontWeight: 600 }}>
-                        {label} User
-                      </h5>
-                    </div>
-                  </Col>
-                ))}
-              </Row>
+              <RoleSelect
+                onSelect={(t) => {
+                  setUserType(t);
+                  setStep(2);
+                }}
+              />
             )}
 
             {!isForgot && step === 2 && (
-              <>
-                <Form>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Email</Form.Label>
-                    <Form.Control
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      style={sharedInputStyle}
-                      required
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Password</Form.Label>
-                    <Form.Control
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      style={sharedInputStyle}
-                      required
-                    />
-                  </Form.Group>
-                  <div className="d-flex justify-content-between">
-                    <span
-                      className="text-primary"
-                      style={{ cursor: "pointer" }}
-                      onClick={() => setIsForgot(true)}
-                    >
-                      Forgot Password?
-                    </span>
-                    <Button onClick={handleLoginFlow} disabled={loading}>
-                      {loading ? <Spinner size="sm" /> : "Login"}
-                    </Button>
-                  </div>
-                </Form>
-
-                {/* Only show OR + social logins if NOT admin */}
-                {userType !== "admin" && (
-                  <>
-                    <div className="text-center text-muted mb-3">OR</div>
-                    <Button
-                      variant="outline-primary"
-                      className="w-100 mb-3 d-flex align-items-center justify-content-center gap-2"
-                      onClick={() => handleFacebookLogin(userType)}
-                    >
-                      <i className="bi bi-facebook fs-5" /> Login with Facebook
-                    </Button>
-
-                    <Button
-                      variant="outline-danger"
-                      className="w-100 mb-3 d-flex align-items-center justify-content-center gap-2"
-                      onClick={() => handleGoogleLogin(userType)}
-                    >
-                      <i className="bi bi-google fs-5" /> Login with Google
-                    </Button>
-                  </>
-                )}
-              </>
+              <CredentialsForm
+                email={email}
+                password={password}
+                setEmail={setEmail}
+                setPassword={setPassword}
+                onForgot={() => setIsForgot(true)}
+                onLogin={handleLoginFlow}
+                loading={loading}
+                userType={userType}
+                onLoginWithFacebook={(t) => (window.location.href = `${baseURL}/api/auth/facebook?userType=${t}`)}
+                onLoginWithGoogle={(t) => (window.location.href = `${baseURL}/api/auth/google?userType=${t}`)}
+                palette={palette}
+              />
             )}
 
             {!isForgot && step === 3 && (
-              <Form>
-                <Form.Group className="mb-3">
-                  <Form.Label>Enter OTP</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    style={sharedInputStyle}
-                  />
-                </Form.Group>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  {timer > 0 ? (
-                    <span className="text-muted">
-                      ⏳ Resend OTP in {timer}s
-                    </span>
-                  ) : (
-                    <Button
-                      variant="link"
-                      onClick={handleLoginFlow}
-                      disabled={!isResendEnabled || otpLoading}
-                    >
-                      🔁 Resend OTP
-                    </Button>
-                  )}
-                </div>
-                <Button
-                  onClick={handleLoginWithOtp}
-                  className="w-100"
-                  disabled={loading}
-                >
-                  {loading ? <Spinner size="sm" /> : "Verify & Login"}
-                </Button>
-              </Form>
+              <OtpForm
+                otp={otp}
+                setOtp={setOtp}
+                seconds={timer}
+                canResend={resendEnabled}
+                onResend={handleResendOtp}
+                resendLoading={otpLoading}
+                onVerify={handleVerifyAndLogin}
+                verifyLoading={loading}
+                palette={palette}
+              />
             )}
 
-            {/* Forgot password section remains unchanged */}
             {isForgot && (
-              <Form>
-                {/* forgotStep 1 */}
-                {forgotStep === 1 && (
-                  <>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Enter your email</Form.Label>
-                      <Form.Control
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        style={sharedInputStyle}
-                      />
-                    </Form.Group>
-                    <Button
-                      onClick={handleForgotSendOtp}
-                      disabled={forgotLoading}
-                      className="w-100"
-                    >
-                      {forgotLoading ? <Spinner size="sm" /> : "Send OTP"}
-                    </Button>
-                  </>
-                )}
-                {/* forgotStep 2 */}
-                {forgotStep === 2 && (
-                  <>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Enter OTP</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={forgotOtp}
-                        onChange={(e) => setForgotOtp(e.target.value)}
-                        style={sharedInputStyle}
-                      />
-                    </Form.Group>
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                      {timer > 0 ? (
-                        <span className="text-muted">
-                          ⏳ Resend OTP in {timer}s
-                        </span>
-                      ) : (
-                        <Button
-                          variant="link"
-                          onClick={handleForgotSendOtp}
-                          disabled={!isResendEnabled || forgotLoading}
-                        >
-                          🔁 Resend OTP
-                        </Button>
-                      )}
-                    </div>
-                    <Button
-                      onClick={handleForgotVerifyOtp}
-                      disabled={forgotLoading}
-                      className="w-100"
-                    >
-                      {forgotLoading ? <Spinner size="sm" /> : "Verify OTP"}
-                    </Button>
-                  </>
-                )}
-                {/* forgotStep 3 */}
-                {forgotStep === 3 && (
-                  <>
-                    <Form.Group className="mb-3">
-                      <Form.Label>New Password</Form.Label>
-                      <Form.Control
-                        type="password"
-                        value={newPass}
-                        onChange={(e) => setNewPass(e.target.value)}
-                        style={sharedInputStyle}
-                      />
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Confirm Password</Form.Label>
-                      <Form.Control
-                        type="password"
-                        value={confirmPass}
-                        onChange={(e) => setConfirmPass(e.target.value)}
-                        style={sharedInputStyle}
-                      />
-                    </Form.Group>
-                    <Button
-                      onClick={handleResetPassword}
-                      className="w-100"
-                      disabled={forgotLoading}
-                    >
-                      {forgotLoading ? <Spinner size="sm" /> : "Reset Password"}
-                    </Button>
-                  </>
-                )}
-                <div className="text-center mt-3">
-                  <Button
-                    variant="link"
-                    onClick={() => {
-                      setIsForgot(false);
-                      setForgotStep(1);
-                    }}
-                  >
-                    ← Back to Login
-                  </Button>
-                </div>
-              </Form>
+              <ForgotFlow
+                step={forgotStep}
+                email={email}
+                setEmail={setEmail}
+                forgotOtp={forgotOtp}
+                setForgotOtp={setForgotOtp}
+                newPass={newPass}
+                setNewPass={setNewPass}
+                confirmPass={confirmPass}
+                setConfirmPass={setConfirmPass}
+                seconds={timer}
+                canResend={resendEnabled}
+                onSendOtp={handleForgotSendOtp}
+                onResend={handleForgotSendOtp}
+                onVerifyOtp={handleForgotVerifyOtp}
+                onReset={handleResetPassword}
+                loading={forgotLoading}
+                onBack={() => {
+                  setIsForgot(false);
+                  setForgotStep(1);
+                }}
+                palette={palette}
+              />
             )}
-          </div>
+          </Card>
         </Col>
       </Row>
     </Container>
   );
-};
-
-export default Login;
+}

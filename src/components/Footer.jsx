@@ -1,14 +1,24 @@
-import React from "react";
+import React, { useState } from "react";
 import { Container, Row, Col, Form, Button, InputGroup } from "react-bootstrap";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import TwitterIcon from "@mui/icons-material/Twitter";
 import YouTubeIcon from "@mui/icons-material/YouTube";
+import config from "../config";
+
+const baseURL =
+  import.meta.env.MODE === "development"
+    ? config.LOCAL_BASE_URL
+    : config.BASE_URL;
 
 function Footer() {
   const fontFamily = "'Playfair Display', serif";
   const primaryColor = "#848c9cff";
   const accentColor = "#000000ff";
+
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
   const linkStyle = {
     color: primaryColor,
@@ -17,12 +27,6 @@ function Footer() {
     cursor: "pointer",
   };
 
-  const linkHoverStyle = {
-    color: accentColor,
-    textDecoration: "underline",
-  };
-
-  // Handles hover style for links and icons
   const handleMouseEnter = (e) => {
     e.currentTarget.style.color = accentColor;
   };
@@ -31,18 +35,42 @@ function Footer() {
     e.currentTarget.style.color = primaryColor;
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!email) return setMessage("Please enter a valid email");
+
+    try {
+      setLoading(true);
+      setMessage("");
+
+      const res = await fetch(`${baseURL}/api/newsletter/subscribe`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setMessage("✅ Successfully subscribed!");
+        setEmail("");
+      } else {
+        setMessage(data?.error || "❌ Subscription failed");
+      }
+    } catch (err) {
+      setMessage("❌ Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <footer
-      className="text-dark pt-5 pb-3 mt-5"
-    >
+    <footer className="text-dark pt-5 pb-3 mt-5">
       <Container>
         <Row className="gy-5">
           {/* Brand Section */}
           <Col xs={12} md={6} lg={3}>
-            <h4 className="fw-bold mb-3">
-              InfluexKonnect
-            </h4>
-            <p style={{ fontSize: "0.95rem", lineHeight: "1.6",color:primaryColor }}>
+            <h4 className="fw-bold mb-3">InfluexKonnect</h4>
+            <p style={{ fontSize: "0.95rem", lineHeight: "1.6", color: primaryColor }}>
               InfluexKonnect is a smart platform that helps brands discover,
               connect, and collaborate with vetted influencers effortlessly.
             </p>
@@ -70,14 +98,12 @@ function Footer() {
 
           {/* Quick Links */}
           <Col xs={6} md={3} lg={3}>
-            <h5 className="fw-semibold mb-3">
-              Quick Links
-            </h5>
+            <h5 className="fw-semibold mb-3">Quick Links</h5>
             <ul className="list-unstyled" style={{ fontSize: "0.95rem" }}>
               {[
                 { label: "Features", path: "/features" },
                 { label: "Pricing", path: "/pricing" },
-                { label: "Testimonials", path: "/testimonials" },
+                { label: "About", path: "/about" },
                 { label: "Contact", path: "/contact" },
               ].map((item) => (
                 <li key={item.label}>
@@ -96,12 +122,9 @@ function Footer() {
 
           {/* Support */}
           <Col xs={6} md={3} lg={3}>
-            <h5 className="fw-semibold mb-3" >
-              Support
-            </h5>
+            <h5 className="fw-semibold mb-3">Support</h5>
             <ul className="list-unstyled" style={{ fontSize: "0.95rem" }}>
               {[
-                { label: "Help Center", href: "/help-center" },
                 { label: "Privacy Policy", href: "/privacy-policy" },
                 { label: "Terms of Service", href: "/terms-of-service" },
                 { label: "Cancellation & Refund", href: "/cancellation-refund-policy" },
@@ -122,20 +145,21 @@ function Footer() {
 
           {/* Newsletter */}
           <Col xs={12} md={6} lg={3}>
-            <h5 className="fw-semibold mb-3">
-              Newsletter
-            </h5>
-            <p style={{ fontSize: "0.95rem",color:primaryColor }}>
+            <h5 className="fw-semibold mb-3">Newsletter</h5>
+            <p style={{ fontSize: "0.95rem", color: primaryColor }}>
               Subscribe to our newsletter for updates
             </p>
-            <Form>
-              <InputGroup className="mb-3">
+            <Form onSubmit={handleSubmit}>
+              <InputGroup className="mb-2">
                 <Form.Control
                   type="email"
                   placeholder="Your email"
                   aria-label="Your email"
                   className="rounded-start"
                   style={{ borderColor: primaryColor }}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                 />
                 <Button
                   variant="dark"
@@ -148,6 +172,7 @@ function Footer() {
                     fontFamily,
                     transition: "background-color 0.3s ease",
                   }}
+                  disabled={loading}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = "#00194d";
                     e.currentTarget.style.borderColor = "#00194d";
@@ -157,16 +182,20 @@ function Footer() {
                     e.currentTarget.style.borderColor = primaryColor;
                   }}
                 >
-                  Subscribe
+                  {loading ? "..." : "Subscribe"}
                 </Button>
               </InputGroup>
             </Form>
+            {message && (
+              <small style={{ color: message.includes("✅") ? "green" : "red" }}>
+                {message}
+              </small>
+            )}
           </Col>
         </Row>
 
         <hr className="mt-4" style={{ borderColor: primaryColor }} />
 
-        {/* Bottom Text */}
         <Row>
           <Col className="text-center">
             <small style={{ fontSize: "0.85rem", color: "#000000ff" }}>

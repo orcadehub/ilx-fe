@@ -1,5 +1,5 @@
 :root {
-  --primary-color: #f1f5f980;
+  --primary-color: #e2e8f01d;
   --secondary-color: #fff;
   --text-color: #333333;
   --font-size: 16px;
@@ -7,6 +7,7 @@
   --accent-color: #000000ff;
   --text-color: #1c1c1c;
 }
+
 body {
   background-color: var(--primary-color);
 }

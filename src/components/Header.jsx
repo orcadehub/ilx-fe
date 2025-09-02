@@ -110,7 +110,7 @@ const Header = () => {
     <AppBar
       position="sticky"
       sx={{
-        backgroundColor: "#f1f5f980", // semi-transparent
+        backgroundColor: "var(--primary-color)", // semi-transparent
         backdropFilter: "blur(10px)", // apply blur to the background behind it
         WebkitBackdropFilter: "blur(10px)", // for Safari support
         color: textColor,

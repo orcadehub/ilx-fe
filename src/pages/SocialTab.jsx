@@ -44,7 +44,7 @@ const SocialTab = () => {
       facebook: `${baseURL}/api/connect/auth/facebook?userId=${userId}`,
       instagram: `${baseURL}/api/auth/instagram?userId=${userId}`,
       youtube: `${baseURL}/api/connect/auth/google?userId=${userId}`,
-      twitter: `${baseURL}/auth/twitter?userId=${userId}`,
+      twitter: `${baseURL}/api/auth/twitter?userId=${userId}`,
     };
 
     const redirectUrl = oauthUrlMap[platform];

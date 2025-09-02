@@ -18,8 +18,6 @@ import Features from "./pages/Features";
 import Price from "./pages/Price";
 import DashboardPage from "./pages/Dashboard";
 import Checkout from "./pages/Checkout";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
 import SocialSuccess from "./pages/SocialSuccess";
 import MakeOrder from "./pages/MakeOrder";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -35,7 +33,11 @@ const AppContent = () => {
 
   return (
     <>
-      {!isCheck && !isOrder && <Header />}
+      {!isCheck && !isOrder && (
+        <div style={{ visibility: isDashboard ? "hidden" : "visible" }}>
+          <Header />
+        </div>
+      )}
       <Routes>
         <Route exact path="/" element={<Home />} />
         <Route exact path="/login" element={<Login />} />
@@ -47,8 +49,16 @@ const AppContent = () => {
         <Route exact path="/about" element={<About />} />
         <Route exact path="/checkout" element={<Checkout />} />
         <Route exact path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route exact path="/terms-of-service" element={<TermsAndConditions />} />
-        <Route exact path="/cancellation-refund-policy" element={<CancellationRefundPolicy />} />
+        <Route
+          exact
+          path="/terms-of-service"
+          element={<TermsAndConditions />}
+        />
+        <Route
+          exact
+          path="/cancellation-refund-policy"
+          element={<CancellationRefundPolicy />}
+        />
         <Route exact path="/social-success" element={<SocialSuccess />} />
         <Route path="/dashboard/*" element={<DashboardPage />} />
       </Routes>
