@@ -24,6 +24,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import CancellationRefundPolicy from "./pages/CancellationRefundPolicy";
 import About from "./pages/About";
+import Test from "./pages/Test";
 
 const AppContent = () => {
   const location = useLocation();
@@ -45,6 +46,7 @@ const AppContent = () => {
         <Route exact path="/signup" element={<Signup />} />
         <Route exact path="/contact" element={<Contact />} />
         <Route exact path="/pricing" element={<Price />} />
+        <Route exact path="/test" element={<Test />} />
         <Route exact path="/features" element={<Features />} />
         <Route exact path="/about" element={<About />} />
         <Route exact path="/checkout" element={<Checkout />} />

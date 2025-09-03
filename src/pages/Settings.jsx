@@ -45,8 +45,7 @@ const Settings = () => {
                 className="mb-0 text-light opacity-75"
                 style={{ fontSize: "0.95rem" }}
               >
-                Manage your personal information, billing details, and security
-                preferences in one place.
+                Manage your info, billing, and security in one place.
               </small>
             </Col>
             <Col className="text-end">
