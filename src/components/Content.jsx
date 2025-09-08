@@ -17,12 +17,14 @@ import Support from "../pages/Support";
 import FacebookCallback from "../pages/FacebookCallback";
 import GoogleCallback from "../pages/GoogleCallback";
 import Wishlist from "../pages/Wishlist";
+import MakeOrder from "../pages/MakeOrder";
 
 const Content = () => {
   return (
     <Routes>
       <Route path="/" element={<DashboardContent />} />
       <Route path="influencers" element={<Influencers />} />
+      <Route path="make-order" element={<MakeOrder />} />
       <Route path="facebook" element={<FacebookCallback />} />
       <Route path="google" element={<GoogleCallback />} />
       <Route path="chats" element={<Chats />} />
@@ -36,6 +38,7 @@ const Content = () => {
       <Route path="support" element={<Support />} />
       <Route path="offers" element={<OffersPage />} />
       <Route path="profile" element={<Profile />} />
+      <Route path="profile/:id" element={<Profile />} /> {/* Added route for /profile/:id */}
       <Route path="settings" element={<Settings />} />
       <Route path="billing" element={<Billing />} />
       <Route path="mywishlist" element={<Wishlist />} />

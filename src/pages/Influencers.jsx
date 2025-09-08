@@ -220,7 +220,7 @@ function Influencers() {
   };
 
   const handleProceed = () => {
-    navigate("/make-order", {
+    navigate("/dashboard/make-order", {
       state: {
         selectedPlatformServices,
         selectedCombos,

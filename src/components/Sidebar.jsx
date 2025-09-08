@@ -36,7 +36,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
   const [open, setOpen] = useState(true);
 
   // Log to verify component rendering
-  console.log("Sidebar rendered with background: hsl(214.3, 31.8%, 98%)");
+  // console.log("Sidebar rendered with background: hsl(214.3, 31.8%, 98%)");
 
   const user = JSON.parse(localStorage.getItem("user"));
   const role = user?.role || "business";

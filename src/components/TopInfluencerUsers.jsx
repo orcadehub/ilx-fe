@@ -3,7 +3,7 @@ import { Card, Container, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import "./Dash.css";
 
-const TopBusinessUsers = () => {
+const TopInfluencerUsers = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,9 +15,9 @@ const TopBusinessUsers = () => {
         const response = await fetch("http://localhost:4000/api/top-users");
         if (!response.ok) throw new Error("Failed to fetch top users");
         const data = await response.json();
-        setUsers(data.businessUsers); // Use businessUsers array
+        setUsers(data.influencerUsers); // Use influencerUsers array
       } catch (err) {
-        console.error("Error fetching top business users:", err.message);
+        console.error("Error fetching top influencer users:", err.message);
       } finally {
         setLoading(false);
       }
@@ -26,7 +26,7 @@ const TopBusinessUsers = () => {
     fetchTopUsers();
   }, []);
 
-  // Slugify name for navigation (e.g., "Fashion Forward" -> "fashion-forward")
+  // Slugify name for navigation (e.g., "Jane Influencer" -> "jane-influencer")
   const slugify = (text) =>
     text
       .toLowerCase()
@@ -44,8 +44,8 @@ const TopBusinessUsers = () => {
     >
       <Card.Body>
         <h5 className="fw-bold mb-4">
-          <i className="bi bi-people me-2" />
-          Top Business Users
+          <i className="bi bi-star me-2" />
+          Top Influencer Users
         </h5>
 
         {loading && users.length === 0 ? (
@@ -54,14 +54,14 @@ const TopBusinessUsers = () => {
             style={{ minHeight: "300px" }}
           >
             <Spinner animation="border" variant="primary" />
-            <span className="ms-3">Loading business users...</span>
+            <span className="ms-3">Loading influencer users...</span>
           </Container>
         ) : users.length > 0 ? (
           users.map((user) => (
             <div
               key={user.name}
               className="d-flex align-items-center justify-content-between mb-1 px-3 py-2 rounded cursor-pointer"
-              onClick={() => navigate(`/business/${slugify(user.name)}`)}
+              onClick={() => navigate(`/influencer/${slugify(user.name)}`)}
               style={{
                 backgroundColor: "#fff",
                 boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
@@ -83,11 +83,11 @@ const TopBusinessUsers = () => {
             </div>
           ))
         ) : (
-          <div className="text-muted text-center">No business users available</div>
+          <div className="text-muted text-center">No influencer users available</div>
         )}
       </Card.Body>
     </Card>
   );
 };
 
-export default TopBusinessUsers;
+export default TopInfluencerUsers;

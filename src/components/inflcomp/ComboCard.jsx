@@ -24,17 +24,44 @@ const ComboCard = ({ combo, isSelected, handleComboChange }) => {
     );
   };
 
+  // Format price to handle zero or undefined cases
+  const formatPrice = (price) => {
+    if (price === 0 || price === undefined || price === null) {
+      return "Not specified";
+    }
+    return `₹${Number(price).toLocaleString("en-IN")}`;
+  };
+
+  // Infer platforms from services if combo.platforms is not provided
+  const inferPlatforms = (services) => {
+    const platformMap = {
+      "Post Image/Video": ["Instagram", "Facebook", "Twitter"],
+      "Reels/Shorts": ["Instagram", "Facebook"],
+      "Story (Image/Video)": ["Instagram", "Facebook"],
+      "Short Video (<10m)": ["Youtube"],
+      "Video (>10m)": ["Youtube"],
+      Polls: ["Twitter", "Facebook"],
+      "Visit and Promote at Your Business": ["Instagram", "Facebook", "Youtube"],
+    };
+
+    const platforms = new Set();
+    services.forEach((service) => {
+      const servicePlatforms = platformMap[service] || [];
+      servicePlatforms.forEach((platform) => platforms.add(platform));
+    });
+    return Array.from(platforms);
+  };
+
+  // Use combo.platforms if available, otherwise infer from services
+  const platforms = combo.platforms?.length > 0 ? combo.platforms : inferPlatforms(combo.services || []);
+
   return (
     <div
-      className={`p-3 mb-3 rounded-4 border ${
-        isSelected
-          ? "border-primary border-2"
-          : "border-light"
-      }`}
+      className={`p-3 mb-3 rounded-4 border ${isSelected ? "border-primary border-2" : "border-light"}`}
       style={{ cursor: "pointer", backgroundColor: "#fff" }}
       onClick={() => handleComboChange(combo.name)}
     >
-      {/* Top row: Radio + Title + Price */}
+      {/* Top row: Checkbox + Title + Price */}
       <div className="d-flex justify-content-between align-items-start">
         <div className="d-flex align-items-start gap-2">
           <input
@@ -53,29 +80,24 @@ const ComboCard = ({ combo, isSelected, handleComboChange }) => {
               ></i>
             </h5>
             <p className="text-muted small mb-2">
-              {combo.description ||
-                "No description available."}
+              {combo.description || "A multi-platform promotion package."}
             </p>
           </div>
         </div>
         <div className="fw-bold text-primary fs-5">
-          ₹{combo.price}
+          {formatPrice(combo.price)}
         </div>
       </div>
 
       {/* Platforms (left) & Includes (right) in a row */}
       <div className="d-flex justify-content-between align-items-start flex-wrap mt-2">
         {/* Platforms */}
-        {combo.platforms?.length > 0 && (
+        {platforms.length > 0 && (
           <div>
-            <div className="text-muted small fw-semibold mb-1">
-              Platforms:
-            </div>
+            <div className="text-muted small fw-semibold mb-1">Platforms:</div>
             <div className="d-flex flex-wrap gap-2">
-              {combo.platforms.map((platform, i) => (
-                <React.Fragment key={i}>
-                  {getPlatformBadge(platform)}
-                </React.Fragment>
+              {platforms.map((platform, i) => (
+                <React.Fragment key={i}>{getPlatformBadge(platform)}</React.Fragment>
               ))}
             </div>
           </div>
@@ -84,9 +106,7 @@ const ComboCard = ({ combo, isSelected, handleComboChange }) => {
         {/* Includes */}
         {combo.services?.length > 0 && (
           <div>
-            <div className="text-muted small fw-semibold mb-1">
-              Includes
-            </div>
+            <div className="text-muted small fw-semibold mb-1">Includes</div>
             <div className="d-flex flex-wrap gap-2">
               {combo.services.map((service, idx) => (
                 <span

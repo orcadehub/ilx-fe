@@ -46,7 +46,10 @@ export default function Login() {
   const navigate = useNavigate();
 
   const baseURL = useMemo(
-    () => (import.meta.env.MODE === "development" ? config.LOCAL_BASE_URL : config.BASE_URL),
+    () =>
+      import.meta.env.MODE === "development"
+        ? config.LOCAL_BASE_URL
+        : config.BASE_URL,
     []
   );
 
@@ -61,7 +64,9 @@ export default function Login() {
 
   // API helpers
   const check2FA = async () => {
-    const res = await axios.get(`${baseURL}/api/check-2fa`, { params: { email } });
+    const res = await axios.get(`${baseURL}/api/check-2fa`, {
+      params: { email },
+    });
     return !!res.data?.is2FAEnabled;
   };
 
@@ -70,12 +75,19 @@ export default function Login() {
   };
 
   const verifyOtp = async (code) => {
-    const res = await axios.post(`${baseURL}/api/verify-otp`, { email, otp: code });
+    const res = await axios.post(`${baseURL}/api/verify-otp`, {
+      email,
+      otp: code,
+    });
     return !!res.data?.success;
   };
 
   const loginDirect = async () => {
-    const res = await axios.post(`${baseURL}/api/login`, { email, password, role: userType });
+    const res = await axios.post(`${baseURL}/api/login`, {
+      email,
+      password,
+      role: userType,
+    });
     localStorage.setItem("token", res.data.token);
     localStorage.setItem("user", JSON.stringify(res.data.user));
     toast.success(res.data.message);
@@ -85,7 +97,8 @@ export default function Login() {
 
   // Main flow
   const handleLoginFlow = async () => {
-    if (!email || !password || !userType) return toast.error("All fields are required");
+    if (!email || !password || !userType)
+      return toast.error("All fields are required");
     try {
       setLoading(true);
       const is2fa = await check2FA();
@@ -169,7 +182,10 @@ export default function Login() {
     if (newPass !== confirmPass) return toast.error("Passwords do not match");
     try {
       setForgotLoading(true);
-      await axios.post(`${baseURL}/api/reset-password`, { email, newPassword: newPass });
+      await axios.post(`${baseURL}/api/reset-password`, {
+        email,
+        newPassword: newPass,
+      });
       toast.success("Password reset successfully");
       setIsForgot(false);
       setForgotStep(1);
@@ -182,7 +198,10 @@ export default function Login() {
   };
 
   return (
-    <Container fluid className="d-flex flex-column align-items-center justify-content-center py-5">
+    <Container
+      fluid
+      className="d-flex flex-column align-items-center justify-content-center py-5"
+    >
       <Row className="w-100 justify-content-center">
         <Col xs={11} sm={9} md={7} lg={5} xl={4}>
           <Card
@@ -193,8 +212,17 @@ export default function Login() {
               boxShadow: "0 14px 42px rgba(38,50,56,.08)",
             }}
           >
-            <h2 className="text-center fw-bold mb-4" style={{ color: palette.ink }}>
-              {isForgot ? "Forgot Password" : step === 1 ? "" : step === 2 ? "Login" : "Verify OTP"}
+            <h2
+              className="text-center fw-bold mb-4"
+              style={{ color: palette.ink }}
+            >
+              {isForgot
+                ? "Forgot Password"
+                : step === 1
+                ? ""
+                : step === 2
+                ? "Login"
+                : "Verify OTP"}
             </h2>
 
             {!isForgot && step === 1 && (
@@ -216,8 +244,12 @@ export default function Login() {
                 onLogin={handleLoginFlow}
                 loading={loading}
                 userType={userType}
-                onLoginWithFacebook={(t) => (window.location.href = `${baseURL}/api/auth/facebook?userType=${t}`)}
-                onLoginWithGoogle={(t) => (window.location.href = `${baseURL}/api/auth/google?userType=${t}`)}
+                onLoginWithFacebook={(t) =>
+                  (window.location.href = `${baseURL}/api/auth/facebook?userType=${t}`)
+                }
+                onLoginWithGoogle={(t) =>
+                  (window.location.href = `${baseURL}/api/auth/google?userType=${t}`)
+                }
                 palette={palette}
               />
             )}

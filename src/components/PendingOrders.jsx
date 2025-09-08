@@ -1,5 +1,5 @@
-import React from "react";
-import { Card, Badge, Button } from "react-bootstrap";
+import React, { useEffect, useMemo, useState } from "react";
+import { Card, Badge } from "react-bootstrap";
 import {
   FaInstagram,
   FaYoutube,
@@ -9,173 +9,95 @@ import {
   FaEye,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import "./Dash.css";
+import config from "../config";
+
+const baseURL =
+  import.meta.env.MODE === "development"
+    ? config.LOCAL_BASE_URL
+    : config.BASE_URL;
+
+const iconForPlatform = (p) => {
+  const map = {
+    Instagram: <FaInstagram className="text-danger me-1" />,
+    YouTube: <FaYoutube className="text-danger me-1" />,
+    Twitter: <FaTwitter className="text-info me-1" />,
+    Facebook: <FaFacebook className="text-primary me-1" />,
+  };
+  return map[p] || null;
+};
+
+const safeParse = (val, fallback) => {
+  try {
+    if (Array.isArray(val)) return val;
+    if (typeof val === "string") return JSON.parse(val);
+    return fallback;
+  } catch {
+    return fallback;
+  }
+};
 
 const PendingOrders = () => {
   const navigate = useNavigate();
+  const [orders, setOrders] = useState([]); // renamed
+  const [loading, setLoading] = useState(true);
 
-  const orders = [
-    {
-      name: "Influencer Campaign - Summer",
-      influencer: "Priya Sharma",
-      platforms: [
-        <FaInstagram className="text-danger me-1" />,
-        <FaYoutube className="text-danger" />,
-      ],
-      types: ["reel", "video"],
-      status: "pending",
-      path: "summer-campaign",
-    },
-    {
-      name: "Product Launch - Spring",
-      influencer: "Raj Malhotra",
-      platforms: [<FaFacebook className="text-primary" />],
-      types: ["post"],
-      status: "pending",
-      path: "product-launch",
-    },
-    {
-      name: "Brand Awareness - Winter",
-      influencer: "Aisha Khan",
-      platforms: [
-        <FaTwitter className="text-info me-1" />,
-        <FaInstagram className="text-danger" />,
-      ],
-      types: ["story", "post"],
-      status: "pending",
-      path: "brand-awareness",
-    },
-    {
-      name: "Engagement Boost - Autumn",
-      influencer: "Vikram Patel",
-      platforms: [<FaYoutube className="text-danger" />],
-      types: ["short"],
-      status: "awaiting",
-      path: "engagement-boost",
-    },
-    {
-      name: "Influencer Campaign - Summer",
-      influencer: "Priya Sharma",
-      platforms: [
-        <FaInstagram className="text-danger me-1" />,
-        <FaYoutube className="text-danger" />,
-      ],
-      types: ["reel", "video"],
-      status: "pending",
-      path: "summer-campaign-2",
-    },
-    {
-      name: "Holiday Promo - December",
-      influencer: "Neha Gupta",
-      platforms: [
-        <FaInstagram className="text-danger me-1" />,
-        <FaFacebook className="text-primary" />,
-      ],
-      types: ["story", "reel"],
-      status: "pending",
-      path: "holiday-promo",
-    },
-    {
-      name: "Tech Gadget Review",
-      influencer: "Arjun Singh",
-      platforms: [<FaYoutube className="text-danger" />],
-      types: ["video"],
-      status: "pending",
-      path: "tech-gadget-review",
-    },
-    {
-      name: "Fitness Challenge - January",
-      influencer: "Sanya Verma",
-      platforms: [
-        <FaInstagram className="text-danger me-1" />,
-        <FaTwitter className="text-info" />,
-      ],
-      types: ["post", "story"],
-      status: "pending",
-      path: "fitness-challenge",
-    },
-    {
-      name: "Eco-Friendly Campaign",
-      influencer: "Karan Desai",
-      platforms: [<FaFacebook className="text-primary" />],
-      types: ["post"],
-      status: "pending",
-      path: "eco-friendly-campaign",
-    },
-    {
-      name: "Travel Vlog - Summer",
-      influencer: "Meera Joshi",
-      platforms: [<FaYoutube className="text-danger" />],
-      types: ["video"],
-      status: "pending",
-      path: "travel-vlog",
-    },
-  ];
-
-  const statusVariant = (status) => {
-    switch (status) {
-      case "pending":
-        return "warning";
-      case "awaiting":
-        return "info";
-      default:
-        return "secondary";
-    }
-  };
-
-  const typeVariant = (type) => {
-    switch (type) {
-      case "reel":
-        return "info";
-      case "video":
-        return "primary";
-      case "post":
-        return "secondary";
-      case "story":
-        return "warning";
-      case "short":
-        return "info";
-      default:
-        return "dark";
-    }
-  };
-
-  const typeVariantColor = (type) => {
-    const variants = {
-      reel: "#06b6d4", // Cyan
-      story: "#1e40af", // Blue
-      video: "#d97706", // Amber
-      post: "#059669", // Green
-      short: "#06b6d4", // Cyan
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${baseURL}/api/orders`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.message || "Failed to fetch orders");
+        if (alive) setOrders(Array.isArray(data.orders) ? data.orders : []);
+      } catch {
+        if (alive) setOrders([]);
+      } finally {
+        if (alive) setLoading(false);
+      }
     };
-    return variants[type.toLowerCase()] || "#475569"; // Default to Slate
-  };
-
-  const statusVariantColor = (status) => {
-    const variants = {
-      pending: "#d97706", // Amber
-      approved: "#059669", // Green
-      rejected: "#dc2626", // Red
-      completed: "#1e40af", // Blue
+    load();
+    return () => {
+      alive = false;
     };
-    return variants[status.toLowerCase()] || "#475569"; // Default to Slate
+  }, []);
+
+  // Log orders once whenever they change (after setOrders completes render)
+  useEffect(() => {
+    if (orders.length) {
+      console.log("Orders:", orders);
+    } else {
+      console.log("Orders: []");
+    }
+  }, [orders]); // logs after state update, not immediately after setOrders [1][2]
+
+  // Filter only pending
+  const pending = useMemo(
+    () =>
+      (orders || []).filter(
+        (o) => (o.status || "").toLowerCase() === "pending"
+      ),
+    [orders]
+  );
+
+
+
+  const typeColor = (type) => {
+    const t = (type || "").toLowerCase();
+    if (t.includes("reel") || t.includes("short")) return "#06b6d4";
+    if (t.includes("story")) return "#1e40af";
+    if (t.includes("video") || t.includes("post")) return "#059669";
+    return "#475569";
   };
 
   return (
     <Card
       className="shadow-sm border-0"
-      style={{
-        backgroundColor: "#fff",
-        borderRadius: "1rem",
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        flex: "1 1 auto",
-      }}
+      style={{ backgroundColor: "#fff", borderRadius: "1rem" }}
     >
-      <Card.Body
-        style={{ flex: "1 1 auto", display: "flex", flexDirection: "column" }}
-      >
+      <Card.Body>
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h5 className="fw-bold" style={{ color: "#1e293b" }}>
             🕒 Pending Orders
@@ -194,107 +116,87 @@ const PendingOrders = () => {
             View All <FaArrowRight className="ms-2" size={12} />
           </Badge>
         </div>
-        <div
-          style={{
-            flex: "1 1 auto",
-            backgroundColor: "#fff",
-            borderRadius: "0.5rem",
-            maxHeight: "300px",
-            overflowY: "auto",
-          }}
-        >
+
+        <div style={{ maxHeight: 300, overflowY: "auto" }}>
           <div className="d-flex flex-column">
-            {/* Header Row */}
             <div
               className="d-flex text-muted py-2 px-3"
               style={{
-                backgroundColor: "var(--primary-color)",
                 borderBottom: "1px solid #e5e7eb",
-                fontWeight: "500",
+                fontWeight: 500,
                 alignItems: "center",
                 position: "sticky",
                 top: 0,
                 zIndex: 1,
+                background: "#fff",
               }}
             >
-              <div style={{ flex: "2", padding: "8px" }}>Order</div>
-              <div style={{ flex: "1.5", padding: "8px" }}>Influencer</div>
-              <div style={{ flex: "1", padding: "8px" }}>Platform</div>
-              <div style={{ flex: "1.5", padding: "8px" }}>Type</div>
-              <div style={{ flex: "1", padding: "8px" }}>Status</div>
-              <div style={{ flex: "0.5", padding: "8px", textAlign: "end" }}>
+              <div style={{ flex: 0.5, padding: 8 }}>Order</div>
+              <div style={{ flex: 1.5, padding: 8 }}>Influencer</div>
+              <div style={{ flex: 1, padding: 8 }}>Platform</div>
+              <div style={{ flex: 1.5, padding: 8 }}>Type</div>
+              <div style={{ flex: 1, padding: 8 }}>Status</div>
+              <div style={{ flex: 0.5, padding: 8, textAlign: "end" }}>
                 Action
               </div>
             </div>
-            {/* Order Rows */}
-            {orders.map((order, index) => (
-              <div
-                key={index}
-                className="d-flex cursor-pointer"
-                onClick={() => navigate(`/orders/${order.path}`)}
-                style={{
-                  backgroundColor: "#fff",
-                  padding: "8px",
-                  borderBottom: "1px solid #e5e7eb",
-                  transition: "background-color 0.3s ease",
-                  alignItems: "center",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#e2e8f0")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#fff")
-                }
-              >
-                <div
-                  className="fw-medium"
-                  style={{ flex: "2", padding: "8px" }}
-                >
-                  {order.name}
-                </div>
-                <div style={{ flex: "1.5", padding: "8px" }}>
-                  {order.influencer}
-                </div>
-                <div style={{ flex: "1", padding: "8px" }}>
-                  {order.platforms}
-                </div>
-                <div style={{ flex: "1.5", padding: "8px" }}>
-                  {order.types.map((type, i) => (
-                    <Badge
-                      key={i}
-                      bg={typeVariant(type)}
-                      className="me-1 text-capitalize"
-                      style={{ backgroundColor: typeVariantColor(type) }}
-                    >
-                      {type}
-                    </Badge>
-                  ))}
-                </div>
-                <div style={{ flex: "1", padding: "8px" }}>
-                  <Badge
-                    bg={statusVariant(order.status)}
-                    className="text-capitalize"
-                    style={{
-                      backgroundColor: statusVariantColor(order.status),
-                    }}
-                  >
-                    {order.status}
-                  </Badge>
-                </div>
-                <div
-                  style={{ flex: "0.5", padding: "8px", textAlign: "end" }}
-                >
-                  <FaEye
-                    className="text-dark cursor-pointer"
-                    style={{ color: "#1e293b" }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/orders/${order.path}`);
-                    }}
-                  />
-                </div>
+
+            {loading ? (
+              <div className="py-4 text-center text-muted">Loading…</div>
+            ) : orders.length === 0 ? (
+              <div className="py-4 text-center text-muted">
+                No pending orders
               </div>
-            ))}
+            ) : (
+              orders.map((order) => (
+                <div
+                  key={order.id}
+                  className="d-flex"
+                  onClick={() => navigate(`/orders/${order.id}`)}
+                  style={{
+                    backgroundColor: "#fff",
+                    padding: 8,
+                    borderBottom: "1px solid #e5e7eb",
+                    alignItems: "center",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#e2e8f0")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#fff")
+                  }
+                >
+                  <div className="fw-medium" style={{ flex: 0.5, padding: 8 }}>
+                    {order.id}
+                  </div>
+                  <div style={{ flex: 1.5, padding: 8 }}>{order.infname}</div>
+                  <div style={{ flex: 1, padding: 8 }}>
+                    {order.services[0].platform}
+                  </div>
+                  <div style={{ flex: 1.5, padding: 8 }}>
+                    {order.services[0].name}
+                  </div>
+                  <div style={{ flex: 1, padding: 8 }}>
+                    <Badge
+                      className="text-capitalize"
+                    
+                    >
+                      {order.status}
+                    </Badge>
+                  </div>
+                  <div style={{ flex: 0.5, padding: 8, textAlign: "end" }}>
+                    <FaEye
+                      className="text-dark"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/orders/${order.id}`);
+                      }}
+                    />
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </Card.Body>

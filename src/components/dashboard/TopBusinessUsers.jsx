@@ -15,9 +15,9 @@ const TopBusinessUsers = () => {
         const response = await fetch("http://localhost:4000/api/top-users");
         if (!response.ok) throw new Error("Failed to fetch top users");
         const data = await response.json();
-        setUsers(data.businessUsers); // Use businessUsers array
+        setUsers(data);
       } catch (err) {
-        console.error("Error fetching top business users:", err.message);
+        console.error("Error fetching top users:", err.message);
       } finally {
         setLoading(false);
       }
@@ -54,10 +54,10 @@ const TopBusinessUsers = () => {
             style={{ minHeight: "300px" }}
           >
             <Spinner animation="border" variant="primary" />
-            <span className="ms-3">Loading business users...</span>
+            <span className="ms-3">Loading users...</span>
           </Container>
         ) : users.length > 0 ? (
-          users.map((user) => (
+          users.map((user, index) => (
             <div
               key={user.name}
               className="d-flex align-items-center justify-content-between mb-1 px-3 py-2 rounded cursor-pointer"
@@ -83,7 +83,7 @@ const TopBusinessUsers = () => {
             </div>
           ))
         ) : (
-          <div className="text-muted text-center">No business users available</div>
+          <div className="text-muted text-center">No users available</div>
         )}
       </Card.Body>
     </Card>

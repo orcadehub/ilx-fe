@@ -242,12 +242,15 @@ const HeaderD = ({ handleDrawerToggle }) => {
           },
         }}
       >
-        <MenuItem onClick={() => handleNavigate("/dashboard/profile")}>
+        <MenuItem
+          onClick={() => handleNavigate(`/dashboard/profile/${user.id}`)}
+        >
           <ListItemIcon>
             <Person fontSize="small" />
           </ListItemIcon>
           Profile
         </MenuItem>
+
         <MenuItem onClick={() => handleNavigate("/dashboard/billing")}>
           <ListItemIcon>
             <Receipt fontSize="small" />

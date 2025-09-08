@@ -169,7 +169,7 @@ const LeftPanel = ({
               </div>
             ))
           : data
-              .filter((inf) => inf.username.toLowerCase().includes(searchTerm))
+              .filter((inf) => inf.username[0].toLowerCase().includes(searchTerm))
               .map((inf, index) => (
                 <div
                   key={inf.id}

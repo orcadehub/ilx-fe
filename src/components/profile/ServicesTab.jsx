@@ -44,7 +44,7 @@ const ServicesTab = () => {
         }
 
         const response = await axios.get(
-          `${baseURL}/api/user-details/${localUser.email}`
+          `${baseURL}/api/user/${localUser.id}`
         );
         const userData = response.data;
 

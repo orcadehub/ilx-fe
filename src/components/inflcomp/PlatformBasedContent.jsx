@@ -13,6 +13,14 @@ const PlatformBasedContent = ({
     setExpandedPlatform(newPlatform); // Set new platform
   };
 
+  // Format price to handle zero or undefined cases
+  const formatPrice = (price) => {
+    if (price === 0 || price === undefined || price === null) {
+      return "Not specified";
+    }
+    return `₹${Number(price).toLocaleString("en-IN")}`;
+  };
+
   return (
     <>
       {/* Header row */}
@@ -39,7 +47,7 @@ const PlatformBasedContent = ({
       {expandedPlatform && selected.prices[expandedPlatform] && (
         <div className="rounded-4 shadow-sm border bg-white overflow-hidden">
           {/* Platform header with icon */}
-          {/* <div
+          <div
             className="px-3 py-3 d-flex align-items-center fw-bold text-white"
             style={{
               backgroundColor:
@@ -69,12 +77,12 @@ const PlatformBasedContent = ({
               style={{ fontSize: "1.2rem" }}
             ></i>
             {expandedPlatform.charAt(0).toUpperCase() + expandedPlatform.slice(1)}
-          </div> */}
+          </div>
 
           {/* Service list */}
           <div className="px-3 pt-3 pb-2">
             {Object.entries(selected.prices[expandedPlatform])
-              .filter(([service]) => service !== "combo")
+              .filter(([service]) => service !== "combos") // Updated to filter 'combos'
               .map(([service, price], idx) => (
                 <div
                   key={idx}
@@ -87,7 +95,9 @@ const PlatformBasedContent = ({
                       id={`platform-${expandedPlatform}-${service}`}
                       checked={
                         expandedPlatform &&
-                        selectedPlatformServices[expandedPlatform]?.includes(service)
+                        selectedPlatformServices[expandedPlatform]?.includes(
+                          service
+                        )
                       }
                       onChange={() =>
                         handlePlatformChange(`${expandedPlatform}-${service}`)
@@ -100,7 +110,9 @@ const PlatformBasedContent = ({
                       {service}
                     </label>
                   </div>
-                  <div className="fw-bold text-primary">₹{price}</div>
+                  <div className="fw-bold text-primary">
+                    {formatPrice(price)}
+                  </div>
                 </div>
               ))}
           </div>

@@ -1,4 +1,3 @@
-// src/components/MakeOrder.js
 import React, { useEffect, useState } from "react";
 import {
   Container,
@@ -15,9 +14,7 @@ import {
   FaFacebookF,
   FaYoutube,
   FaTwitter,
-  FaCommentDots,
   FaArrowUp,
-  FaHeart,
 } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -28,46 +25,25 @@ const baseURL =
     ? config.LOCAL_BASE_URL
     : config.BASE_URL;
 
-const extractAllServices = (prices) => {
-  const services = [];
-  Object.entries(prices).forEach(([platform, platformServices]) => {
-    if (platform === "combos" || platform === "custom") return;
-    Object.entries(platformServices).forEach(([type, price]) => {
-      services.push({
-        id: `${platform}-${type}`,
-        name: type,
-        platform,
-        type: "Platform Based",
-        price: Number(price),
-      });
-    });
-  });
-  return services;
-};
-
-// Function to format numbers to K, M, B
+// K/M/B formatter
 const formatFollowers = (num) => {
-  if (num >= 1000000000) return (num / 1000000000).toFixed(1) + "B";
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
-  if (num >= 1000) return (num / 1000).toFixed(1) + "K";
+  if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(1) + "B";
+  if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + "M";
+  if (num >= 1_000) return (num / 1_000).toFixed(1) + "K";
   return num;
 };
 
 const MakeOrder = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const {
-    selectedPlatformServices = {},
-    selectedCombos = [],
-    selected = {},
-  } = location.state || {};
+  const { selected = {} } = location.state || {};
 
-  const allServices = extractAllServices(selected.prices || {});
+  // UI selections
+  const [orderType, setOrderType] = useState("Platform Based");
+  const [contentType, setContentType] = useState("Post Image/Video");
+  const [platform, setPlatform] = useState("Instagram");
 
-  const [selectedServicesData, setSelectedServicesData] = useState(
-    selectedPlatformServices
-  );
-  const [selectedServices, setSelectedServices] = useState([]);
+  // Inputs
   const [file, setFile] = useState(null);
   const [description, setDescription] = useState("");
   const [affiliatedLinks, setAffiliatedLinks] = useState([]);
@@ -76,27 +52,85 @@ const MakeOrder = () => {
   const [postDateTime, setPostDateTime] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // UI Controls
-  const [orderType, setOrderType] = useState("Platform Based");
-  const [contentType, setContentType] = useState("Post Image/Video");
-  const [platform, setPlatform] = useState("Instagram");
-
-  // Provision Method (Upload Files or Provide Content)
+  // Tabs: Upload vs Provide
   const [provisionMethod, setProvisionMethod] = useState("Upload Files");
+
+  // Selected services with dynamic pricing from selected.prices
+  const [selectedServices, setSelectedServices] = useState([]);
+
+  useEffect(() => {
+    let price = 0;
+    let serviceName = contentType;
+
+    if (orderType === "Platform Based") {
+      // Map contentType to the key in selected.prices[platform]
+      const platformKey = platform.toLowerCase();
+      const contentKeyMap = {
+        "Post Image/Video": "Post Image/Video",
+        "Reels/Shorts": "Reels/Shorts",
+        "Story Image/Video": "Story (Image/Video)",
+        "In Video Promotion <10min": "Short Video (<10m)",
+        "Promotion >10min": "Video (>10m)",
+        Polls: "Polls",
+        "Visit and Promote": "Visit and Promote at Your Business",
+      };
+      const contentKey = contentKeyMap[contentType] || contentType;
+      price =
+        selected?.prices?.[platformKey]?.[contentKey] || 0;
+    } else if (orderType === "Combo Package") {
+      // Find combo by name or services
+      const combo = selected?.prices?.combos?.find(
+        (c) =>
+          c.name === contentType ||
+          c.services.includes(contentType.replace("Combo ", ""))
+      );
+      price = combo?.price || 0;
+      serviceName = combo?.name || contentType;
+    } else if (orderType === "Custom Package") {
+      // Find custom service by name
+      const custom = selected?.prices?.custom?.find(
+        (c) => c.name === contentType
+      );
+      price = custom?.price || 0;
+      serviceName = custom?.name || contentType;
+    }
+
+    setSelectedServices([
+      {
+        name: serviceName,
+        platform: orderType === "Combo Package" ? "Combo" : platform,
+        type: orderType,
+        price,
+      },
+    ]);
+  }, [orderType, contentType, platform, selected]);
+
+  const totalPrice = selectedServices.reduce(
+    (sum, s) => sum + Number(s.price || 0),
+    0
+  );
 
   const handleLinkInput = (e) => {
     if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
-      const trimmedLink = linkInput.trim();
-      if (trimmedLink && !affiliatedLinks.includes(trimmedLink)) {
-        setAffiliatedLinks([...affiliatedLinks, trimmedLink]);
+      const trimmed = linkInput.trim();
+      if (trimmed && !affiliatedLinks.includes(trimmed)) {
+        setAffiliatedLinks((p) => [...p, trimmed]);
         setLinkInput("");
       }
     }
   };
 
-  const removeLink = (linkToRemove) => {
-    setAffiliatedLinks(affiliatedLinks.filter((link) => link !== linkToRemove));
+  const removeLink = (l) => setAffiliatedLinks((p) => p.filter((x) => x !== l));
+
+  const handleFileUploadClick = () => {
+    const el = document.getElementById("fileInput");
+    if (el) el.click();
+  };
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile || null);
   };
 
   const handleMakeOrder = async () => {
@@ -111,16 +145,8 @@ const MakeOrder = () => {
     const userId = localUser?.id;
     const influencerId = selected?.id;
     const username = localUser?.fullname;
-    const influencerName =
-      selected?.name || (selected?.username ? selected.username : "Unknown");
+    const influencerName = selected?.name || selected?.username || "Unknown";
 
-    // Calculate totalPrice
-    const totalPrice = selectedServices.reduce(
-      (sum, s) => sum + Number(s.price || 0),
-      0
-    );
-
-    setIsLoading(true);
     const formData = new FormData();
     formData.append("userId", userId);
     formData.append("influencerId", influencerId);
@@ -128,59 +154,57 @@ const MakeOrder = () => {
     formData.append("influencer_name", influencerName);
     formData.append("type", orderType);
     formData.append("services", JSON.stringify(selectedServices));
-    formData.append("totalPrice", totalPrice); // Add totalPrice here
+    formData.append("totalPrice", totalPrice);
     formData.append("description", description || "");
     formData.append("affiliatedLinks", JSON.stringify(affiliatedLinks));
     formData.append("couponCode", couponCode || "");
     formData.append("postDateTime", postDateTime || "");
-    if (file) formData.append("file", file);
+    if (file instanceof File) {
+      formData.append("file", file);
+    }
 
     try {
+      setIsLoading(true);
       const response = await fetch(`${baseURL}/api/place-order`, {
         method: "POST",
         body: formData,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
       if (!response.ok)
         throw new Error(data.message || "Failed to place order");
       toast.success("Order placed successfully!");
-      setTimeout(() => navigate("/dashboard/orders"), 2000);
-    } catch (error) {
-      toast.error(error.message || "Failed to place order");
+      setTimeout(() => navigate("/dashboard/orders"), 1200);
+    } catch (err) {
+      toast.error(err.message || "Failed to place order");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Update selectedServices on dropdown change for demonstration
-  useEffect(() => {
-    if (orderType === "Platform Based") {
-      // For demo: Set dummy selectedServices based on selection
-      setSelectedServices([
-        {
-          name: contentType,
-          platform,
-          type: "Platform Based",
-          price: 1000,
-        },
-      ]);
-    }
-  }, [orderType, contentType, platform]);
-
-  const totalPrice = selectedServices.reduce(
-    (sum, s) => sum + Number(s.price || 0),
-    0
-  );
-
-  // Handle file input trigger
-  const handleFileUploadClick = () => {
-    document.getElementById("fileInput").click();
+  // Style tokens tuned to screenshot
+  const palette = {
+    bg: "#F6F7FB",
+    card: "#FFFFFF",
+    text: "#383A46",
+    sub: "#767676",
+    label: "#545454",
+    light: "#939393",
+    hairline: "#EDEDED",
+    inputBg: "#F7F8FA",
+    inputBorder: "#D5DFEA",
+    brand: "#324BFF",
+    brandDeep: "#5E60CE",
+    chip: "#324BFF",
+    danger: "#FF3B30",
+    gradientFrom: "#775EDC",
+    gradientTo: "#A07BFF",
+    gradientBtnFrom: "#6C63FF",
+    gradientBtnTo: "#9B79FF",
   };
 
-  const platformOptions = ["Instagram", "Facebook", "YouTube", "Twitter"];
+  const gradient = `linear-gradient(135deg, ${palette.gradientFrom} 0%, ${palette.gradientTo} 100%)`;
+  const ctaGradient = `linear-gradient(90deg, ${palette.gradientBtnFrom} 0%, ${palette.gradientBtnTo} 100%)`;
 
   const contentOptions = {
     "Platform Based": [
@@ -206,412 +230,395 @@ const MakeOrder = () => {
 
   return (
     <Container
-      className="d-flex flex-column flex-md-row"
-      style={{ background: "#fff", minHeight: "100vh", padding: 0 }}
+      fluid
+      style={{
+        background: palette.bg,
+        minHeight: "100vh",
+        padding: "24px 28px",
+      }}
     >
-      <ToastContainer position="top-right" autoClose={3000} />
-      <Row className="w-100">
-        <Col md={8} style={{ padding: "48px" }}>
-          <div className="d-flex align-items-center mb-4">
-            <img
-              src={selected.profilePic || "https://via.placeholder.com/64"}
-              alt="Profile"
-              width={64}
-              height={64}
-              className="rounded-circle"
-              style={{ objectFit: "cover", marginRight: "24px" }}
-            />
-            <div>
-              <div
-                style={{
-                  fontWeight: 600,
-                  fontSize: "1.25rem",
-                  color: "#22223b",
-                  marginBottom: "6px",
-                }}
-              >
-                {selected.name || "Gary Vaynerchuk"}
-              </div>
-              <div style={{ color: "#5f5f5f", fontSize: "0.98rem" }}>
-                {selected.email || "garyv@example.com"}
-              </div>
-            </div>
-            <div className="ms-auto d-flex" style={{ gap: "34px" }}>
-              <div
-                className="d-flex flex-column align-items-center"
-                style={{ minWidth: 75 }}
-              >
-                <FaInstagram size={22} color="#E1306C" />
-                <span
-                  style={{
-                    fontWeight: 500,
-                    color: "#202020",
-                    fontSize: "1.09rem",
-                  }}
-                >
-                  {formatFollowers(selected.data.instagram.total_followers)}
-                </span>
-                <span style={{ color: "#BDBDBD", fontSize: "12px" }}>
-                  Instagram
-                </span>
-              </div>
-              <div
-                className="d-flex flex-column align-items-center"
-                style={{ minWidth: 75 }}
-              >
-                <FaFacebookF size={22} color="#3B5998" />
-                <span
-                  style={{
-                    fontWeight: 500,
-                    color: "#202020",
-                    fontSize: "1.09rem",
-                  }}
-                >
-                  {formatFollowers(selected.data.facebook.total_followers)}
-                </span>
-                <span style={{ color: "#BDBDBD", fontSize: "12px" }}>
-                  Facebook
-                </span>
-              </div>
-              <div
-                className="d-flex flex-column align-items-center"
-                style={{ minWidth: 75 }}
-              >
-                <FaYoutube size={22} color="#C4302B" />
-                <span
-                  style={{
-                    fontWeight: 500,
-                    color: "#202020",
-                    fontSize: "1.09rem",
-                  }}
-                >
-                  {formatFollowers(selected.data.youtube.total_followers)}
-                </span>
-                <span style={{ color: "#BDBDBD", fontSize: "12px" }}>
-                  YouTube
-                </span>
-              </div>
-              <div
-                className="d-flex flex-column align-items-center"
-                style={{ minWidth: 75 }}
-              >
-                <FaTwitter size={22} color="#00ACEE" />
-                <span
-                  style={{
-                    fontWeight: 500,
-                    color: "#202020",
-                    fontSize: "1.09rem",
-                  }}
-                >
-                  {formatFollowers(selected.data.twitter.total_followers)}
-                </span>
-                <span style={{ color: "#BDBDBD", fontSize: "12px" }}>
-                  Twitter
-                </span>
-              </div>
-            </div>
-          </div>
+      <ToastContainer position="top-right" autoClose={2500} />
+      <Row style={{ maxWidth: 1180, margin: "0 auto", gap: 24 }}>
+        {/* Left column */}
+        <Col lg={7} style={{ padding: 0 }}>
+          {/* Gradient Profile Banner */}
           <div
-            className="d-flex align-items-center"
-            style={{ gap: 24, marginBottom: 24 }}
+            style={{
+              background: gradient,
+              borderRadius: 14,
+              padding: "18px 22px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              marginBottom: 18,
+              boxShadow: "0 6px 24px rgba(64,57,131,0.12)",
+            }}
           >
-            <Form.Group style={{ width: "25%" }}>
-              <Form.Label
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <img
+                src={selected.profilePic || "https://via.placeholder.com/64"}
+                alt="Profile"
+                width={56}
+                height={56}
+                className="rounded-circle"
                 style={{
-                  fontWeight: 500,
-                  color: "#545454",
-                  fontSize: "14px",
-                  marginBottom: 8,
+                  objectFit: "cover",
+                  border: "2px solid rgba(255,255,255,0.6)",
                 }}
-              >
-                Order Type
-              </Form.Label>
-              <Form.Select
-                value={orderType}
-                onChange={(e) => setOrderType(e.target.value)}
-              >
-                <option>Platform Based</option>
-                <option>Combo Package</option>
-                <option>Custom Package</option>
-              </Form.Select>
-            </Form.Group>
-            <Form.Group style={{ width: "25%" }}>
+              />
+              <div style={{ marginLeft: 14 }}>
+                <div
+                  style={{
+                    color: "#fff",
+                    fontWeight: 700,
+                    fontSize: 16.5,
+                    letterSpacing: 0.1,
+                  }}
+                >
+                  {selected.name || "Gary Vaynerchuk"}
+                </div>
+                <div style={{ color: "rgba(255,255,255,0.9)", fontSize: 13.5 }}>
+                  {selected.email || "garyv@example.com"}
+                </div>
+              </div>
+            </div>
+            <div style={{ marginLeft: "auto", display: "flex", gap: 12 }}>
+              {selected?.data?.instagram?.total_followers ? (
+                <div style={{ textAlign: "center", minWidth: 72 }}>
+                  <FaInstagram size={20} color="#FFF" />
+                  <div
+                    style={{
+                      color: "#fff",
+                      fontWeight: 600,
+                      fontSize: 14,
+                      marginTop: 4,
+                    }}
+                  >
+                    {formatFollowers(selected.data.instagram.total_followers)}
+                  </div>
+                  <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 11 }}>
+                    Instagram
+                  </div>
+                </div>
+              ) : null}
+              {selected?.data?.facebook?.total_followers ? (
+                <div style={{ textAlign: "center", minWidth: 72 }}>
+                  <FaFacebookF size={18} color="#FFF" />
+                  <div
+                    style={{
+                      color: "#fff",
+                      fontWeight: 600,
+                      fontSize: 14,
+                      marginTop: 4,
+                    }}
+                  >
+                    {formatFollowers(selected.data.facebook.total_followers)}
+                  </div>
+                  <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 11 }}>
+                    Facebook
+                  </div>
+                </div>
+              ) : null}
+              {selected?.data?.youtube?.total_followers ? (
+                <div style={{ textAlign: "center", minWidth: 72 }}>
+                  <FaYoutube size={20} color="#FFF" />
+                  <div
+                    style={{
+                      color: "#fff",
+                      fontWeight: 600,
+                      fontSize: 14,
+                      marginTop: 4,
+                    }}
+                  >
+                    {formatFollowers(selected.data.youtube.total_followers)}
+                  </div>
+                  <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 11 }}>
+                    YouTube
+                  </div>
+                </div>
+              ) : null}
+              {selected?.data?.twitter?.total_followers ? (
+                <div style={{ textAlign: "center", minWidth: 72 }}>
+                  <FaTwitter size={20} color="#FFF" />
+                  <div
+                    style={{
+                      color: "#fff",
+                      fontWeight: 600,
+                      fontSize: 14,
+                      marginTop: 4,
+                    }}
+                  >
+                    {formatFollowers(selected.data.twitter.total_followers)}
+                  </div>
+                  <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 11 }}>
+                    Twitter
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Selector Row */}
+          <div style={{ display: "flex", gap: 16, marginBottom: 12 }}>
+            <Form.Group style={{ flex: 1, minWidth: 220 }}>
               <Form.Label
-                style={{
-                  fontWeight: 500,
-                  color: "#545454",
-                  fontSize: "14px",
-                  marginBottom: 8,
-                }}
+                style={{ fontWeight: 600, color: palette.label, fontSize: 13 }}
               >
-                Content
+                Selected Order
               </Form.Label>
-              <Form.Select
-                value={contentType}
-                onChange={(e) => setContentType(e.target.value)}
-              >
-                {contentOptions[orderType].map((option) => (
-                  <option key={option}>{option}</option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-            <Form.Group style={{ width: "25%" }}>
-              <Form.Label
-                style={{
-                  fontWeight: 500,
-                  color: "#545454",
-                  fontSize: "14px",
-                  marginBottom: 8,
-                }}
-              >
-                Platform
-              </Form.Label>
-              <Form.Select
-                value={platform}
-                onChange={(e) => setPlatform(e.target.value)}
-              >
-                <option>Instagram</option>
-                <option>Facebook</option>
-                <option>YouTube</option>
-                <option>Twitter</option>
-              </Form.Select>
+              <div style={{ display: "flex", gap: 12 }}>
+                <Form.Select
+                  value={orderType}
+                  onChange={(e) => setOrderType(e.target.value)}
+                  style={{
+                    background: palette.card,
+                    border: `1px solid ${palette.inputBorder}`,
+                    borderRadius: 8,
+                    padding: "10px 12px",
+                    fontSize: 14,
+                  }}
+                >
+                  <option>Platform Based</option>
+                  <option>Combo Package</option>
+                  <option>Custom Package</option>
+                </Form.Select>
+                <Form.Select
+                  value={contentType}
+                  onChange={(e) => setContentType(e.target.value)}
+                  style={{
+                    background: palette.card,
+                    border: `1px solid ${palette.inputBorder}`,
+                    borderRadius: 8,
+                    padding: "10px 12px",
+                    fontSize: 14,
+                  }}
+                >
+                  {contentOptions[orderType].map((opt) => (
+                    <option key={opt}>{opt}</option>
+                  ))}
+                </Form.Select>
+                <Form.Select
+                  value={platform}
+                  onChange={(e) => setPlatform(e.target.value)}
+                  style={{
+                    background: palette.card,
+                    border: `1px solid ${palette.inputBorder}`,
+                    borderRadius: 8,
+                    padding: "10px 12px",
+                    fontSize: 14,
+                    maxWidth: 180,
+                  }}
+                >
+                  <option>Instagram</option>
+                  <option>Facebook</option>
+                  <option>YouTube</option>
+                  <option>Twitter</option>
+                </Form.Select>
+              </div>
             </Form.Group>
           </div>
+
           <hr
             style={{
-              margin: "30px 0 28px 0",
               border: "none",
-              borderBottom: "1px solid #ededed",
+              borderBottom: `1px solid ${palette.hairline}`,
+              margin: "18px 0 14px",
             }}
           />
+
+          {/* Provide content toggle */}
           <div
             style={{
-              fontWeight: 600,
-              fontSize: "16px",
-              color: "#4957ba",
-              marginBottom: 12,
+              fontWeight: 700,
+              fontSize: 15,
+              color: palette.brandDeep,
+              marginBottom: 10,
             }}
           >
             How would you like to provide the content?
           </div>
-          <div className="d-flex" style={{ gap: "0px", marginBottom: "24px" }}>
-            <Button
-              variant="link"
-              style={{
-                color:
-                  provisionMethod === "Upload Files" ? "#324bff" : "#939393",
-                textDecoration: "none",
-                fontWeight: 500,
-                fontSize: 15,
-                borderBottom:
-                  provisionMethod === "Upload Files"
-                    ? "3px solid #324bff"
-                    : "none",
-                borderRadius: 0,
-                background: "transparent",
-                width: 155,
-                marginRight: 8,
-                padding: "0 0 5px 0",
-              }}
-              onClick={() => setProvisionMethod("Upload Files")}
-            >
-              Upload Files
-            </Button>
-            <Button
-              variant="link"
-              style={{
-                color:
-                  provisionMethod === "Provide Content" ? "#324bff" : "#939393",
-                textDecoration: "none",
-                fontWeight: 500,
-                fontSize: 15,
-                borderBottom:
-                  provisionMethod === "Provide Content"
-                    ? "3px solid #324bff"
-                    : "none",
-                borderRadius: 0,
-                background: "transparent",
-                width: 155,
-                padding: "0 0 5px 0",
-              }}
-              onClick={() => setProvisionMethod("Provide Content")}
-            >
-              Provide Content
-            </Button>
-          </div>
-          <div>
-            <Form.Group>
-              <Form.Label
-                style={{
-                  fontWeight: 500,
-                  color: "#545454",
-                  fontSize: "14px",
-                  marginBottom: 8,
-                }}
-              >
-                {provisionMethod === "Provide Content"
-                  ? "Content Description"
-                  : "Description"}
-              </Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={2}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                maxLength={500}
-                style={{
-                  marginBottom: 7,
-                  background: "#fafbfc",
-                  border: "1px solid #dedede",
-                  fontSize: 15,
-                  borderRadius: 8,
-                  padding: "12px",
-                }}
-                placeholder="Add any specific instructions or details about your request..."
-              />
-              <span
-                style={{
-                  fontSize: 13,
-                  color: "#b0b0b0",
-                  float: "right",
-                }}
-              >
-                {description.length}/500 characters
-              </span>
-            </Form.Group>
-          </div>
-          <div style={{ marginTop: 18, marginBottom: 0 }}>
-            <Form.Group>
-              <Form.Label
-                style={{
-                  fontWeight: 500,
-                  color: "#545454",
-                  fontSize: "14px",
-                  marginBottom: 8,
-                }}
-              >
-                {provisionMethod === "Provide Content"
-                  ? "Reference Files Upload"
-                  : "Upload Files"}
-              </Form.Label>
-              <div
-                style={{
-                  background: "#F7F8FA",
-                  borderRadius: "12px",
-                  border: "1.7px dashed #d5dfea",
-                  textAlign: "center",
-                  padding: "32px 0",
-                  marginBottom: 5,
-                  position: "relative",
-                  cursor: "pointer",
-                }}
-                onClick={handleFileUploadClick}
-              >
-                <FaArrowUp
-                  style={{ fontSize: 19, color: "#6153cc", marginBottom: 5 }}
-                />
-                <div style={{ color: "#939393", fontSize: 14 }}>
-                  Drag & drop files here
-                  <br />
-                  or{" "}
-                  <span style={{ color: "#324bff", cursor: "pointer" }}>
-                    click to browse
-                  </span>
-                </div>
-                <input
-                  type="file"
-                  id="fileInput"
-                  onChange={(e) => setFile(e.target.files[0])}
-                  style={{ display: "none" }}
-                />
-              </div>
-
-              {file && (
-                <div
+          <div style={{ display: "flex", gap: 16, marginBottom: 18 }}>
+            {["Upload Files", "Provide Content"].map((tab) => {
+              const active = provisionMethod === tab;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setProvisionMethod(tab)}
                   style={{
-                    marginTop: 10,
-                    textAlign: "left",
-                    paddingLeft: 10,
+                    background: "transparent",
+                    border: "none",
+                    color: active ? palette.brand : palette.light,
+                    fontWeight: 600,
                     fontSize: 14,
-                    color: "#333",
+                    padding: 0,
+                    borderBottom: active
+                      ? `3px solid ${palette.brand}`
+                      : "3px solid transparent",
+                    width: 160,
+                    textAlign: "left",
+                    cursor: "pointer",
                   }}
                 >
-                  {/* Show image preview if image file */}
-                  {file.type.startsWith("image/") ? (
-                    <img
-                      src={URL.createObjectURL(file)}
-                      alt="Preview"
-                      style={{
-                        maxWidth: "100%",
-                        maxHeight: 150,
-                        borderRadius: 8,
-                      }}
-                    />
-                  ) : file.type.startsWith("video/") ? (
-                    <video
-                      width="100%"
-                      height={150}
-                      controls
-                      src={URL.createObjectURL(file)}
-                      style={{ borderRadius: 8 }}
-                    />
-                  ) : (
-                    <div>
-                      <strong>Selected File:</strong> {file.name}
-                    </div>
-                  )}
-                </div>
-              )}
-            </Form.Group>
+                  {tab}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Description */}
+          <Form.Group>
+            <Form.Label
+              style={{ fontWeight: 600, color: palette.label, fontSize: 13 }}
+            >
+              {provisionMethod === "Provide Content"
+                ? "Content Description"
+                : "Description"}
+            </Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              maxLength={500}
+              placeholder="Add any specific instructions or details about your request..."
+              style={{
+                background: "#FAFBFC",
+                border: `1px solid #DEDEDE`,
+                borderRadius: 10,
+                fontSize: 14.5,
+                padding: "12px 12px",
+              }}
+            />
+            <div
+              style={{
+                textAlign: "right",
+                color: "#B0B0B0",
+                fontSize: 12,
+                marginTop: 6,
+              }}
+            >
+              {description.length}/500 characters
+            </div>
+          </Form.Group>
+
+          {/* Upload / Reference Files */}
+          <div style={{ marginTop: 14 }}>
+            <Form.Label
+              style={{ fontWeight: 600, color: palette.label, fontSize: 13 }}
+            >
+              {provisionMethod === "Provide Content"
+                ? "Reference Files Upload"
+                : "Upload Files"}
+            </Form.Label>
+            <div
+              onClick={handleFileUploadClick}
+              style={{
+                background: palette.inputBg,
+                borderRadius: 12,
+                border: `1.7px dashed ${palette.inputBorder}`,
+                textAlign: "center",
+                padding: "34px 0",
+                position: "relative",
+                cursor: "pointer",
+              }}
+            >
+              <FaArrowUp
+                style={{ fontSize: 18, color: "#6153CC", marginBottom: 6 }}
+              />
+              <div
+                style={{ color: palette.light, fontSize: 14, lineHeight: 1.5 }}
+              >
+                Drag & drop files here
+                <br />
+                or <span style={{ color: palette.brand }}>click to browse</span>
+              </div>
+              <input
+                id="fileInput"
+                type="file"
+                onChange={handleFileChange}
+                style={{ display: "none" }}
+              />
+            </div>
+
+            {file instanceof File && (
+              <div style={{ marginTop: 10, fontSize: 14, color: "#333" }}>
+                {file.type.startsWith("image/") ? (
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt="Preview"
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: 150,
+                      borderRadius: 8,
+                    }}
+                  />
+                ) : file.type.startsWith("video/") ? (
+                  <video
+                    width="100%"
+                    height={150}
+                    controls
+                    src={URL.createObjectURL(file)}
+                    style={{ borderRadius: 8 }}
+                  />
+                ) : (
+                  <div>
+                    <strong>Selected File:</strong> {file.name}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </Col>
-        <Col lg={4}>
+
+        {/* Right rail */}
+        <Col lg={4} style={{ padding: 0 }}>
+          {/* Date & Time + Affiliate + Coupon */}
           <Card
             style={{
-              background: "#fff",
+              background: palette.card,
               border: "none",
-              boxShadow: "0 2px 12px rgba(143,143,143,0.07)",
               borderRadius: 16,
-              padding: "27px 35px 25px 35px",
-              marginBottom: "32px",
+              padding: "22px 22px 18px",
+              boxShadow: "0 2px 12px rgba(143,143,143,0.07)",
+              marginBottom: 16,
             }}
           >
             <div
               style={{
-                fontWeight: 600,
-                color: "#3a3a56",
-                fontSize: "16px",
-                marginBottom: "18px",
+                fontWeight: 700,
+                color: palette.text,
+                fontSize: 16,
+                marginBottom: 12,
               }}
             >
               Select Date & Time
             </div>
-            <Form.Group className="mb-4">
+            <Form.Group className="mb-3">
               <Form.Control
                 type="datetime-local"
                 value={postDateTime}
                 onChange={(e) => setPostDateTime(e.target.value)}
                 style={{
-                  background: "#f7f8fa",
-                  borderWidth: "1.7px",
-                  borderColor: "#d5dfea",
-                  borderRadius: "8px",
-                  padding: "11px",
-                  fontSize: 15,
+                  background: palette.inputBg,
+                  border: `1.7px solid ${palette.inputBorder}`,
+                  borderRadius: 8,
+                  padding: "10px 11px",
+                  fontSize: 14.5,
                 }}
               />
             </Form.Group>
+
             <div
               style={{
-                fontWeight: 600,
-                color: "#3a3a56",
-                fontSize: "16px",
-                marginBottom: "18px",
+                fontWeight: 700,
+                color: palette.text,
+                fontSize: 16,
+                marginBottom: 12,
               }}
             >
               Affiliate Link (Optional)
             </div>
-            <Form.Group className="mb-4">
+            <Form.Group className="mb-3">
               <Form.Control
                 type="text"
                 value={linkInput}
@@ -619,41 +626,43 @@ const MakeOrder = () => {
                 onKeyDown={handleLinkInput}
                 placeholder="https://example.com/your-affiliate-link"
                 style={{
-                  background: "#f7f8fa",
-                  borderWidth: "1.7px",
-                  borderColor: "#d5dfea",
-                  borderRadius: "8px",
-                  padding: "11px",
-                  fontSize: 15,
+                  background: palette.inputBg,
+                  border: `1.7px solid ${palette.inputBorder}`,
+                  borderRadius: 8,
+                  padding: "10px 11px",
+                  fontSize: 14.5,
                 }}
               />
               <div
-                className="d-flex flex-wrap"
-                style={{ marginTop: 9, gap: "6px" }}
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 6,
+                  marginTop: 8,
+                }}
               >
-                {affiliatedLinks.map((link, idx) => (
+                {affiliatedLinks.map((l, i) => (
                   <span
-                    key={idx}
+                    key={i}
                     style={{
-                      background: "#324bff",
+                      background: palette.chip,
                       color: "#fff",
-                      borderRadius: "15px",
-                      padding: "7px 13px",
-                      marginRight: 5,
-                      fontSize: "13px",
+                      borderRadius: 14,
+                      padding: "6px 11px",
+                      fontSize: 12.5,
                     }}
                   >
-                    {link}
+                    {l}
                     <button
                       type="button"
-                      className="ms-2"
-                      onClick={() => removeLink(link)}
+                      onClick={() => removeLink(l)}
                       style={{
+                        marginLeft: 8,
                         border: "none",
-                        background: "none",
+                        background: "transparent",
                         color: "#fff",
-                        fontWeight: "bold",
-                        fontSize: "1rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
                       }}
                     >
                       ×
@@ -662,126 +671,137 @@ const MakeOrder = () => {
                 ))}
               </div>
             </Form.Group>
+
             <div
               style={{
-                fontWeight: 600,
-                color: "#3a3a56",
-                fontSize: "16px",
-                marginBottom: "18px",
+                fontWeight: 700,
+                color: palette.text,
+                fontSize: 16,
+                marginBottom: 12,
               }}
             >
               Coupon Code
             </div>
-            <Form.Group>
-              <div style={{ display: "flex", gap: "10px" }}>
-                <Form.Control
-                  type="text"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  style={{
-                    background: "#f7f8fa",
-                    borderWidth: "1.7px",
-                    borderColor: "#d5dfea",
-                    borderRadius: "8px",
-                    padding: "11px",
-                    fontSize: 15,
-                  }}
-                  placeholder="Enter coupon code"
-                />
-                <Button
-                  style={{
-                    background: "#324bff",
-                    color: "#fff",
-                    fontWeight: 500,
-                    borderRadius: 8,
-                    border: "none",
-                    padding: "0 19px",
-                    fontSize: 15,
-                  }}
-                >
-                  Apply
-                </Button>
-              </div>
-            </Form.Group>
+            <div style={{ display: "flex", gap: 10 }}>
+              <Form.Control
+                type="text"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value)}
+                placeholder="Enter coupon code"
+                style={{
+                  background: palette.inputBg,
+                  border: `1.7px solid ${palette.inputBorder}`,
+                  borderRadius: 8,
+                  padding: "10px 11px",
+                  fontSize: 14.5,
+                }}
+              />
+              <Button
+                style={{
+                  background: palette.brand,
+                  color: "#fff",
+                  fontWeight: 600,
+                  borderRadius: 8,
+                  border: "none",
+                  padding: "0 16px",
+                  fontSize: 14.5,
+                }}
+              >
+                Apply
+              </Button>
+            </div>
           </Card>
+
+          {/* Summary */}
           <Card
             style={{
-              background: "#fff",
+              background: palette.card,
               border: "none",
-              boxShadow: "0 2px 12px rgba(143,143,143,0.07)",
               borderRadius: 16,
-              padding: "27px 35px 25px 35px",
+              padding: "22px 22px 20px",
+              boxShadow: "0 2px 12px rgba(143,143,143,0.07)",
             }}
           >
             <div
               style={{
-                fontWeight: 600,
-                color: "#5e60ce",
-                fontSize: "16px",
-                marginBottom: "18px",
+                fontWeight: 700,
+                color: palette.brandDeep,
+                fontSize: 16,
+                marginBottom: 14,
               }}
             >
               Order Summary
             </div>
+
             <div
               style={{
-                color: "#767676",
-                fontWeight: 500,
-                fontSize: "15px",
-                marginBottom: "6px",
+                color: palette.sub,
+                fontWeight: 600,
+                fontSize: 14,
+                marginBottom: 6,
               }}
             >
               Order Details
             </div>
             <div
               style={{
-                marginBottom: "18px",
                 color: "#383838",
-                fontWeight: 500,
-                fontSize: "15.5px",
+                fontWeight: 600,
+                fontSize: 15,
+                marginBottom: 12,
+                lineHeight: 1.6,
               }}
             >
-              Type: {orderType}
-              <br />
-              Content: {contentType}
-              <br />
-              Platform: {platform}
+              {selectedServices.map((service, index) => (
+                <div key={index}>
+                  Type: {service.type}
+                  <br />
+                  Content: {service.name}
+                  <br />
+                  Platform: {service.platform}
+                  <br />
+                  Price: ₹{service.price || "Not specified"}
+                  <br />
+                  <br />
+                </div>
+              ))}
             </div>
+
             <hr
               style={{
-                margin: "10px 0 18px 0",
                 border: "none",
-                borderBottom: "1px solid #ededed",
+                borderBottom: `1px solid ${palette.hairline}`,
+                margin: "8px 0 14px",
               }}
             />
+
             <div
               style={{
-                color: "#767676",
-                fontWeight: 500,
-                fontSize: "15px",
-                marginBottom: "6px",
+                color: palette.sub,
+                fontWeight: 600,
+                fontSize: 14,
+                marginBottom: 6,
               }}
             >
-              Price
+              Total
             </div>
             <div
-              style={{
-                color: "#324bff",
-                fontWeight: 700,
-                fontSize: "22px",
-              }}
+              style={{ color: palette.brand, fontWeight: 800, fontSize: 24 }}
             >
-              ₹{totalPrice}
+              ₹{totalPrice || "Not specified"}
             </div>
+
             <Button
-              className="w-100 mt-4"
+              className="w-100"
               style={{
-                background: "#324bff",
+                marginTop: 18,
+                background: ctaGradient,
                 border: "none",
-                borderRadius: "8px",
+                borderRadius: 10,
                 padding: "14px",
-                fontSize: "16px",
-                fontWeight: "600",
+                fontSize: 15.5,
+                fontWeight: 700,
+                boxShadow: "0 8px 22px rgba(98,73,230,0.25)",
               }}
               onClick={handleMakeOrder}
               disabled={isLoading}
@@ -789,7 +809,7 @@ const MakeOrder = () => {
               {isLoading ? (
                 <Spinner animation="border" size="sm" />
               ) : (
-                "Place Order"
+                "Send Request"
               )}
             </Button>
           </Card>
