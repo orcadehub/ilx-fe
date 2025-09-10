@@ -107,7 +107,7 @@ function Prices() {
             <div className="icon-circle">★</div>
             <div className="title">Starter</div>
             <div className="price">
-              $29<span className="per">/per month</span>
+              ₹499<span className="per">/per month</span>
             </div>
             <p className="sub">
               Perfect for small businesses getting started with influencer
@@ -163,7 +163,7 @@ function Prices() {
             <div className="icon-circle">⚡</div>
             <div className="title">Professional</div>
             <div className="price">
-              $99<span className="per">/per month</span>
+              ₹999<span className="per">/per month</span>
             </div>
             <p className="sub">
               Ideal for growing businesses ready to scale their influencer

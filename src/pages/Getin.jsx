@@ -79,7 +79,7 @@ function Getin() {
                   Call Us
                 </div>
                 <div style={{ color: "#50577b", fontSize: "1.06rem" }}>
-                  +91 22222 33333
+                  +91 90526 49591
                 </div>
               </div>
             </div>
@@ -106,7 +106,7 @@ function Getin() {
                   Visit Us
                 </div>
                 <div style={{ color: "#50577b", fontSize: "1.06rem" }}>
-                  123 Balaji Street, Tirupati City, 11111
+                  1-24 Balaji Street, Tirupati City, 517102
                 </div>
               </div>
             </div>

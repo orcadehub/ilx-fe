@@ -6,7 +6,7 @@ import { FaCheckCircle } from 'react-icons/fa';
 const plans = [
   {
     title: 'Basic',
-    price: '$49',
+    price: '₹49',
     period: 'per month',
     description: 'Perfect for small businesses just getting started with influencer marketing.',
     features: [
@@ -21,7 +21,7 @@ const plans = [
   },
   {
     title: 'Pro',
-    price: '$99',
+    price: '₹99',
     period: 'per month',
     description: 'Ideal for growing businesses ready to scale their influencer marketing.',
     features: [
@@ -37,7 +37,7 @@ const plans = [
   },
   {
     title: 'Advanced',
-    price: '$199',
+    price: '₹199',
     period: 'per month',
     description: 'For established businesses with serious influencer marketing needs.',
     features: [

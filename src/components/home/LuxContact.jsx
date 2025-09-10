@@ -126,19 +126,19 @@ function LuxContact({
               icon: <FaEnvelope />,
               title: "Email Us",
               text: "Have questions? Send us an email and we'll get back to you as soon as possible.",
-              action: "mailto:contact@example.com",
+              action: "mailto:contact@influexkonnect.com",
             },
             {
               icon: <FaPhone />,
               title: "Call Us",
               text: "Need to talk to someone? Call our support team during business hours.",
-              action: "+91 22222 33333",
+              action: "+91 90526 49591 ",
             },
             {
               icon: <FaMapMarkerAlt />,
               title: "Visit Us",
               text: "Come see us at our headquarters. We'd love to show you around our facilities.",
-              action: "123 Balaji Street, Tirupati",
+              action: "1-24 Balaji Street, Tirupati",
             },
           ].map((c, i) => (
             <Col md={4} key={i}>
@@ -316,7 +316,7 @@ function LuxContact({
                 <h3 className="mb-3 fs-4">Our Office</h3>
                 <p className="mb-0" style={{ opacity: 0.95 }}>
                   <FaMapMarkerAlt className="me-2 fs-5" />
-                  123 Innovation Street, Tech City, TC 12345
+                  1-24 Balaji Street, Tirupati
                 </p>
               </div>
 
@@ -363,7 +363,7 @@ function LuxContact({
                     boxShadow: "0 10px 26px rgba(255,255,255,.15)",
                   }}
                 >
-                  <FaPhone className="me-2" /> Call Support: +1 (555) 123-4567
+                  <FaPhone className="me-2" /> Call Support: +91 90526 49591
                 </Button>
               </div>
             </div>

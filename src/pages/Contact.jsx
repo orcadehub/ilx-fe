@@ -73,13 +73,13 @@ function Contact() {
             icon: 'email',
             title: 'Email Us',
             text: "Have questions? Send us an email and we'll get back to you as soon as possible.",
-            action: '[contact@example.com](mailto:contact@example.com)',
+            action: '[contact@influexkonnect.com](mailto:contact@influexkonnect.com)',
           },
           {
             icon: 'phone',
             title: 'Call Us',
             text: 'Need to talk to someone? Call our support team during business hours.',
-            action: '+1 (555) 123-4567',
+            action: '+91 90526 49591',
           },
           {
             icon: 'location',
