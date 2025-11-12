@@ -11,6 +11,7 @@ import {
   Modal,
   Spinner,
 } from "react-bootstrap";
+import NewTable from '../components/NewTable'
 import {
   FunnelFill,
   ArrowCounterclockwise,
@@ -25,51 +26,11 @@ import {
 import { useNavigate } from "react-router-dom";
 import "./Orders.css";
 import config from "../config";
+import { ordersData } from "../data/ordersData";
+import useOrdersColumns from "../hooks/useOrdersColumns";
+import { Funnel, ShoppingCart, SquarePen, X, ArrowUp, ArrowDown } from "lucide-react";
+import { detectCurrency, formatCurrency } from "../utils/currency";
 
-const customStyles = `
-  .custom-select {
-    border: 1px solid hsl(214.3, 25%, 85%);
-    border-radius: 30px;
-    background-color: hsl(214.3, 31.8%, 98%);
-    color: hsl(220, 15%, 30%);
-    padding: 0.5rem 1rem;
-    font-weight: 500;
-    box-shadow: none;
-    transition: border-color 0.2s ease-in-out;
-  }
-
-  .custom-select:focus {
-    border-color: hsl(214.3, 40%, 75%);
-    box-shadow: 0 0 0 0.15rem hsla(214.3, 40%, 75%, 0.3);
-    outline: none;
-    background-color: hsl(214.3, 31.8%, 95%);
-  }
-
-  .custom-select option {
-    background-color: hsl(214.3, 31.8%, 98%) !important;
-    color: hsl(220, 15%, 30%) !important;
-  }
-
-  .info-section {
-    background-color: hsl(214.3, 31.8%, 98%);
-    border-radius: 8px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border: 1px solid hsl(214.3, 25%, 90%);
-  }
-
-  .info-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.5rem;
-  }
-
-  .info-icon {
-    margin-right: 0.75rem;
-    color: hsl(220, 10%, 50%);
-    min-width: 20px;
-  }
-`;
 
 const baseURL =
   import.meta.env.MODE === "development"
@@ -78,42 +39,42 @@ const baseURL =
 
 // Scheduled Information Component
 const ScheduledInfo = ({ date, time }) => (
-  <div className="info-section">
-    <h6 className="fw-bold mb-3" style={{ color: "#5c4d7d" }}>
+  <div className="!bg-[var(--bg)] !border !border-[var(--border)] rounded-xl p-3 mb-3">
+    <h6 className="fw-bold mb-3 text-[var(--text)]">
       Scheduled Information
     </h6>
-    <div className="info-item">
-      <Calendar className="info-icon" />
-      <span className="me-2 fw-medium">Date:</span>
-      <span style={{ color: "#495057" }}>{date || "Not scheduled"}</span>
+    <div className="d-flex align-items-center mb-2">
+      <Calendar className="me-3 text-[var(--textSec)]" style={{ minWidth: "20px" }} />
+      <span className="me-2 fw-medium text-[var(--text)]">Date:</span>
+      <span className="text-[var(--textSec)]">{date || "Not scheduled"}</span>
     </div>
-    <div className="info-item">
-      <Clock className="info-icon" />
-      <span className="me-2 fw-medium">Time:</span>
-      <span style={{ color: "#495057" }}>{time || "Not scheduled"}</span>
+    <div className="d-flex align-items-center">
+      <Clock className="me-3 text-[var(--textSec)]" style={{ minWidth: "20px" }} />
+      <span className="me-2 fw-medium text-[var(--text)]">Time:</span>
+      <span className="text-[var(--textSec)]">{time || "Not scheduled"}</span>
     </div>
   </div>
 );
 
 // Product Information Component
 const ProductInfo = ({ type, product, category }) => (
-  <div className="info-section">
-    <h6 className="fw-bold mb-3" style={{ color: "#5c4d7d" }}>
+  <div className="!bg-[var(--bg)] !border !border-[var(--border)] rounded-xl p-3 mb-3">
+    <h6 className="fw-bold mb-3 text-[var(--text)]">
       Product Details
     </h6>
-    <div className="info-item">
-      <Tag className="info-icon" />
-      <span className="me-2 fw-medium">Type:</span>
-      <span style={{ color: "#495057" }}>{type}</span>
+    <div className="d-flex align-items-center mb-2">
+      <Tag className="me-3 text-[var(--textSec)]" style={{ minWidth: "20px" }} />
+      <span className="me-2 fw-medium text-[var(--text)]">Type:</span>
+      <span className="text-[var(--textSec)]">{type}</span>
     </div>
-    <div className="info-item">
-      <BoxSeam className="info-icon" />
-      <span className="me-2 fw-medium">Product:</span>
-      <span style={{ color: "#495057" }}>{product}</span>
+    <div className="d-flex align-items-center mb-2">
+      <BoxSeam className="me-3 text-[var(--textSec)]" style={{ minWidth: "20px" }} />
+      <span className="me-2 fw-medium text-[var(--text)]">Product:</span>
+      <span className="text-[var(--textSec)]">{product}</span>
     </div>
-    <div className="info-item">
-      <Tag className="info-icon" />
-      <span className="me-2 fw-medium">Category:</span>
+    <div className="d-flex align-items-center">
+      <Tag className="me-3 text-[var(--textSec)]" style={{ minWidth: "20px" }} />
+      <span className="me-2 fw-medium text-[var(--text)]">Category:</span>
       <Badge bg="info" className="px-2 py-1">
         {category}
       </Badge>
@@ -137,6 +98,7 @@ function Orders() {
   const [isHovered, setIsHovered] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currency, setCurrency] = useState('₹');
 
   const types = [
     "Post",
@@ -150,13 +112,29 @@ function Orders() {
   const parseDate = (dt) =>
     dt
       ? new Date(dt).toLocaleString("default", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
       : "—";
+
+  const parseTime = (dt) =>
+    dt
+      ? new Date(dt).toLocaleString("default", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })
+      : "—";
+
+  // Auto-detect currency on component mount
+  useEffect(() => {
+    const initCurrency = async () => {
+      const detectedCurrency = await detectCurrency();
+      setCurrency(detectedCurrency);
+    };
+    initCurrency();
+  }, []);
 
   // Fetch orders from API
   useEffect(() => {
@@ -252,160 +230,167 @@ function Orders() {
   };
 
   const user = JSON.parse(localStorage.getItem("user"));
+
+  const orderColumn = useOrdersColumns({
+    setSelectedOrder,
+    handleReject,
+    handleCheckout,
+    formatCurrency,
+    currency
+  })
+  const getFilteredOrders = () => {
+    let filtered = orders;
+    if (tabKey === "Completed") {
+      filtered = orders.filter(order => order.status === "completed");
+    } else if (tabKey === "Pending") {
+      filtered = orders.filter(order => order.status === "pending");
+    }
+    return filtered;
+  };
+  
+  const dataSource = getFilteredOrders().map((order) => ({
+    key: order.id,
+    id: order.id,
+    name: order.order_direction === 'sent' ? order.influencer_name : order.user_fullname,
+    influencer: order.influencer_name,
+    orderType: order.order_type,
+    service: order.content_type,
+    platform: order.platform,
+    amount: order.total_price,
+    status: order.status.charAt(0).toUpperCase() + order.status.slice(1),
+    orderDate: order.created_at,
+    scheduledDate: order.post_datetime,
+    scheduledTime: order.post_datetime ? parseTime(order.post_datetime) : '',
+    category: order.influencer_category || 'General',
+    direction: order.order_direction
+  }));
   return (
-    <div className="custom-orders-wrapper">
-      <style>{customStyles}</style>
+  <div className={`custom-orders-wrapper !bg-[var(--bgPage2)] ${selectedOrder ? ' modal-blur-bg' : ''}`}> 
 
-      <Container
-        fluid
-        className="px-md-5 py-5"
-        style={{ backgroundColor: "var(--primary-color)" }}
+      <div
+        className="p-3 md:px-5 md:py-5 h-10"
+        style={{ backgroundColor: "var(--bgPage2)" }}
       >
-        <Row className="align-items-center justify-content-center mb-5">
-          <Col xs={12} md={8}>
-            <h2
-              className="fw-bold mb-2"
-              style={{
-                fontSize: "1.5rem",
-                letterSpacing: "-0.5px",
-                color: "hsl(230, 70%, 20%)",
-              }}
-            >
-              Orders Dashboard
-            </h2>
-            <p
-              className="text-muted"
-              style={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: "1.05rem",
-                color: "hsl(220, 10%, 40%)",
-              }}
-            >
-              View, filter and manage all your influencer orders
-            </p>
-          </Col>
+        <div className="align-items-center justify-content-center mb-2">
+          <div className="row">
+            <div className="col-12 col-md-8">
+              <h2
+                className="fw-bold mb-2 !text-[var(--text)]"
+                style={{
+                  fontSize: "1.5rem",
+                  letterSpacing: "-0.5px",
+                }}
+              >
+                Orders
+                {/* Dashboard */}
+              </h2>
+              <p
+                className="!text-[var(--mutedText)] text-14"
+                style={{
+                  fontFamily: "'Inter', sans-serif",
+                }}
+              >
+                View, filter and manage all your influencer orders
+              </p>
+            </div>
 
-          <Col xs={12} md={4} className="text-md-end mt-3 mt-md-0">
-            <Button
-              onClick={() => setShowFilters((s) => !s)}
-              style={{
-                background:
-                  "linear-gradient(135deg, rgb(87, 52, 226), #7d68c3)",
-                border: "none",
-                color: "#fff",
-                borderRadius: "50px",
-                padding: "0.6rem 1.5rem",
-                fontWeight: 600,
-                fontSize: "0.95rem",
-                boxShadow: "0 4px 14px rgba(125, 104, 195, 0.25)",
-              }}
-            >
-              <FunnelFill className="me-2" /> Filters
-            </Button>
-          </Col>
-        </Row>
+            <div className="col-12 col-md-4 !flex !justify-end mt-3 mt-md-0 ">
+              <button
+                onClick={() => setShowFilters((s) => !s)}
+                className="!bg-[var(--primary)] h-fit !border-none !flex !justify-center !items-center text-white rounded-pill px-4 py-2 text-12"
+
+              >
+                <Funnel size={12} className="me-2" /> Filters
+              </button>
+            </div>
+          </div>
+        </div>
 
         <Collapse in={showFilters}>
           <div
-            className="card mb-4 shadow-sm p-3 border-0"
-            style={{ backgroundColor: "hsl(214.3, 31.8%, 98%)" }}
+            className="mb-4 shadow-sm p-3 !border !border-[var(--border)] rounded-xl !bg-[var(--card)]"
           >
             <Form>
-              <Row className="gx-4 gy-3">
-                <Col md={3}>
-                  <Form.Label>From</Form.Label>
+              <div className="row gx-4 gy-3">
+                <div className="col-md-3">
+                  <Form.Label className="text-[var(--text)] text-14">From</Form.Label>
                   <Form.Control
                     type="date"
                     id="from"
                     value={filters.from}
                     onChange={onChange}
+                    className="!bg-[var(--bgPage2)] !border !border-[var(--border)] !text-[var(--text)] text-12"
                   />
-                </Col>
-                <Col md={3}>
-                  <Form.Label>To</Form.Label>
+                </div>
+                <div className="col-md-3">
+                  <Form.Label className="text-[var(--text)]  text-14">To</Form.Label>
                   <Form.Control
                     type="date"
                     id="to"
                     value={filters.to}
                     onChange={onChange}
+                    className="!bg-[var(--bgPage2)] !border !border-[var(--border)] !text-[var(--text)] text-12"
                   />
-                </Col>
-                <Col md={3}>
-                  <Form.Label>Status</Form.Label>
+                </div>
+                <div className="col-md-3">
+                  <Form.Label className="text-[var(--text)] text-14">Status</Form.Label>
                   <Form.Select
                     id="status"
                     value={filters.status}
                     onChange={onChange}
-                    className="custom-select"
+                    className="!bg-[var(--bgPage2)] !border !border-[var(--border)] !text-[var(--text)] text-12"
                   >
                     <option value="">All</option>
                     <option value="Pending">Pending</option>
                     <option value="Completed">Completed</option>
                   </Form.Select>
-                </Col>
-                <Col md={3}>
-                  <Form.Label>Order Type</Form.Label>
+                </div>
+                <div className="col-md-3">
+                  <Form.Label className="text-[var(--text)] text-14">Order Type</Form.Label>
                   <Form.Select
                     id="type"
                     value={filters.type}
                     onChange={onChange}
+                    className="!bg-[var(--bgPage2)] !border !border-[var(--border)] !text-[var(--text)] text-12"
                   >
                     <option value="">All</option>
                     {types.map((t) => (
                       <option key={t}>{t}</option>
                     ))}
                   </Form.Select>
-                </Col>
-              </Row>
-              <Row className="pt-3">
-                <Col md={3}>
+                </div>
+              </div>
+              <div className="row pt-3">
+                <div className="flex justify-center md:justify-end items-center ">
                   <Button
-                    style={{
-                      backgroundColor: "hsl(220, 10%, 65%)",
-                      border: "none",
-                      color: "#fff",
-                      borderRadius: "50px",
-                    }}
+                    className="!bg-[var(--primary)] h-fit !border-none !flex !justify-center !items-center text-white rounded-pill px-5 py-2 text-14"
                     onClick={resetFilters}
-                    className="w-100"
                   >
                     <ArrowCounterclockwise className="me-2" /> Reset
                   </Button>
-                </Col>
-              </Row>
+                </div>
+              </div>
             </Form>
           </div>
         </Collapse>
 
-        <div className="d-flex justify-content-between gap-3 mb-4">
+        <div className="d-flex justify-content-between gap-3 mb-4 !bg-[var(--hover2)] p-1 rounded-xl">
           {["All", "Pending", "Completed"].map((key) => (
-            <Button
+            <button
               key={key}
               onClick={() => setTabKey(key)}
-              className="flex-fill"
-              style={{
-                backgroundColor: "hsl(214.3, 31.8%, 98%)",
-                color:
-                  tabKey === key ? "hsl(230, 50%, 10%)" : "hsl(220, 10%, 50%)",
-                border: "none",
-                borderBottom:
-                  tabKey === key
-                    ? "3px solid hsl(230, 70%, 25%)"
-                    : "3px solid transparent",
-                width: "100%",
-                borderRadius: "10px",
-                fontWeight: "600",
-                paddingBottom: "10px",
-              }}
+              className={`btn w-100 text-center !font-medium text-14 py-1 border-0 !text-[var(--text)] ${tabKey === key
+                ? "border-bottom border-2 border-primary !bg-[var(--bg)]"
+                : ""
+                }`}
             >
               {key}
-            </Button>
+            </button>
           ))}
         </div>
 
         <div
-          className="card shadow-sm border-0"
-          style={{ backgroundColor: "hsl(214.3, 31.8%, 98%)" }}
+          className="shadow-sm !border !border-[var(--border)] p-1 rounded-xl !bg-[var(--bgPage2)]"
         >
           {isLoading ? (
             <div className="text-center py-5">
@@ -416,391 +401,88 @@ function Orders() {
           ) : error ? (
             <div className="text-center py-5 text-danger">{error}</div>
           ) : (
-            <Table responsive className="mb-0">
-              <thead style={{ backgroundColor: "hsl(214.3, 31.8%, 95%)" }}>
-                <tr>
-                  {[
-                    "Direction",
-                    "Name",
-                    "Order Date",
-                    "Scheduled Date",
-                    "Scheduled Time",
-                    "Order Type",
-                    "Service",
-                    "Amount",
-                    "Status",
-                    "Actions",
-                  ].map((h) => (
-                    <th key={h} style={{ color: "hsl(230, 50%, 20%)" }}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {getFilteredByStatus().length > 0 ? (
-                  getFilteredByStatus().map((o) => {
-                    // Derive service name and type from services
-                    const primaryService =
-                      o.services && o.services.length > 0 ? o.services[0] : {};
-                    const serviceName =
-                      primaryService.name || "Unknown Service";
-                    const serviceType =
-                      primaryService.type || o.orderType || "Unknown";
-
-                    return (
-                      <tr
-                        key={o.id}
-                        onClick={() => setSelectedOrder(o)}
-                        onMouseEnter={() => setIsHovered(true)}
-                        onMouseLeave={() => setIsHovered(false)}
-                        style={{
-                          cursor: "pointer",
-                          transition: "background 0.2s ease",
-                          backgroundColor: isHovered
-                            ? "#eef2ff"
-                            : "transparent",
-                        }}
-                        className="order-row"
-                      >
-                        <td>
-                          {user.id === o.influencer_id ? (
-                            <span style={{ color: "green" }}>↙</span>
-                          ) : (
-                            <span style={{ color: "red" }}>↗</span>
-                          )}
-                        </td>
-                        <td>
-                          {user.id === o.influencer_id ? o.username : o.infname}
-                        </td>
-                        <td>{parseDate(o.orderdate)}</td>
-                        <td>
-                          {o.scheduleddate
-                            ? new Date(o.scheduleddate).toLocaleDateString(
-                                "en-US",
-                                {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                  timeZone: "Asia/Kolkata", // Adjust to IST
-                                }
-                              )
-                            : "—"}
-                        </td>
-                        <td>
-                          {o.scheduleddate
-                            ? new Date(o.scheduleddate).toLocaleTimeString(
-                                "en-US",
-                                {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: true,
-                                  timeZone: "Asia/Kolkata", // Adjust to IST
-                                }
-                              )
-                            : "—"}
-                        </td>
-                        <td>{o.ordertype || "Unknown"}</td>
-                        <td>
-                          {o.services && o.services.length > 0
-                            ? o.services[0].name
-                            : "Unknown Service"}
-                        </td>
-                        <td>₹{o.amount.toLocaleString()}</td>
-                        <td>
-                          <Badge
-                            bg={
-                              o.status === "Completed" ? "success" : "warning"
-                            }
-                          >
-                            {o.status}
-                          </Badge>
-                        </td>
-                        <td className="d-flex gap-2">
-                          <Button
-                            size="sm"
-                            style={{
-                              backgroundColor: "#8e7cc3",
-                              border: "none",
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedOrder(o);
-                            }}
-                          >
-                            <Eye />
-                          </Button>
-                          <Button
-                            size="sm"
-                            style={{
-                              backgroundColor: "#c94c4c",
-                              border: "none",
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleReject(o.id);
-                            }}
-                          >
-                            <XCircle />
-                          </Button>
-                          {o.status !== "Completed" &&
-                            user.id !== o.influencer_id && (
-                              <Button
-                                size="sm"
-                                style={{
-                                  backgroundColor: "#4bb543",
-                                  border: "none",
-                                }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCheckout(o);
-                                }}
-                              >
-                                <CreditCard />
-                              </Button>
-                            )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                ) : (
-                  <tr>
-                    <td colSpan="10" className="text-center text-muted py-4">
-                      No {tabKey.toLowerCase()} orders found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
+            <div className=''>
+              <NewTable
+                columns={orderColumn}
+                dataSource={dataSource}
+                onRow={(record) => ({
+                  onClick: () => setSelectedOrder(record)
+                })}
+              />
+            </div>
           )}
         </div>
-      </Container>
+      </div>
 
       {/* Order-Details Modal */}
       <Modal
         show={!!selectedOrder}
         onHide={() => setSelectedOrder(null)}
         centered
-        style={{ zIndex: 1300 }}
-        dialogClassName="modal-wider"
+        style={{
+          backdropFilter: "blur(1px)", 
+          backgroundColor: "rgba(0, 0, 0, 0.4)",
+          zIndex: 9999,
+        }}
+        dialogClassName="custom-orders-modal "
       >
-        <Modal.Header
-          closeButton
-          style={{
-            backgroundColor: "#f3eefc",
-            borderBottom: "none",
-            position: "sticky",
-            top: 0,
-            zIndex: 1,
-          }}
-        >
-          <Modal.Title
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              color: "#5c4d7d",
-              fontWeight: "600",
-            }}
-          >
-            Order Details
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body
-          style={{
-            backgroundColor: "#fefefe",
-            fontSize: "1rem",
-            maxHeight: "60vh",
-            overflowY: "auto",
-          }}
-        >
-          {selectedOrder && (
-            <div className="px-1 py-2">
-              <Row className="mb-3">
-                <Col xs={5}>
-                  <strong>Order ID</strong>
-                </Col>
-                <Col>: {selectedOrder.id || "4292424244"}</Col>
-              </Row>
+        {selectedOrder && (
+          <div className=" border  !border-[var(--border)] p-2 px-0 w-fit rounded !bg-[var(--bgPage2)] ">
+            <div className="custom-orders-modal-content custom-orders-modal ">
+              {/* Header */}
+              <div className=" !p-4 custom-orders-modal-header " style={{ position: 'sticky', top: 0, zIndex: 1 }}>
+                <div className="d-flex justify-content-between align-items-center">
+                  <h4 className="!text-[var(--text)] !font-bold" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 600 }}>Order Details</h4>
+                  <button  className="text-20 !text-[var(--text)]" onClick={() => setSelectedOrder(null)}><span aria-label="Close"><X /></span></button>
+                </div>
+              </div>
+              {/* Body */}
+              <div className="text-[var(--text)] px-3" style={{ fontSize: '1rem', maxHeight: '70vh', overflowY: 'auto' }}>
+                <div className="py-2 ">
+                  <div className="md:flex gap-3 mb-4">
+                    <div className="md:flex-1">
+                      <div className="rounded-3 p-4 h-100 !bg-[var(--card)] !border !border-[var(--border)]">
+                        <div className="fw-bold mb-3 text-16 text-[var(--text)]">Order Information</div>
+                        <div className="d-flex mb-2 align-items-center justify-between"><div className="w-50 text-14 ">Order ID:</div><div className="fw-normal text-14 text-[var(--text)]">{selectedOrder.id || ''}</div></div>
+                        <div className="d-flex mb-2 align-items-center justify-between"><div className="w-50 text-14 ">Status:</div><div>{selectedOrder.status ? (<Badge bg={selectedOrder.status === 'Completed' ? 'success' : selectedOrder.status === 'Pending' ? 'warning' : 'secondary'} className="px-2 py-1 text-13 !font-normal">{selectedOrder.status}</Badge>) : ''}</div></div>
+                        <div className="d-flex mb-2 align-items-center justify-between"><div className="w-50 text-14 ">Username:</div><div className=" text-14 text-[var(--text)]">{selectedOrder.name || ''}</div></div>
+                        <div className="d-flex mb-2 align-items-center justify-between"><div className="w-50 text-14 ">Order Type:</div><div className=" text-14 text-[var(--text)]">{selectedOrder.orderType || ''}</div></div>
+                        <div className="d-flex mb-2 align-items-center justify-between"><div className="w-50 text-14 ">Order Date:</div><div className=" text-14 text-[var(--text)]">{selectedOrder.orderDate ? parseDate(selectedOrder.orderDate) : ''}</div></div>
+                        <div className="d-flex mb-2 align-items-center justify-between"><div className="w-50 text-14 ">Amount:</div><div className=" text-14 text-[var(--text)]">{selectedOrder.amount ? formatCurrency(selectedOrder.amount, currency) : ''}</div></div>
+                      </div>
+                    </div>
+                    <div className="md:flex-1 mt-3 md:!mt-0">
+                      <div className="rounded-3 p-4 h-100 !bg-[var(--card)] !border !border-[var(--border)]">
+                        <div className="fw-bold mb-3 text-16 !text-[var(--text)]">Schedule & Product</div>
+                        <div className="d-flex mb-2 align-items-center justify-between"><div className="w-50 text-14 ">Scheduled Date:</div><div className=" text-14 text-[var(--text)]">{selectedOrder.scheduledDate ? parseDate(selectedOrder.scheduledDate) : ''}</div></div>
+                        <div className="d-flex mb-2 align-items-center justify-between"><div className="w-50 text-14 ">Scheduled Time:</div><div className=" text-14 text-[var(--text)]">{selectedOrder.scheduledDate ? parseTime(selectedOrder.scheduledDate) : ''}</div></div>
+                        <div className="d-flex mb-2 align-items-center justify-between"><div className="w-50 text-14 ">Category:</div><div className=" text-14 text-[var(--text)]">{selectedOrder.category || ''}</div></div>
+                        <div className="d-flex mb-2 align-items-center justify-between"><div className="w-50 text-14 ">Product/Service:</div><div className=" text-14 text-[var(--text)]">{selectedOrder.service || ''}</div></div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Provided Content Section */}
+                  <div className="rounded-3 p-4 mb-4 !bg-[var(--card)] !border !border-[var(--border)]">
+                    <div className="fw-bold mb-2 text-15 text-[var(--text)] d-flex align-items-center">
+                      <span className="me-2"><i className="bi bi-file-earmark-text"></i></span> Provided Content
+                      <span className="badge bg-[var(--hover2)] ms-2 text-11 !text-[var(--text)]">PROVIDED CONTENT</span>
+                    </div>
+                    <div className="text-13 text-[var(--textSec)] mb-2">Content Brief:</div>
+                    <div className="rounded-2 p-3 !bg-[var(--hover2)] text-12 text-[var(--text)]" style={{ minHeight: '60px' }}>{selectedOrder.contentBrief || 'Create engaging content showcasing our new summer collection. Focus on lifestyle shots with natural lighting. Include call-to-action for our seasonal sale (20% off). Target audience: young professionals aged 25-35. Brand tone: trendy, approachable, and sustainable.'}</div>
+                  </div>
 
-              <Row className="mb-3">
-                <Col xs={5}>
-                  <strong>Status</strong>
-                </Col>
-                <Col>
-                  <Badge
-                    bg={
-                      selectedOrder.status === "Completed"
-                        ? "success"
-                        : "warning"
-                    }
-                  >
-                    {selectedOrder.status}
-                  </Badge>
-                </Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col xs={5}>
-                  <strong>Username</strong>
-                </Col>
-                <Col>: {selectedOrder.username || "Unknown"}</Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col xs={5}>
-                  <strong>Influencer Name</strong>
-                </Col>
-                <Col>: {selectedOrder.infname || "Unknown"}</Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col xs={5}>
-                  <strong>User ID</strong>
-                </Col>
-                <Col>: {selectedOrder.user_id}</Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col xs={5}>
-                  <strong>Influencer ID</strong>
-                </Col>
-                <Col>: {selectedOrder.influencer_id}</Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col xs={5}>
-                  <strong>Amount</strong>
-                </Col>
-                <Col>: ₹{Number(selectedOrder.amount).toLocaleString()}</Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col xs={5}>
-                  <strong>Order Date</strong>
-                </Col>
-                <Col>: {parseDate(selectedOrder.orderdate)}</Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col xs={5}>
-                  <strong>Scheduled Date</strong>
-                </Col>
-                <Col>
-                  :{" "}
-                  {selectedOrder.scheduleddate
-                    ? parseDate(selectedOrder.scheduleddate)
-                    : "Not scheduled"}
-                </Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col xs={5}>
-                  <strong>Scheduled Time</strong>
-                </Col>
-                <Col>: {selectedOrder.scheduledtime || "Not specified"}</Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col xs={5}>
-                  <strong>Order Type</strong>
-                </Col>
-                <Col>: {selectedOrder.ordertype || "Unknown"}</Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col xs={5}>
-                  <strong>Service</strong>
-                </Col>
-                <Col>
-                  :{" "}
-                  {selectedOrder.services && selectedOrder.services.length > 0
-                    ? selectedOrder.services[0].name || "Unknown Service"
-                    : "Unknown Service"}
-                </Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col xs={5}>
-                  <strong>Description</strong>
-                </Col>
-                <Col>
-                  : {selectedOrder.description || "No description provided"}
-                </Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col xs={5}>
-                  <strong>Coupon Code</strong>
-                </Col>
-                <Col>: {selectedOrder.couponcode || "None"}</Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col xs={5}>
-                  <strong>Affiliated Links</strong>
-                </Col>
-                <Col>
-                  :{" "}
-                  {selectedOrder.affiliatedlinks &&
-                  selectedOrder.affiliatedlinks.length > 0
-                    ? selectedOrder.affiliatedlinks.map((link, index) => (
-                        <div key={index}>
-                          <a
-                            href={link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Link {index + 1}
-                          </a>
-                        </div>
-                      ))
-                    : "None"}
-                </Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col xs={5}>
-                  <strong>File</strong>
-                </Col>
-                <Col>
-                  :{" "}
-                  {selectedOrder.file ? (
-                    <a
-                      href={selectedOrder.file}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Download File
-                    </a>
-                  ) : (
-                    "No file uploaded"
-                  )}
-                </Col>
-              </Row>
+                {/* Footer */}
+              <div className=" gap-3 !bg-[var(--card)] border !border-[var(--border)] flex justify-end p-4 rounded" >
+                    <Button className="!bg-red-500 !border-none !flex items-center gap-2" onClick={() => handleReject(selectedOrder?.id)}><X size={16} /> Reject</Button>
+                    <Button className="!bg-[var(--hover2)] border !border-[var(--border)] !text-[var(--text)] !flex items-center gap-2" onClick={() => handleReject(selectedOrder?.id)}> <SquarePen size={16} /> Modify</Button>
+                    <Button className="!bg-green-500 !border-none !flex items-center gap-2" onClick={() => handleCheckout(selectedOrder)}><ShoppingCart size={16} />  Checkout</Button>
+              </div>
+                </div>
+             
+              </div>
             </div>
-          )}
-        </Modal.Body>
-        <Modal.Footer
-          style={{
-            position: "sticky",
-            bottom: 0,
-            backgroundColor: "#fefefe",
-            zIndex: 1,
-          }}
-          className="d-flex justify-content-between"
-        >
-          <Button
-            variant="danger"
-            onClick={() => handleReject(selectedOrder?.id)}
-          >
-            Reject
-          </Button>
-          <Button
-            style={{ backgroundColor: "#4bb543", border: "none" }}
-            onClick={() => handleCheckout(selectedOrder)}
-          >
-            Checkout
-          </Button>
-        </Modal.Footer>
+          </div>
+        )}
       </Modal>
     </div>
   );

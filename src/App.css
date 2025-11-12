@@ -1,6 +1,8 @@
 body{
-    background-color: #f1f5f9;
+    background-color: var(--bgPage2) !important;
+    color:var(--text) !important;
 }
 tr {
-    background-color: #f1f5f9;
+    background-color: var(--bg);
+    color:var(--text)
 }

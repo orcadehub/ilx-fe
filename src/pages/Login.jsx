@@ -62,54 +62,22 @@ export default function Login() {
     if (timer === 0) setResendEnabled(true);
   }, [timer]);
 
-  // API helpers
-  const check2FA = async () => {
-    const res = await axios.get(`${baseURL}/api/check-2fa`, {
-      params: { email },
-    });
-    return !!res.data?.is2FAEnabled;
-  };
-
-  const sendOtp = async () => {
-    await axios.post(`${baseURL}/api/send-otp`, { email });
-  };
-
-  const verifyOtp = async (code) => {
-    const res = await axios.post(`${baseURL}/api/verify-otp`, {
-      email,
-      otp: code,
-    });
-    return !!res.data?.success;
-  };
-
-  const loginDirect = async () => {
-    const res = await axios.post(`${baseURL}/api/login`, {
-      email,
-      password,
-      role: userType,
-    });
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
-    toast.success(res.data.message);
-    navigate("/dashboard");
-    window.location.reload();
-  };
-
-  // Main flow
+  // Main login function
   const handleLoginFlow = async () => {
     if (!email || !password || !userType)
       return toast.error("All fields are required");
     try {
       setLoading(true);
-      const is2fa = await check2FA();
-      if (is2fa) {
-        await sendOtp();
-        toast.success("OTP sent to email");
-        setStep(3);
-        setTimer(60);
-        setResendEnabled(false);
-      } else {
-        await loginDirect();
+      const res = await axios.post(`${baseURL}/api/login`, {
+        email,
+        password,
+      });
+      
+      if (res.data.success) {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("loggedInUser", JSON.stringify(res.data.user));
+        toast.success("Login successful!");
+        navigate("/dashboard");
       }
     } catch (err) {
       toast.error(err.response?.data?.message || "Login failed");

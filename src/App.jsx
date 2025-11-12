@@ -6,6 +6,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
+import { Toaster } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
 
 import Home from "./pages/Home";
@@ -25,6 +26,8 @@ import TermsAndConditions from "./pages/TermsAndConditions";
 import CancellationRefundPolicy from "./pages/CancellationRefundPolicy";
 import About from "./pages/About";
 import Test from "./pages/Test";
+import AuthSuccess from "./pages/AuthSuccess";
+import AuthError from "./pages/AuthError";
 
 const AppContent = () => {
   const location = useLocation();
@@ -62,10 +65,13 @@ const AppContent = () => {
           element={<CancellationRefundPolicy />}
         />
         <Route exact path="/social-success" element={<SocialSuccess />} />
+        <Route exact path="/auth/success" element={<AuthSuccess />} />
+        <Route exact path="/auth/error" element={<AuthError />} />
         <Route path="/dashboard/*" element={<DashboardPage />} />
       </Routes>
       {!isDashboard && !isCheck && !isOrder && <Footer />}
-      <ToastContainer position="top-center" autoClose={3000} />
+      <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar />
+      <Toaster position="top-right" />
     </>
   );
 };

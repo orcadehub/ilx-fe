@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Container,
-  Row,
-  Col,
-  Card,
-  Badge,
-  Button,
-  Spinner,
-} from "react-bootstrap";
+// React-Bootstrap removed in favor of Tailwind-only layout
 import {
   FaInstagram,
   FaYoutube,
@@ -33,12 +25,17 @@ import {
 import "./Dashboard.css";
 import { useNavigate } from "react-router-dom";
 import CountUp from "react-countup";
-import { motion } from "framer-motion";
+// framer-motion removed to simplify and satisfy linter; animations omitted
 import PendingOrders from "../components/PendingOrders";
 import TopBusinessUsers from "../components/TopBusinessUsers";
 import AdminBusinUsers from "../components/AdminBusinUsers";
 import fetchMetrics from "../components/dashboard/metrics"; // artifact_id: 257e42c5-69b0-4b09-951b-0c74c0e7edd6
 import TopInfluencerUsers from "../components/TopInfluencerUsers";
+import { ChartNoAxesColumn, Info, Plus } from 'lucide-react';
+import { Tooltip } from "antd";
+import TopPerformedOrders from "../components/TopPerformedOrders";
+import TopInfluencersByOrders from "../components/TopInfluencersByOrders";
+import TopBusinessUsersByOrders from "../components/TopBusinessUsersByOrders";
 
 const user = JSON.parse(localStorage.getItem("user") || "{}");
 const role = user?.role || "business";
@@ -47,16 +44,12 @@ const staticTop = [
   {
     title: "Summer Collection",
     platform: [
-      <FaInstagram className="text-danger me-1" style={{ color: "#c13584" }} />,
-      <FaInstagram className="text-danger" style={{ color: "#c13584" }} />,
+      <FaInstagram className="mr-1" style={{ color: "#c13584" }} />,
+      <FaInstagram style={{ color: "#c13584" }} />,
     ],
     type: [
-      <Badge bg="info" className="me-1" style={{ backgroundColor: "#06b6d4" }}>
-        reel
-      </Badge>,
-      <Badge bg="primary" style={{ backgroundColor: "#1e40af" }}>
-        story
-      </Badge>,
+      <span className="mr-1 inline-flex items-center rounded-full bg-cyan-500/15 px-2 py-0.5 text-xs font-medium text-cyan-600">reel</span>,
+      <span className="inline-flex items-center rounded-full bg-blue-800/10 px-2 py-0.5 text-xs font-medium text-blue-800">story</span>,
     ],
     value: "92%",
     link: "/orders/summer-collection",
@@ -64,12 +57,10 @@ const staticTop = [
   {
     title: "Product Launch",
     platform: [
-      <FaYoutube className="text-danger" style={{ color: "#b2071d" }} />,
+      <FaYoutube style={{ color: "#b2071d" }} />,
     ],
     type: [
-      <Badge bg="warning" style={{ backgroundColor: "#d97706" }}>
-        video
-      </Badge>,
+      <span className="inline-flex items-center rounded-full bg-amber-600/15 px-2 py-0.5 text-xs font-medium text-amber-700">video</span>,
     ],
     value: "89%",
     link: "/orders/product-launch",
@@ -77,20 +68,12 @@ const staticTop = [
   {
     title: "Brand Promotion",
     platform: [
-      <FaInstagram className="text-danger me-1" style={{ color: "#c13584" }} />,
-      <FaTiktok className="text-dark" style={{ color: "#1e293b" }} />,
+      <FaInstagram className="mr-1" style={{ color: "#c13584" }} />,
+      <FaTiktok style={{ color: "#1e293b" }} />,
     ],
     type: [
-      <Badge
-        bg="success"
-        className="me-1"
-        style={{ backgroundColor: "#059669" }}
-      >
-        post
-      </Badge>,
-      <Badge bg="info" style={{ backgroundColor: "#06b6d4" }}>
-        reel
-      </Badge>,
+      <span className="mr-1 inline-flex items-center rounded-full bg-emerald-600/15 px-2 py-0.5 text-xs font-medium text-emerald-700">post</span>,
+      <span className="inline-flex items-center rounded-full bg-cyan-500/15 px-2 py-0.5 text-xs font-medium text-cyan-600">reel</span>,
     ],
     value: "85%",
     link: "/orders/brand-promotion",
@@ -98,20 +81,12 @@ const staticTop = [
   {
     title: "Tutorial Series",
     platform: [
-      <FaYoutube className="text-danger me-1" style={{ color: "#b2071d" }} />,
-      <FaTiktok className="text-dark" style={{ color: "#1e293b" }} />,
+      <FaYoutube className="mr-1" style={{ color: "#b2071d" }} />,
+      <FaTiktok style={{ color: "#1e293b" }} />,
     ],
     type: [
-      <Badge
-        bg="warning"
-        className="me-1"
-        style={{ backgroundColor: "#d97706" }}
-      >
-        video
-      </Badge>,
-      <Badge bg="info" style={{ backgroundColor: "#06b6d4" }}>
-        short
-      </Badge>,
+      <span className="mr-1 inline-flex items-center rounded-full bg-amber-600/15 px-2 py-0.5 text-xs font-medium text-amber-700">video</span>,
+      <span className="inline-flex items-center rounded-full bg-cyan-500/15 px-2 py-0.5 text-xs font-medium text-cyan-600">short</span>,
     ],
     value: "82%",
     link: "/orders/tutorial-series",
@@ -119,12 +94,10 @@ const staticTop = [
   {
     title: "Brand Partnership",
     platform: [
-      <FaFacebook className="text-primary" style={{ color: "#4267b2" }} />,
+      <FaFacebook style={{ color: "#4267b2" }} />,
     ],
     type: [
-      <Badge bg="success" style={{ backgroundColor: "#059669" }}>
-        post
-      </Badge>,
+      <span className="inline-flex items-center rounded-full bg-emerald-600/15 px-2 py-0.5 text-xs font-medium text-emerald-700">post</span>,
     ],
     value: "75%",
     link: "/orders/brand-partnership",
@@ -165,28 +138,21 @@ const staticUsers = [
 ];
 
 // Placeholder for future API calls
-const fetchTopOrders = async (token) => {
+const fetchTopOrders = async () => {
   // Simulate API call (replace with actual API later)
   return new Promise((resolve) => {
     setTimeout(() => resolve(staticTop), 1000);
   });
 };
 
-const fetchTopUsers = async (token) => {
+const fetchTopUsers = async () => {
   // Simulate API call (replace with actual API later)
   return new Promise((resolve) => {
     setTimeout(() => resolve(staticUsers), 1000);
   });
 };
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (i = 1) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.1, duration: 0.6 },
-  }),
-};
+// animations removed
 
 function DashboardContent() {
   const navigate = useNavigate();
@@ -212,7 +178,7 @@ function DashboardContent() {
 
       try {
         setLoadingTop(true);
-        const fetchedTop = await fetchTopOrders(token);
+        const fetchedTop = await fetchTopOrders();
         setTop(fetchedTop);
       } catch (err) {
         console.error("Error fetching top orders:", err.message);
@@ -222,7 +188,7 @@ function DashboardContent() {
 
       try {
         setLoadingUsers(true);
-        const fetchedUsers = await fetchTopUsers(token);
+        const fetchedUsers = await fetchTopUsers();
         setUsers(fetchedUsers);
       } catch (err) {
         console.error("Error fetching top users:", err.message);
@@ -236,316 +202,150 @@ function DashboardContent() {
 
   return (
     <div
-      className="py-5"
-      style={{ minHeight: "100vh", backgroundColor: "var(--primary-color)" }}
+      className="py-4 px-3 md:px-20 overflow-x-hidden"
+      style={{ minHeight: "100vh", backgroundColor: "var(--bgPage2)" }}
     >
-      <Container fluid>
-        {/* Dashboard Title */}
-        <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+      <div className="!w-full">
+        {/* header hero */}
+        <div>
           <div
-            className="d-flex justify-content-between align-items-center mb-5 px-4 py-3 rounded shadow-sm"
-            style={{
-              backgroundColor: "#fff",
-              borderLeft: "5px solid #1e3a8a",
-            }}
+            className="flex flex-col md:flex-row  md:justify-between items-center mb-3 md:mb-2"
           >
-            <div>
-              <h4
-                className="fw-semibold mb-2"
-                style={{ color: "#1e3a8a", fontSize: "1.75rem" }}
+            <div className='md:!flex-1 text-left md:!text-left !w-full'>
+              <h4 className="fw-semibold mb-1 !text-[var(--text)]"
               >
                 {role === "admin"
                   ? "Admin Dashboard"
                   : role === "influencer"
-                  ? "Influencer Dashboard"
-                  : "Business Dashboard"}
+                    ? "Influencer Dashboard"
+                    : "Business Dashboard"}
               </h4>
               <p
-                className="text-muted"
-                style={{
-                  fontSize: "0.95rem",
-                  marginBottom: 0,
-                  color: "#475569",
-                }}
+                className=" text-14 !font-normal !text-[var(--mutedText)]"
               >
                 Monitor performance, orders, influencers, and more.
               </p>
             </div>
-            <div>
-              <Button
-                variant="outline-primary"
-                className="rounded-pill px-4 py-2"
+            <div className='md:!flex-1 md:!flex  justify-end text-center md:!text-right hidden '>
+              <button
+                className="flex items-center !rounded-lg py-2 px-3 text-white bg-blue-700 hover:bg-blue-600 transition"
                 onClick={() => navigate("/dashboard/influencers")}
+                style={{ fontSize: '14px' }}
               >
-                Find Influencers
-              </Button>
+                <Plus className='mx-2' size='14' />  Find Influencers
+              </button>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Metrics Section */}
         {loadingMetrics && metrics.length === 0 ? (
-          <Row className="g-4 px-3 mb-5">
-            <Col>
-              <Container
-                className="d-flex justify-content-center align-items-center"
-                style={{ minHeight: "120px" }}
-              >
-                <Spinner animation="border" variant="primary" />
-                <span className="ms-3">Loading metrics...</span>
-              </Container>
-            </Col>
-          </Row>
+          <div className="px-3 mb-3">
+            <div className="flex justify-center items-center min-h-[120px]">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+              <span className="ml-3 text-slate-600">Loading metrics...</span>
+            </div>
+          </div>
         ) : (
-          <Row className="g-4 px-3 mb-5">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-3 xl:gap-4 mb-4">
             {metrics.length > 0 ? (
-              metrics.map((card, index) => (
-                <Col key={card.title} md={6} lg={3}>
-                  <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    variants={fadeUp}
-                    custom={index}
+              metrics.map((card) => (
+                <div
+                  key={card.title}
+                  onClick={() => navigate(card.path)}
+                  className="hover:shadow-lg border  !border-[var(--border)] !bg-[var(--card)] cursor-pointer rounded-xl  md:p-4 flex flex-col justify-between p-3"
+                >
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center text-14 text-[var(--mutedText)] font-normal">
+                      <span>{card.title}</span>
+                      {card.infoText && (
+                        <Tooltip
+                          placement="top"
+                          title={card.infoText}
+                          color="geekblue"
+                        >
+                          <Info size={14} className="ml-1 cursor-pointer flex-shrink-0" />
+                        </Tooltip>
+                      )}
+                    </div>
+                    <div className="text-blue flex items-center">{card.icon}</div>
+                  </div>
+
+                  {/* Value */}
+                  <h5
+                    className={`!font-bold !text-[25px] ${(() => {
+                        let val = card?.value;
+                        if (typeof val === "string" && val.includes("/")) {
+                          const [num, den] = val.split("/").map(Number);
+                          val = den === 0 ? 0 : (num / den) * 100;
+                        } else {
+                          val = Number(val) || 0; 
+                        }
+
+                        if (val <= 40 && card.infoText) return "!text-yellow-600";
+                      if (val <= 70 && card.infoText) return "!text-orange-500";
+                      if (val >= 71 && val<=100 && card.infoText) return "!text-green-500";
+                        return "text-[var(--text)]";
+                      })()
+                      }`}
                   >
-                    <Card
-                      onClick={() => navigate(card.path)}
-                      className="shadow-sm border-0"
-                      style={{
-                        backgroundColor: "#fff",
-                        borderRadius: "1rem",
-                        transition: "transform 0.3s ease",
-                        cursor: "pointer",
-                        height: "120px",
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.transform = "scale(1.03)")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.transform = "scale(1)")
-                      }
-                    >
-                      <Card.Body className="d-flex flex-column justify-content-between p-3">
-                        <div className="d-flex align-items-center gap-2 mb-2">
-                          <div style={{ fontSize: "1.3rem" }}>{card.icon}</div>
-                          <h6
-                            className="fw-semibold text-muted mb-0"
-                            style={{ color: "#475569" }}
-                          >
-                            {card.title}
-                          </h6>
-                        </div>
-                        <h5 className="fw-bold text-dark mb-0">
-                          {card.value.includes("/") || card.value.includes("₹") ? (
-                            card.value
-                          ) : (
-                            <CountUp
-                              start={0}
-                              end={parseInt(card.value, 10) || 0}
-                              duration={2}
-                              separator=","
-                            />
-                          )}
-                        </h5>
-                      </Card.Body>
-                    </Card>
-                  </motion.div>
-                </Col>
+                    {card.value.includes("/") || card.value.includes("₹") ? (
+                      card.value
+                    ) : (
+                      <CountUp
+                        start={0}
+                        end={parseInt(card.value, 10) || 0}
+                        duration={2}
+                        separator=","
+                      />
+                    )}
+                  </h5>
+                </div>
               ))
             ) : (
-              <Col>
-                <p>No metrics available</p>
-              </Col>
+              <p className="col-span-full text-center text-[var(--mutedText)]">
+                No metrics available
+              </p>
             )}
-          </Row>
+          </div>
+
         )}
 
         {/* Top Content Section */}
         {role !== "admin" && (
-          <Row className="g-4 px-3 mb-5">
+          <div className="mb-2 grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Top Performed Orders */}
-            <Col md={8}>
-              {loadingTop && top.length === 0 ? (
-                <Container
-                  className="d-flex justify-content-center align-items-center"
-                  style={{ minHeight: "400px" }}
-                >
-                  <Spinner animation="border" variant="primary" />
-                  <span className="ms-3">Loading top orders...</span>
-                </Container>
-              ) : (
-                <motion.div
-                  initial="hidden"
-                  animate="visible"
-                  variants={fadeUp}
-                  custom={1}
-                >
-                  <Card
-                    className="border-0 shadow-sm h-100"
-                    style={{
-                      backgroundColor: "#fff",
-                      borderRadius: "1rem",
-                      minHeight: "400px",
-                    }}
-                  >
-                    <Card.Body>
-                      <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h5 className="fw-semibold mb-0 text-dark">
-                          Top Performed Orders
-                        </h5>
-                        <Badge
-                          bg="light"
-                          text="dark"
-                          className="rounded-pill px-3 py-2 shadow-sm"
-                          style={{
-                            cursor: "pointer",
-                            backgroundColor: "#fff",
-                            color: "#1e293b",
-                          }}
-                          onClick={() => navigate("/dashboard/orders")}
-                        >
-                          View All <FaArrowRight className="ms-2" size={12} />
-                        </Badge>
-                      </div>
-                      <div
-                        className="scroll-content"
-                        style={{
-                          backgroundColor: "#fff",
-                          borderRadius: "0.5rem",
-                          maxHeight: "300px",
-                        }}
-                      >
-                        <div
-                          className="d-flex flex-column"
-                          style={{ backgroundColor: "#fff" }}
-                        >
-                          <div
-                            className="d-flex text-muted py-2 px-3"
-                            style={{
-                              backgroundColor: "var(--primary-color)",
-                              borderBottom: "1px solid #e5e7eb",
-                              fontWeight: "500",
-                              height: "40px",
-                              alignItems: "center",
-                            }}
-                          >
-                            <div style={{ flex: "2", padding: "8px" }}>
-                              Order
-                            </div>
-                            <div style={{ flex: "1", padding: "8px" }}>
-                              Platform
-                            </div>
-                            <div style={{ flex: "1", padding: "8px" }}>
-                              Type
-                            </div>
-                            <div
-                              style={{
-                                flex: "1",
-                                padding: "8px",
-                                textAlign: "end",
-                              }}
-                            >
-                              Performance
-                            </div>
-                          </div>
-                          {top.slice(0, 5).map((order, idx) => (
-                            <div
-                              key={order.title}
-                              className="d-flex cursor-pointer"
-                              onClick={() => navigate(order.link)}
-                              style={{
-                                backgroundColor: "#fff",
-                                padding: "8px",
-                                borderBottom: "1px solid #e5e7eb",
-                                transition: "background-color 0.3s ease",
-                                height: "52px",
-                                alignItems: "center",
-                              }}
-                              onMouseEnter={(e) =>
-                                (e.currentTarget.style.backgroundColor =
-                                  "#e2e8f0")
-                              }
-                              onMouseLeave={(e) =>
-                                (e.currentTarget.style.backgroundColor = "#fff")
-                              }
-                            >
-                              <div
-                                className="fw-medium"
-                                style={{ flex: "2", padding: "8px" }}
-                              >
-                                {order.title}
-                              </div>
-                              <div style={{ flex: "1", padding: "8px" }}>
-                                {order.platform}
-                              </div>
-                              <div style={{ flex: "1", padding: "8px" }}>
-                                {order.type}
-                              </div>
-                              <div
-                                className="fw-bold"
-                                style={{
-                                  flex: "1",
-                                  padding: "8px",
-                                  textAlign: "end",
-                                }}
-                              >
-                                {order.value}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </Card.Body>
-                  </Card>
-                </motion.div>
-              )}
-            </Col>
+            <TopPerformedOrders loadingTop={loadingTop} />
+            
 
-            {/* Top Business Users */}
-            <Col md={4}>
-              {loadingUsers && users.length === 0 ? (
-                <Container
-                  className="d-flex justify-content-center align-items-center"
-                  style={{ minHeight: "400px" }}
-                >
-                  <Spinner animation="border" variant="primary" />
-                  <span className="ms-3">Loading top users...</span>
-                </Container>
-              ) : (
-                <TopInfluencerUsers/>
-              )}
-            </Col>
-          </Row>
+            {/* Top Influencers by Orders */}
+            <TopInfluencersByOrders />
+          </div>
         )}
 
         {role !== "admin" && (
           <div
-            className="d-flex flex-column gap-4 mb-4 px-4 py-3 rounded shadow-sm"
-            style={{
-              backgroundColor: "var(--primary-color)",
-            }}
+            className="flex flex-col gap-4 mb-3 py-3 rounded"
+            // style={{ backgroundColor: "var(--primary-color)" }}
           >
-            <Row className="g-4">
-              <Col md={8}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2">
                 <PendingOrders />
-              </Col>
-              <Col md={4}>
-                <TopBusinessUsers />
-              </Col>
-            </Row>
+              </div>
+              <div>
+                <TopBusinessUsersByOrders />
+              </div>
+            </div>
           </div>
         )}
 
         {role === "admin" && (
-          <div
-            className="mb-4 px-4 py-3 rounded shadow-sm"
-            style={{
-              backgroundColor: "#fff",
-            }}
-          >
+          <div className="mb-4 px-4 py-3 rounded shadow-sm bg-white">
             <AdminBusinUsers />
           </div>
         )}
-      </Container>
+      </div>
     </div>
   );
 }

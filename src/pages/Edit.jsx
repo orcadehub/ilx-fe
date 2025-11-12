@@ -11,6 +11,8 @@ import {
 } from "react-bootstrap-icons";
 import axios from "axios";
 import config from "../config";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const baseURL =
   import.meta.env.MODE === "development"
@@ -43,16 +45,29 @@ function Edit({ user, onSave, onClose }) {
     e.preventDefault();
     setLoading(true); // 🔹 Start loading
     try {
+      const token = localStorage.getItem('token');
+      console.log('Token:', token);
       const response = await axios.put(
-        `${baseURL}/api/update-profile/${user.email}`,
-        formData
+        `${baseURL}/api/dashboard/update-profile`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        }
       );
 
-      onSave(response.data);
+      toast.success("Profile updated successfully!", {
+        position: "bottom-right"
+      });
+      onSave(formData);
       onClose();
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("Failed to update profile. Please try again.");
+      toast.error("Failed to update profile. Please try again.", {
+        position: "bottom-right"
+      });
     } finally {
       setLoading(false); // 🔹 Stop loading
     }
@@ -173,6 +188,7 @@ function Edit({ user, onSave, onClose }) {
           </Form>
         )}
       </Modal.Body>
+      <ToastContainer position="bottom-right" autoClose={3000} />
     </Modal>
   );
 }

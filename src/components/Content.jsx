@@ -18,12 +18,14 @@ import FacebookCallback from "../pages/FacebookCallback";
 import GoogleCallback from "../pages/GoogleCallback";
 import Wishlist from "../pages/Wishlist";
 import MakeOrder from "../pages/MakeOrder";
+import NotFound from "../pages/NotFound";
 
 const Content = () => {
   return (
     <Routes>
       <Route path="/" element={<DashboardContent />} />
       <Route path="influencers" element={<Influencers />} />
+      <Route path="influencers/:id" element={<Influencers />} />
       <Route path="make-order" element={<MakeOrder />} />
       <Route path="facebook" element={<FacebookCallback />} />
       <Route path="google" element={<GoogleCallback />} />
@@ -43,6 +45,7 @@ const Content = () => {
       <Route path="billing" element={<Billing />} />
       <Route path="mywishlist" element={<Wishlist />} />
       <Route path="notifications" element={<Notifications />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };

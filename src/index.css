@@ -1,13 +1,223 @@
+@import "tailwindcss";
 :root {
-  --primary-color: #e2e8f01d;
-  --secondary-color: #fff;
-  --text-color: #333333;
-  --font-size: 16px;
-  --border-radius: 8px;
-  --accent-color: #000000ff;
-  --text-color: #1c1c1c;
+ --primary-color: #e2e8f01d;
+ --secondary-color: #fff;
+ --text-color: #333333;
+ --font-size: 16px;
+ --border-radius: 8px;
+ --accent-color: #000000ff;
+ --text-color: #1c1c1c;
+ --text-blue: #2563eb;
 }
 
-body {
-  background-color: var(--primary-color);
+/* Light mode (default) */
+:root {
+ --bg: #ffffff;
+ --bgPage: #f8fafc52;
+ --bgPage2: #f8fafc;
+ --text: #111827;
+ --mutedText: #4b5563; /* text-gray-600 */
+ --textSec: #5E69E8;
+ --primary: #5E69E8; /* blue-500 */
+ --hover: #F0F2FE;
+ --hover2: #f3f4f6;
+ --card: #ffffff;
+ --border: #e5e7eb;
 }
+
+/* Dark mode */
+.dark {
+ --bg: #111827;
+ --bgPage: #111827e8;
+ --bgPage2: #09090b;
+ --text: #f9fafb;
+ --mutedText: #d1d5db; /* text-gray-300 */
+ --textSec: #f3f4f6;
+ --primary: #2563eb; /* lighter blue */
+ --hover: #e5e7eb52;
+ --hover2: #e5e7eb52;
+ --card: #121216; /*lighter black new */
+ --border: #374151;
+}
+body {
+ background-color: var(--bgPage2) !important;
+ color: var(--textSec) !important;
+}
+::placeholder {
+ color: var(--mutedText) !important;
+}
+.btn-close {
+ background-color: var(--text) !important;
+}
+.css-1yivc1-MuiPaper-root-MuiAppBar-root {
+ background-color: var(--bg) !important;
+ color: var(--text) !important;
+}
+
+/* Utility classes (for non-tailwind use) */
+.bg-theme {
+ background-color: var(--bg);
+}
+.text-theme {
+ color: var(--text);
+}
+.card-theme {
+ background-color: var(--card);
+}
+.text-blue {
+ color: #2563eb;
+}
+.text-12 {
+ font-size: 12px !important;
+}
+.text-14 {
+ font-size: 14px !important;
+}
+
+.locationInputs select,
+input {
+ background-color: var(--bgPage2) !important;
+ color: var(--text) !important;
+ border-color: var(--border) !important;
+ font-size: 12px !important;
+}
+.locationInputs select::placeholder,
+.locationInputs input::placeholder {
+ color: var(--text);
+ opacity: 0.7;
+}
+
+/* for customer table */
+
+:where(.css-dev-only-do-not-override-1odpy5d).ant-table-wrapper
+ .ant-table-thead
+ > tr
+ > th,
+:where(.css-dev-only-do-not-override-1odpy5d).ant-table-wrapper
+ .ant-table-thead
+ > tr
+ > td {
+ background-color: var(--card);
+ color: var(--text);
+ border-color: var(--bg) !important;
+}
+:where(.ant-table-wrapper) .ant-table {
+ background-color: var(--card) !important;
+ color: var(--text) !important;
+ border-color: var(--border) !important;
+}
+:where(.ant-table-wrapper) .ant-table-tbody > tr > td,
+.ant-table-thead > tr > th {
+ border-bottom: 1px solid var(--border) !important;
+}
+:where(.ant-table-wrapper)
+ .ant-table-thead
+ > tr
+ > th:not(:last-child):not(.ant-table-selection-column):not(
+  .ant-table-row-expand-icon-cell
+ ):not([colspan])::before,
+:where(.ant-table-wrapper)
+ .ant-table-thead
+ > tr
+ > td:not(:last-child):not(.ant-table-selection-column):not(
+  .ant-table-row-expand-icon-cell
+ ):not([colspan])::before {
+ background-color: var(--bg) !important;
+}
+
+.ant-table-wrapper .ant-table-sticky-holder {
+ background-color: var(--bg);
+}
+.css-3srrud-MuiListItem-root,
+.css-1tzl57w-MuiListItem-root {
+ width: auto !important;
+}
+.css-1lwhjos-MuiPaper-root-MuiDrawer-paper,
+.css-pfxi8r {
+ border-color: var(--border) !important ;
+}
+.ant-table-body {
+ overflow: auto !important;
+}
+:where(.css-dev-only-do-not-override-1odpy5d).ant-table-wrapper
+ .ant-table-cell-scrollbar:not([rowspan]) {
+ box-shadow: none;
+}
+:where(.css-dev-only-do-not-override-1odpy5d).ant-table-wrapper .ant-table {
+ scrollbar-color: var(--text) !important;
+}
+
+/* toast icon color  */
+.ant-notification
+ .ant-notification-notice-wrapper
+ .ant-notification-notice-message {
+ color: var(--text) !important;
+}
+.ant-notification-notice-close-icon svg {
+ color: var(--text) !important;
+}
+.ant-drawer-close {
+ color: var(--text) !important; /* or any color variable */
+}
+.recharts-default-tooltip {
+ background-color: var(--bg) !important;
+ color: var(--text) !important;
+ border: 1px solid var(--border) !important;
+}
+.accordion-button:not(.collapsed) {
+ color: var(text) !important;
+ background-color: var(--card) !important;
+ box-shadow: inset 0 calc(-1 * var(--bs-accordion-border-width)) 0
+  var(--bs-accordion-border-color);
+}
+.accordion-button {
+ color: var(text) !important;
+ border-color: var(--border) !important;
+ background-color: var(--bg) !important;
+ box-shadow: inset 0 calc(-1 * var(--bs-accordion-border-width)) 0
+  var(--bs-accordion-border-color);
+}
+.ant-select-selector,
+.ant-select-dropdown {
+ background: var(--bgPage2) !important;
+ color: var(--text) !important;
+ border-color: var(--border) !important;
+ font-size: 12px !important;
+}
+.ant-select-selector,
+.ant-collapse-content-box {
+ background-color: var(--bgPage2) !important;
+}
+.ant-select-dropdown .ant-select-item {
+ background: var(--card) !important;
+ color: var(--text) !important;
+}
+.ant-select-dropdown .ant-select-item-option-active {
+ background: var(--hover2) !important;
+}
+
+/* profile hover  */
+.css-1rju2q6-MuiButtonBase-root-MuiMenuItem-root:hover {
+  background-color: var(--hover) !important;
+}
+
+/* antd upload  */
+:where(.css-dev-only-do-not-override-1odpy5d).ant-btn-variant-outlined{
+  background-color: var(--bgPage2) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+  }
+
+  .ant-table-cell-row-hover {
+    background-color: var(--hover2) !important;
+    color: var(--text) !important;
+  }
+
+  .ant-table-cell-row-hover {
+    background-color: var(--hover2) !important;
+    color: var(--text) !important;
+  }
+  .ant-modal .ant-modal-content{
+    background-color: var(--card) !important;
+    color: var(--text) !important;
+  }

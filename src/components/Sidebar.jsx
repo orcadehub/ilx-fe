@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Drawer,
   List,
@@ -18,22 +18,23 @@ import {
   People,
   Chat,
   BarChart,
-  Settings,
   InsertChartOutlined,
   ShoppingBag,
   Menu as MenuIcon,
   ChevronLeft,
 } from "@mui/icons-material";
+import { useCustomTheme } from './ThemeContextProvider'
 import { Link, useLocation } from "react-router-dom";
-
+import { ChartNoAxesColumnIncreasing, FileSpreadsheet, LayoutDashboard, MessageSquare, Moon, Settings, ShoppingCart, Sun, Users } from "lucide-react";
+import logoImg from '../assets/logoIC.jpg';
 const fullDrawerWidth = 240;
 const collapsedDrawerWidth = 80;
 
-const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
+const Sidebar = ({ mobileOpen, handleDrawerToggle, open }) => {
+  const { myTheme, toggleTheme, setLightTheme, setDarkTheme } = useCustomTheme();
   const theme = useTheme();
   const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const [open, setOpen] = useState(true);
 
   // Log to verify component rendering
   // console.log("Sidebar rendered with background: hsl(214.3, 31.8%, 98%)");
@@ -45,48 +46,35 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
 
   if (role === "business") {
     menuItems = [
-      
-      { text: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
-      { text: "Influencers", icon: <People />, path: "/dashboard/influencers" },
-      { text: "Chats", icon: <Chat />, path: "/dashboard/chats" },
-      // { text: "Reach", icon: <BarChart />, path: "/dashboard/reach" },
-      { text: "Services", icon: <Settings />, path: "/dashboard/services" },
-      // {
-      //   text: "Reports",
-      //   icon: <InsertChartOutlined />,
-      //   path: "/dashboard/reports",
-      // },
-      { text: "Orders", icon: <ShoppingBag />, path: "/dashboard/orders" },
+
+      { text: "Dashboard", icon: <LayoutDashboard size={18} />, path: "/dashboard" },
+      { text: "Influencers", icon: <Users size={18} />, path: "/dashboard/influencers" },
+      { text: "Chats", icon: <MessageSquare size={18} />, path: "/dashboard/chats" },
+      { text: "Reach", icon: <ChartNoAxesColumnIncreasing size={18} />, path: "/dashboard/reach" },
+      { text: "Services", icon: <Settings size={18} />, path: "/dashboard/services" },
+      {
+        text: "Reports",
+        icon: <FileSpreadsheet size={18} />,
+        path: "/dashboard/reports",
+      },
+      { text: "Orders", icon: <ShoppingCart size={18} />, path: "/dashboard/orders" },
     ];
   } else if (role === "influencer") {
     menuItems = [
-      { text: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
-      { text: "Influencers", icon: <People />, path: "/dashboard/influencers" },
-      { text: "Chats", icon: <Chat />, path: "/dashboard/chats" },
-      // { text: "Reach", icon: <BarChart />, path: "/dashboard/reach" },
-      { text: "Services", icon: <Settings />, path: "/dashboard/services" },
-      // {
-      //   text: "Reports",
-      //   icon: <InsertChartOutlined />,
-      //   path: "/dashboard/reports",
-      // },
-      { text: "Orders", icon: <ShoppingBag />, path: "/dashboard/orders" },
-      // {
-      //   text: "Campaigns",
-      //   icon: <InsertChartOutlined />,
-      //   path: "/dashboard/campaigns",
-      // },
-      // { text: "Earnings", icon: <ShoppingBag />, path: "/dashboard/earnings" },
+      { text: "Dashboard", icon: <LayoutDashboard size={18} />, path: "/dashboard" },
+      { text: "Chats", icon: <MessageSquare size={18} />, path: "/dashboard/chats" },
+      { text: "Orders", icon: <ShoppingCart size={18} />, path: "/dashboard/orders" },
+      { text: "Services", icon: <Settings size={18} />, path: "/dashboard/services" },
     ];
   } else if (role === "admin") {
     menuItems = [
-      { text: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
+      { text: "Dashboard", icon: <LayoutDashboard size={18} />, path: "/dashboard" },
       {
         text: "Business Users",
         icon: <People />,
         path: "/dashboard/business-users",
       },
-      { text: "Influencers", icon: <People />, path: "/dashboard/influencers" },
+      { text: "Influencers", icon: <Users size={18} />, path: "/dashboard/influencers" },
       { text: "Analytics", icon: <BarChart />, path: "/dashboard/analytics" },
       { text: "Team Management", icon: <Settings />, path: "/dashboard/team" },
       {
@@ -98,7 +86,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
       { text: "Marketing", icon: <BarChart />, path: "/dashboard/marketing" },
       {
         text: "Service Orders",
-        icon: <ShoppingBag />,
+        icon: <ShoppingCart size={18} />,
         path: "/dashboard/service-orders",
       },
       {
@@ -114,15 +102,17 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
     ];
   }
 
-  const handleSidebarToggle = () => setOpen(!open);
+
+
 
   const drawerContent = (
     <Box
       sx={{
-        background: "var(--primary-color)",
+        background: "var(--bgPage2)",
         height: "100%",
-        color: "#1a1a1a",
-        borderRight: "1px solid #fff",
+        color: "var(--text)",
+        position: "relative",
+        // borderRight: "1px solid #fff",
       }}
     >
       <Toolbar
@@ -131,34 +121,33 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
           justifyContent: "space-between",
           alignItems: "center",
           px: open ? 2 : 1,
-          background: "var(--primary-color",
+          // background: "var(--primary-color)",
         }}
       >
         <Box display="flex" alignItems="center" gap={1}>
-          {open && (
+          {open ? (
             <Typography
               variant="h6"
-              sx={{
-                fontWeight: 700,
-                fontSize: "1.5rem",
-                color: (theme) => theme.palette.primary.main,
-              }}
+              // sx={{
+              //   fontWeight: 700,
+              //   fontSize: "1.5rem",
+              //   color: (theme) => theme.palette.primary.main,
+              // }}
+              className="!font-bold !text-[1.5rem]  !text-[var(--primary)]"
             >
-              Influex<span style={{ color: "#000" }}>Konnect</span>
+              Influex
+              <span className='bg-[var(--bg)] !text-[var(--text)]' >Connect</span>
             </Typography>
-          )}
+          ) : <div className="w-8"><img src={logoImg} alt="Logo" /> </div>}
         </Box>
-        <IconButton
-          onClick={handleSidebarToggle}
-          sx={{ color: "#444" }}
-        >
-          {open ? <ChevronLeft /> : <MenuIcon />}
-        </IconButton>
       </Toolbar>
 
-      <Divider sx={{ borderColor: "#e0e0e0" }} />
 
-      <List>
+      {/* <Divider
+        sx={{ borderColor: "#e0e0e0" }}
+      /> */}
+
+      <List className='relative h-[calc(100vh-70px)] text-[var(--mutedText)] px-2'>
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
 
@@ -170,14 +159,14 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
               to={item.path}
               onClick={handleDrawerToggle}
               sx={{
-                color: isActive ? "#ffffff" : "#333",
+                color: isActive ? "#ffffff" : "text-[var(--text)] ",
                 borderRadius: 2,
-                m: 1,
-                px: open ? 2 : 1,
+                my: 1,
+                // py:1,
                 justifyContent: open ? "flex-start" : "center",
                 backgroundColor: isActive ? "#1070e0" : "transparent",
                 "&:hover": {
-                  backgroundColor: "#bccfe5",
+                  backgroundColor: isActive ? "#1070e0" : "var(--hover)",
                 },
               }}
             >
@@ -195,7 +184,40 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
             </ListItem>
           );
         })}
+
       </List>
+      <div className='border-t border-[var(--border)] pt-3 absolute flex justify-center items-center w-full bottom-3 gap-2 text-[var(--text)]'>
+        {!open && (
+          <div className="p-2 border !border-[var(--border)] rounded-xl hover:bg-[var(--hover)] hover:text-[var(--textSec)]">
+            {myTheme === "dark" ? (
+              <Sun id="sun" size={16} onClick={setLightTheme} />
+            ) : (
+              <Moon id="moon" size={16} onClick={setDarkTheme} />
+            )}
+          </div>
+        )}
+
+
+
+        {open && <div className="flex  justify-center items-center  gap-2">
+          <button
+            onClick={setLightTheme}
+            className={`${open ? "px-4 py-2" : "px-2 py-2"}  flex !justify-center items-center !rounded-xl dark:border-gray-600 hover:bg-[var(--hover)] hover:text-[var(--textSec)] border !border-[var(--border)]`}
+          >
+
+            <span className='flex justify-center items-center text-12 gap-2'>
+              <Sun size={12} /> {open && "Light"}</span>
+          </button>
+          <button
+            onClick={setDarkTheme}
+            className={`${open ? "px-4 py-2" : "px-2 py-2"}  flex !justify-center items-center !rounded-xl  dark:border-gray-600 hover:bg-[var(--hover)] hover:text-[var(--textSec)] border !border-[var(--border)]`}
+          >
+
+            <span className='flex justify-center items-center text-12 gap-2'>
+              <Moon size={12} />{open && "Dark"}</span>
+          </button>
+        </div>}
+      </div>
     </Box>
   );
 

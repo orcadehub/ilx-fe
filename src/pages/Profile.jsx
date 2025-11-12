@@ -8,6 +8,10 @@ import BusinessInfo from "../components/profile/BusinessInfo";
 import ServicesTab from "../components/profile/ServicesTab";
 import DataTab from "../components/profile/DataTab";
 import Edit from "./Edit";
+import TabsButton from '../components/TabsButton'
+import GalleryTab from "../components/profile/GalleryTab";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const baseURL =
   import.meta.env.MODE === "development"
@@ -49,38 +53,34 @@ function Profile() {
   const { id: routeId } = useParams(); // id from URL param
   const [user, setUser] = useState(null);
   const [showEdit, setShowEdit] = useState(false);
+  const [activeKey, setActiveKey] = useState('services');
+  const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
-      // console.log("Starting fetchUser with routeId:", routeId); // Log routeId
-      // console.log("baseURL:", baseURL); // Log baseURL
-
       const numericId = Number(routeId);
       if (!routeId || isNaN(numericId) || numericId <= 0) {
-        // console.warn("Invalid or missing user id in route param:", {
-        //   routeId,
-        //   numericId,
-        // });
+        setLoading(false);
         return;
       }
 
       try {
-        console.log("Fetching user from:", `${baseURL}/api/user-details/${numericId}`);
-        const res = await axios.get(`${baseURL}/api/user/${numericId}`);
-        console.log("API response:", {
-          status: res.status,
-          data: res.data,
-        });
-        setUser(normalizeUserData(res.data));
+        setLoading(true);
+        const res = await axios.get(`${baseURL}/api/dashboard/user/${numericId}`);
+        
+        // Check if this is the logged-in user's profile
+        const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+        // console.log('Full logged in user:', loggedInUser);
+        // console.log('Logged in user ID:', loggedInUser.id, 'Profile ID:', numericId);
+        setIsOwnProfile(loggedInUser.id && Number(loggedInUser.id) === Number(numericId));
+        
+        const userData = { ...res.data.user, ...res.data.profile };
+        setUser(normalizeUserData(userData));
       } catch (err) {
-        console.error("Error loading user:", {
-          message: err.message,
-          response: err.response ? {
-            status: err.response.status,
-            data: err.response.data,
-          } : null,
-          config: err.config,
-        });
+        console.error("Error loading user:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -129,49 +129,79 @@ function Profile() {
     { month: "Dec", orders: 100 },
   ];
 
-  console.log("Rendering Profile with user:", user); // Log user state
+  const data = [
+    { key: 'services', label: 'Services' },
+    { key: 'data', label: 'Data' },
+    { key: 'gallery', label: 'Gallery' }, 
+  ];
+
+  // console.log("Rendering Profile with user:", user); // Log user state
+
+  if (loading) {
+    return (
+      <Container fluid className="p-3 xl:!px-20 !bg-[var(--bgPage2)]" style={{ minHeight: "100vh" }}>
+        <div className="border !border-[var(--border)] rounded-2xl !bg-[var(--card)] p-4">
+          <div className="animate-pulse">
+            <div className="h-32 bg-gray-300 rounded mb-4"></div>
+            <div className="flex gap-4">
+              <div className="w-1/3">
+                <div className="h-64 bg-gray-300 rounded"></div>
+              </div>
+              <div className="w-2/3">
+                <div className="h-8 bg-gray-300 rounded mb-4"></div>
+                <div className="h-48 bg-gray-300 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Container>
+    );
+  }
 
   return (
-    <Container fluid className="p-0" style={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
-      <ProfileHeader user={user} handleMessage={handleMessage} />
-      <Container className="mt-4">
-        <Row>
-          <Col lg={3} md={12} className="mb-4">
-            <BusinessInfo user={user} bizImages={bizImages} setUser={setUser} setShowEdit={setShowEdit} />
-          </Col>
-          <Col lg={9} md={12}>
-            <Card className="shadow-sm border-0 rounded" style={{ backgroundColor: "#f8f9fa" }}>
-              <Tabs defaultActiveKey="services" className="border-0" justify variant="underline">
-                <Tab eventKey="services" title="Services">
-                  <ServicesTab user={user} /> {/* Pass user to ServicesTab */}
-                </Tab>
-                <Tab eventKey="data" title="Data">
-                  <DataTab
+    <Container fluid className="p-3 xl:!px-20 !bg-[var(--bgPage2)]"
+      style={{  minHeight: "100vh" }}>
+      <div className="border !border-[var(--border)] rounded-2xl !bg-[var(--card)]">
+        <ProfileHeader user={user} handleMessage={handleMessage} />
+        <Container className="mt-4">
+          <Row>
+            <Col lg={4} md={12} className="mb-4">
+              <BusinessInfo user={user} bizImages={bizImages} setUser={setUser} setShowEdit={setShowEdit} isOwnProfile={isOwnProfile} />
+            </Col>
+            <Col lg={8} md={12}>
+              <Card className=" rounded !bg-[var(--card)] border-0">
+                <div className="!h-full w-[100%]">
+                  <TabsButton activeKey={activeKey} data={data} setActiveKey={setActiveKey}  />
+                  {activeKey == 'services' && <ServicesTab user={user} />}
+                  {activeKey == 'data' && <DataTab
                     platformData={platformData}
                     pieData={pieData}
                     monthlyOrdersData={monthlyOrdersData}
-                  />
-                </Tab>
-              </Tabs>
-            </Card>
-          </Col>
-        </Row>
-      </Container>
+                  />}
+                  {activeKey == 'gallery' && <GalleryTab user={user} />}
+                </div>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
+
+      </div>
 
       {showEdit && (
         <Edit
           user={user}
-          onSave={(updatedUser) => {
-            console.log("Saving updated user:", updatedUser);
+          onSave={(updatedData) => {
+            // Update user state with form data immediately
+            const updatedUser = { ...user, ...updatedData };
             setUser(normalizeUserData(updatedUser));
             setShowEdit(false);
           }}
           onClose={() => {
-            console.log("Closing Edit modal");
             setShowEdit(false);
           }}
         />
       )}
+      <ToastContainer position="bottom-right" autoClose={3000} />
     </Container>
   );
 }

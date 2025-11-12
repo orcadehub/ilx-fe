@@ -10,6 +10,9 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import config from "../config";
+import { Clock, Eye, Facebook, Instagram, Twitter, Youtube } from "lucide-react";
+import { pendingOrders } from "../data/topInflencersData";
+import NewTable from '../components/NewTable'
 
 const baseURL =
   import.meta.env.MODE === "development"
@@ -92,35 +95,166 @@ const PendingOrders = () => {
     return "#475569";
   };
 
+
+
+  const columns = [
+    {
+      title: (
+        <div className="text-14 text-gray-500">
+          Order </div>
+      ),
+      dataIndex: "infname",
+      key: "infname",
+      width: "20%",
+      render: (text) => <span className="capitalize text-12 !font-semibold">{text}</span>,
+    },
+    {
+      title: <div className="text-14 text-gray-500">Influencer</div>,
+      dataIndex: "influencer",
+      key: "influencer",
+      // width: "16%",
+      render: (text) => <span className={text !== "N/A" ? "capitalize text-12" : ""}>{text}</span>,
+    },
+    {
+      title: <div className="text-14 text-gray-500">Platform</div>,
+      dataIndex: "platform",
+      key: "platform",
+      // width: "16%",
+      render: (platforms) => (
+        <div className="flex gap-2 items-center">
+          {platforms?.map((platform, idx) => {
+            switch (platform.toLowerCase()) {
+              case "instagram":
+                return <Instagram key={idx} size={15} className="text-pink-500" />;
+              case "facebook":
+                return <Facebook key={idx} size={15} className="text-blue-600" />;
+              case "youtube":
+                return <Youtube key={idx} size={15} className="text-red-500" />;
+              case "twitter":
+                return <Twitter key={idx} size={15} className="text-sky-500" />;
+              default:
+                return (
+                  <span
+                    key={idx}
+                    className="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600"
+                  >
+                    {platform}
+                  </span>
+                );
+            }
+          })}
+        </div>
+      ), 
+    },
+    {
+      title: <div className="text-14 text-gray-500">Type</div>,
+      dataIndex: "type",
+      key: "type",
+      render: (types) => {
+        const typeColors = {
+          reel: "bg-purple-100 text-purple-700",
+          video: "bg-red-100 text-red-700",
+          post: "bg-blue-100 text-blue-700",
+          story: "bg-green-100 text-green-700",
+        };
+
+        return (
+          <div className="flex gap-2 flex-wrap">
+            {Array.isArray(types) &&
+              types.map((text, index) => {
+                const classes = typeColors[text?.toLowerCase()] || "bg-gray-100 text-gray-700";
+                return (
+                  <span
+                    key={index}
+                    className={`capitalize text-[10px] font-semibold  px-[5px] py-[1px] rounded-md  ${classes}`}
+                  >
+                    {text}
+                  </span>
+                );
+              })}
+          </div>
+        );
+      },
+    },
+    {
+      title: <div className="text-14 text-gray-500">Status</div>,
+      dataIndex: "status",
+      key: "status",
+      render: (text) => {
+        const statusColors = {
+          active: "bg-green-100 text-green-700",
+          pending: "bg-yellow-100 text-yellow-700",
+          completed: "bg-blue-100 text-blue-700",
+          cancelled: "bg-red-100 text-red-700",
+        };
+
+        const classes =
+          statusColors[text?.toLowerCase()] || "bg-gray-100 text-gray-700";
+
+        return (
+          <span
+            className={`capitalize text-[10px] font-semibold  px-[5px] py-[1px] rounded-md ${classes}`}
+          >
+            {text}
+          </span>
+        );
+      },
+    },
+    {
+      title: <div className="text-14 text-center text-gray-500">Action</div>,
+      dataIndex: "shortlistStatus",
+      key: "shortlistStatus",
+      width: "5%",
+      align: "center",
+      render: () =>
+        <div className='flex justify-center items-center'>
+          <Eye size={12} />  </div>
+      ,
+    },
+   
+  ];
+
+  const dataSource = pending.slice(0, 5).map((order) => ({
+    key: order.id,
+    infname: `Order #${order.id}`,
+    influencer: order.influencer_name || 'N/A',
+    platform: [order.platform || 'Unknown'],
+    type: [order.content_type || order.order_type || 'Unknown'],
+    status: order.status || 'pending',
+    orderDate: order.created_at
+  }));
+
   return (
     <Card
-      className="shadow-sm border-0"
-      style={{ backgroundColor: "#fff", borderRadius: "1rem" }}
+      className=" border !border-[var(--border)] !bg-[var(--card)] !text-[var(--text)] h-full!"
+      // style={{ backgroundColor: "#fff", borderRadius: "1rem" }}
     >
       <Card.Body>
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h5 className="fw-bold" style={{ color: "#1e293b" }}>
-            🕒 Pending Orders
-          </h5>
-          <Badge
-            bg="light"
-            text="dark"
-            className="rounded-pill px-3 py-2 shadow-sm"
-            style={{
-              cursor: "pointer",
-              backgroundColor: "#fff",
-              color: "#1e293b",
-            }}
+        <div className="flex !justify-between !items-center mb-4">
+          <div className="!text-[16px] flex !justify-center !items-center"
+            // style={{ color: "#1e293b" }}
+          >
+            <Clock size='16' className="text-blue mr-2 " /> Pending Orders
+          </div>
+          <button
+            className="!text-[12px] flex items-center hover:text-blue"
+            // style={{
+            //   cursor: "pointer",
+            //   backgroundColor: "#fff",
+            //   color: "#1e293b",
+            // }}
             onClick={() => navigate("/dashboard/orders")}
           >
-            View All <FaArrowRight className="ms-2" size={12} />
-          </Badge>
+            View All <FaArrowRight className="ml-1" size={12} />
+          </button>
         </div>
 
-        <div style={{ maxHeight: 300, overflowY: "auto" }}>
+        <div className='h-full max-h-[300px] overflow-y-auto'
+          // style={{ maxHeight: 300, overflowY: "auto" }}
+        >
           <div className="d-flex flex-column">
-            <div
-              className="d-flex text-muted py-2 px-3"
+            {/* <div
+              className="d-flex text-muted py-2 px-3 text-14"
               style={{
                 borderBottom: "1px solid #e5e7eb",
                 fontWeight: 500,
@@ -139,63 +273,17 @@ const PendingOrders = () => {
               <div style={{ flex: 0.5, padding: 8, textAlign: "end" }}>
                 Action
               </div>
-            </div>
+            </div> */}
 
             {loading ? (
               <div className="py-4 text-center text-muted">Loading…</div>
-            ) : orders.length === 0 ? (
+            ) : pending.length === 0 ? (
               <div className="py-4 text-center text-muted">
                 No pending orders
               </div>
             ) : (
-              orders.map((order) => (
-                <div
-                  key={order.id}
-                  className="d-flex"
-                  onClick={() => navigate(`/orders/${order.id}`)}
-                  style={{
-                    backgroundColor: "#fff",
-                    padding: 8,
-                    borderBottom: "1px solid #e5e7eb",
-                    alignItems: "center",
-                    cursor: "pointer",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#e2e8f0")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#fff")
-                  }
-                >
-                  <div className="fw-medium" style={{ flex: 0.5, padding: 8 }}>
-                    {order.id}
-                  </div>
-                  <div style={{ flex: 1.5, padding: 8 }}>{order.infname}</div>
-                  <div style={{ flex: 1, padding: 8 }}>
-                    {order.services[0].platform}
-                  </div>
-                  <div style={{ flex: 1.5, padding: 8 }}>
-                    {order.services[0].name}
-                  </div>
-                  <div style={{ flex: 1, padding: 8 }}>
-                    <Badge
-                      className="text-capitalize"
-                    
-                    >
-                      {order.status}
-                    </Badge>
-                  </div>
-                  <div style={{ flex: 0.5, padding: 8, textAlign: "end" }}>
-                    <FaEye
-                      className="text-dark"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/orders/${order.id}`);
-                      }}
-                    />
-                  </div>
-                </div>
-              ))
+              <NewTable columns={columns} dataSource={dataSource} />
+                  // <span>hii</span>
             )}
           </div>
         </div>

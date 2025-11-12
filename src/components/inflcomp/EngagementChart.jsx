@@ -1,28 +1,52 @@
 import React from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
-const EngagementChart = () => {
+const EngagementChart = ({ platformData = {} }) => {
+  const chartData = Object.entries(platformData).map(([platform, data]) => ({
+    platform: platform.charAt(0).toUpperCase() + platform.slice(1),
+    engagement: data.posts > 0 ? Math.round((data.likes + data.comments) / data.posts) : 0
+  }));
+
+  const fallbackData = [
+    { platform: "Instagram", engagement: 52 },
+    { platform: "Facebook", engagement: 45 },
+    { platform: "YouTube", engagement: 38 },
+    { platform: "Twitter", engagement: 28 }
+  ];
+
+  const displayData = chartData.length > 0 ? chartData : fallbackData;
+
   return (
-    <div className="bg-white rounded-4 p-3 shadow-sm">
-      <h6 className="fw-bold mb-3">Engagement Rate Over Time</h6>
+    <div className="p-3">
+      <h6 className=" mb-3 text-[var(--text)]">Platform Engagement</h6>
       <ResponsiveContainer width="100%" height={200}>
-        <AreaChart
-          data={[
-            { month: "Feb", rate: 52 },
-            { month: "Mar", rate: 56 },
-            { month: "Apr", rate: 59 },
-            { month: "May", rate: 62 },
-            { month: "Jun", rate: 65 },
-          ]}
+        <AreaChart data={displayData}
         >
-          <XAxis dataKey="month" />
-          <YAxis />
-          <Tooltip />
+          <XAxis
+            dataKey="platform"
+            tick={{ fill: 'var(--text)', fontSize: 12 }}
+            axisLine={{ stroke: 'var(--border)' }}
+            tickLine={{ stroke: 'var(--border)' }}
+          />
+          <YAxis
+            tick={{ fill: 'var(--text)', fontSize: 12 }}
+            axisLine={{ stroke: 'var(--border)' }}
+            tickLine={{ stroke: 'var(--border)' }}
+          />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: 'var(--card)',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              color: 'var(--text)'
+            }}
+          />
           <Area
             type="monotone"
-            dataKey="rate"
-            stroke="#4c75f2"
-            fill="#aecbfa"
+            dataKey="engagement"
+            stroke="var(--primary)"
+            fill="var(--primary)"
+            fillOpacity={0.2}
           />
         </AreaChart>
       </ResponsiveContainer>

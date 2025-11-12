@@ -1,3 +1,4 @@
+import { Facebook, Instagram, MessageSquare, Share, Twitter, Youtube } from "lucide-react";
 import React from "react";
 import { Row, Col, Image, Button } from "react-bootstrap";
 import { ChatDots, BoxArrowUp } from "react-bootstrap-icons";
@@ -24,17 +25,34 @@ const ProfileHeader = ({ user, handleMessage }) => {
   };
 
   return (
+    <div>
     <div
       style={{
-        background: "linear-gradient(to right, #605cff, #4a00e0)",
         color: "#ffffff",
         padding: "20px 0",
-        borderBottomLeftRadius: "20px",
-        borderBottomRightRadius: "20px",
       }}
+        className="h-40 p-2 rounded-t-2xl relative flex justify-end items-end bg-gradient-to-r from-[#A5AFFE] via-[#7786FF] to-[#4E5BFF]"
     >
-      <Row className="align-items-center mx-4">
-        <Col xs="auto">
+          <Button
+            variant="light"
+            size="sm"
+            className="me-2 rounded !flex !items-center"
+            onClick={handleMessage}
+            disabled={!user}
+          >
+          <MessageSquare size={14} className="me-1" /> Message
+          </Button>
+          <Button
+            variant="light"
+            size="sm"
+          className="rounded !flex !items-center"
+            onClick={handleShare}
+            disabled={!user}
+          >
+          <Share size={14} className="me-1" /> Share
+          </Button>
+      
+        {/* <Col xs="auto">
           <Image
             src={user?.profile_pic || "https://picsum.photos/seed/user/80/80"}
             roundedCircle
@@ -47,28 +65,44 @@ const ProfileHeader = ({ user, handleMessage }) => {
           <h5 className="mb-0">{user?.fullname || "user123"}</h5>
           <small>{user?.email || "user123@gmail.com"}</small>
         </Col>
+      
         <Col className="text-end">
-          <Button
-            variant="light"
-            size="sm"
-            className="me-2 rounded-pill"
-            onClick={handleMessage}
-            disabled={!user}
-          >
-            <ChatDots className="me-1" /> Message
-          </Button>
-          <Button
-            variant="light"
-            size="sm"
-            className="rounded-pill"
-            onClick={handleShare}
-            disabled={!user}
-          >
-            <BoxArrowUp className="me-1" /> Share
-          </Button>
-        </Col>
-      </Row>
+          
+        </Col> */}
+      </div>
+      <div className="p-2 h-34 md:flex !items-end justify-between relative">
+        <div className="absolute top-[-50%] left-[2%] ">
+          <Image
+            src={user?.profile_pic || "https://picsum.photos/seed/user/80/80"}
+            roundedCircle
+            className="bg-[var(--bg)] p-1"
+            width={120}
+            height={120}
+            alt="User Avatar"
+          />
+          </div>
+        <div className="!text-[var(--text)] pl-8 !mt-13 mb-2 md:mb-0 md:!mt-5 xl:mt-0">
+          <h5 className="mb-0">{user?.fullname || "user123"}</h5>
+          <small>{user?.email || "user123@gmail.com"}</small>
+        </div>
+        <div className="flex justify-center items-center gap-2">
+          <span className='p-2 !bg-pink-100 rounded-full'>
+            <Instagram className="text-pink-500" size={18} />
+          </span>
+          <span className='p-2 bg-blue-100 rounded-full'>
+            <Facebook className="text-blue-500" size={18} />
+          </span>
+          <span className='p-2 bg-red-100 rounded-full'>
+            <Youtube className="text-red-500" size={18} />
+          </span>
+          <span className='p-2 bg-blue-100 rounded-full'>
+            <Twitter className="text-blue-400" size={18} />
+
+          </span>
+        </div>
+      </div>
     </div>
+
   );
 };
 

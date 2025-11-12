@@ -2,12 +2,20 @@ import React from "react";
 import { Row } from "react-bootstrap";
 import CustomCard from "./CustomCard";
 
-const CustomPackageContent = ({ selected }) => {
+const CustomPackageContent = ({ selected, convertPrice }) => {
+  const combos = selected?.prices?.combos || [];
+  
   return (
     <Row>
-      {(selected.prices.custom || []).map((combo) => (
-        <CustomCard key={combo.name} combo={combo} />
-      ))}
+      {combos.length > 0 ? (
+        combos.map((combo, index) => (
+          <CustomCard key={combo.name || index} combo={combo} convertPrice={convertPrice} />
+        ))
+      ) : (
+        <div className="text-center text-muted py-4">
+          No custom packages available
+        </div>
+      )}
     </Row>
   );
 };

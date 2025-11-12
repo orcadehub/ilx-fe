@@ -12,6 +12,8 @@ import ProfileTab from "./ProfileTab";
 import SecurityTab from "./SecurityTab";
 import NotificationsTab from "./NotificationsTab";
 import SocialTab from "./SocialTab";
+import { Bell, Lock, LogOut, Share2, User } from "lucide-react";
+import TabsButton from "../components/TabsButton";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("profile");
@@ -20,51 +22,75 @@ const Settings = () => {
     console.log("User logged out");
   };
 
+  const data = [
+    {
+      key: "profile", label: "Profile", icon: <User size={14} />, component: <ProfileTab />
+    },
+    {
+      key: "security", label: "Security", icon: <Lock size={14} />, component: <SecurityTab />
+    },
+    {
+      key: "notifications", label: "Notifications", icon: <Bell size={14} />, component: <NotificationsTab />
+    },
+    {
+      key: "social", label: "Social", icon: <Share2 size={14} />, component: <SocialTab />
+    },
+  ]
+
   return (
     <div
-      className="min-vh-100"
-      style={{ background: "#f1f5f9", fontFamily: "Inter, sans-serif" }}
+      className="min-vh-100 !bg-[var(--bgPage2)] !text-[var(--text)] p-1 xl:p-4"
+      // style={{ background: "#f1f5f9", fontFamily: "Inter, sans-serif" }}
     >
       {/* Header */}
       <div
-        style={{
-          background: "linear-gradient(to right, #605cff, #4a00e0)",
-          color: "#fff",
-          padding: "20px 0",
-          borderBottomLeftRadius: 20,
-          borderBottomRightRadius: 20,
-        }}
+        className=""
+        // style={{
+        //   background: "linear-gradient(to right, #605cff, #4a00e0)",
+        //   color: "#fff",
+        //   padding: "20px 0",
+        //   borderBottomLeftRadius: 20,
+        //   borderBottomRightRadius: 20,
+        // }}
       >
         <Container>
-          <Row className="align-items-center justify-content-between">
-            <Col>
-              <h5 className="fw-bold mb-1 d-flex align-items-center gap-2 text-light">
+          <div className="!flex items-center justify-between">
+            <div>
+              <h5 className="fw-bold !text-[25px] mb-0 d-flex align-items-center gap-2">
                 Account Settings
               </h5>
-              <small
-                className="mb-0 text-light opacity-75"
+              {/* <small
+                className="mb-0 opacity-75"
                 style={{ fontSize: "0.95rem" }}
               >
                 Manage your info, billing, and security in one place.
-              </small>
-            </Col>
-            <Col className="text-end">
+              </small> */}
+            </div>
+            <div className="text-end">
               <Button
-                variant="outline-light"
-                className="fw-semibold rounded-3"
+                // variant="outline-light"
+                className="rounded !flex items-center justify-between border !border-[var(--border)] !bg-red-500 !text-white"
                 onClick={handleLogout}
               >
-                <BoxArrowRight className="me-2" /> Sign Out
+                <LogOut size={16} className="me-2" /> Logout
               </Button>
-            </Col>
-          </Row>
+            </div>
+          </div>
         </Container>
       </div>
 
       {/* Main Section with Tabs */}
       <Container className="mt-4">
-        <Card className="shadow-sm border-0 rounded bg-white">
-          <Tabs
+        <Card className="border-0 rounded !bg-[var(--bgPage2)]">
+          <TabsButton activeKey={activeTab} setActiveKey={setActiveTab} data={data} wfit={true}  />
+          <div className="border-0 rounded-2xl">
+            {activeTab === "profile" && <ProfileTab />}
+            {activeTab === "security" && <SecurityTab />}
+            {activeTab === "notifications" && <NotificationsTab />}
+            {activeTab === "social" && <SocialTab />}
+          </div>
+          
+          {/* <Tabs
             id="settings-tabs"
             activeKey={activeTab}
             onSelect={(k) => setActiveTab(k)}
@@ -112,7 +138,7 @@ const Settings = () => {
             >
               <div className="p-4">{<SocialTab />}</div>
             </Tab>
-          </Tabs>
+          </Tabs> */}
         </Card>
       </Container>
     </div>

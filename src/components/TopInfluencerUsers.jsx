@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Card, Container, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import "./Dash.css";
+import { User } from "lucide-react";
+import { topInfluencersData } from "../data/topInflencersData";
+import TopCard from "./TopCard";
 
 const TopInfluencerUsers = () => {
   const navigate = useNavigate();
@@ -35,16 +38,16 @@ const TopInfluencerUsers = () => {
 
   return (
     <Card
-      className="shadow-sm border-0 pending-orders-card"
-      style={{
-        backgroundColor: "#fff",
-        borderRadius: "1rem",
-        minHeight: "400px",
-      }}
+      className="shadow-sm pending-orders-card !border !border-[var(--border)] !bg-[var(--card)] !text-[var(--text)] !h-full"
+      // style={{
+      //   // backgroundColor: "#fff",
+      //   // borderRadius: "1rem",
+      //   // minHeight: "400px",
+      // }}
     >
       <Card.Body>
-        <h5 className="fw-bold mb-4">
-          <i className="bi bi-star me-2" />
+        <h5 className="mb-4 flex items-center !text-[16px]">
+          <User size='16' className="mr-1 text-blue" />
           Top Influencer Users
         </h5>
 
@@ -56,32 +59,8 @@ const TopInfluencerUsers = () => {
             <Spinner animation="border" variant="primary" />
             <span className="ms-3">Loading influencer users...</span>
           </Container>
-        ) : users.length > 0 ? (
-          users.map((user) => (
-            <div
-              key={user.name}
-              className="d-flex align-items-center justify-content-between mb-1 px-3 py-2 rounded cursor-pointer"
-              onClick={() => navigate(`/influencer/${slugify(user.name)}`)}
-              style={{
-                backgroundColor: "#fff",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
-              }}
-            >
-              <div className="d-flex align-items-center">
-                <img
-                  src={user.img}
-                  alt={user.name}
-                  className="rounded-circle me-3"
-                  width="40"
-                  height="40"
-                />
-                <div>
-                  <div className="fw-semibold">{user.name}</div>
-                </div>
-              </div>
-              <div className="fw-bold">{user.orders} orders</div>
-            </div>
-          ))
+        ) : topInfluencersData.length > 0 ? (
+            <TopCard topData={topInfluencersData} />
         ) : (
           <div className="text-muted text-center">No influencer users available</div>
         )}

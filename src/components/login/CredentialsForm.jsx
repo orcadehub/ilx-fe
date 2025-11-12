@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Form, Button, Spinner } from "react-bootstrap";
 
 export default function CredentialsForm({
@@ -14,6 +14,8 @@ export default function CredentialsForm({
   onLoginWithGoogle,
   palette,
 }) {
+  const [showPassword, setShowPassword] = useState(false);
+  
   const inputWrap = { position: "relative" };
   const iconLeft = {
     position: "absolute",
@@ -22,6 +24,15 @@ export default function CredentialsForm({
     transform: "translateY(-50%)",
     color: "#7c8aa5",
     fontSize: 18,
+  };
+  const iconRight = {
+    position: "absolute",
+    right: 12,
+    top: "50%",
+    transform: "translateY(-50%)",
+    color: "#7c8aa5",
+    fontSize: 18,
+    cursor: "pointer",
   };
   const inputStyle = {
     borderRadius: 12,
@@ -68,12 +79,17 @@ export default function CredentialsForm({
           <div style={inputWrap}>
             <i className="bi bi-lock" style={iconLeft} />
             <Form.Control
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={inputStyle}
+              style={{...inputStyle, paddingRight: "40px"}}
               placeholder="Enter your password"
               required
+            />
+            <i 
+              className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`}
+              style={iconRight}
+              onClick={() => setShowPassword(!showPassword)}
             />
           </div>
         </Form.Group>

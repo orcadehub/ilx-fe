@@ -1,113 +1,124 @@
-import React from "react";
+import React, { useState } from "react";
 import { Row, Col } from "react-bootstrap";
 import PostCard from "./PostCard";
+import { Select, Radio } from "antd";
+
+const { Option } = Select;
 
 const ServicesTab = ({ selected }) => {
-  const posts = [];
+  // Map posts from the API response
+  const posts = selected.posts ? selected.posts.map((post) => ({
+    platform: post.platform,
+    id: post.id,
+    created_time: post.posted_at || new Date().toISOString(),
+    image: post.thumbnail,
+    likes: post.likes || 0,
+    views: post.views || 0,
+    comments: post.comments || 0,
+    shares: post.shares || 0,
+    saves: 0,
+    type: post.type,
+    title: `${post.platform} ${post.type}`,
+    description: `Engagement: ${post.likes} likes, ${post.comments} comments`,
+    permalink: post.url,
+  })) : [];
 
-  // Facebook Posts
-  if (selected.posts?.facebook) {
-    posts.push(
-      ...selected.posts.facebook.map((fb) => ({
-        platform: "facebook",
-        id: fb.id,
-        created_time: fb.posted_at,
-        image: fb.media_url,
-        likes: fb.likes || 0,
-        views: fb.views || 0,
-        comments: fb.comments || 0,
-        shares: fb.shares || 0,
-        saves: fb.saves || 0,
-        type: fb.type,
-        title: fb.title,
-        description: fb.description,
-        permalink: fb.permalink,
-      }))
-    );
-  }
 
-  // YouTube Posts
-  if (selected.posts?.youtube) {
-    posts.push(
-      ...selected.posts.youtube.map((yt) => ({
-        platform: "youtube",
-        id: yt.id,
-        created_time: yt.posted_at,
-        image: yt.media_url,
-        likes: yt.likes || 0,
-        views: yt.views || 0,
-        comments: yt.comments || 0,
-        shares: yt.shares || 0,
-        saves: yt.saves || 0,
-        type: yt.type,
-        title: yt.title,
-        description: yt.description,
-        permalink: yt.permalink,
-      }))
-    );
-  }
+  const [selectedPlatform, setSelectedPlatform] = useState("All");
+  const platforms = ["All", "Instagram", "Facebook", "YouTube", "Twitter"];
+  const handleChangePlatforms = (value) => {
+    setSelectedPlatform(value);
+  };
 
-  // Instagram Posts
-  if (selected.posts?.instagram) {
-    posts.push(
-      ...selected.posts.instagram.map((ig) => ({
-        platform: "instagram",
-        id: ig.id,
-        created_time: ig.posted_at,
-        image: ig.media_url,
-        likes: ig.likes || 0,
-        views: ig.views || 0,
-        comments: ig.comments || 0,
-        shares: ig.shares || 0,
-        saves: ig.saves || 0,
-        type: ig.type,
-        title: ig.title,
-        description: ig.description,
-        permalink: ig.permalink,
-      }))
-    );
-  }
+  const [selectedType, setSelectedType] = useState("Post Image/Video");
 
-  // Twitter Posts
-  if (selected.posts?.twitter) {
-    posts.push(
-      ...selected.posts.twitter.map((tw) => ({
-        platform: "twitter",
-        id: tw.id,
-        created_time: tw.posted_at,
-        image: tw.media_url,
-        likes: tw.likes || 0,
-        views: tw.views || 0,
-        comments: tw.comments || 0,
-        shares: tw.shares || 0,
-        saves: tw.saves || 0,
-        type: tw.type,
-        title: tw.title,
-        description: tw.description,
-        permalink: tw.permalink,
-      }))
-    );
-  }
+  const options = [
+    "Post Image/Video",
+    "Reels/Shorts",
+    "Story (Image/Video)",
+    "In-Video Promotion (<10 min)",
+  ];
 
-  // Sort posts by newest first
-  posts.sort((a, b) => new Date(b.created_time) - new Date(a.created_time));
-
-  if (posts.length === 0) {
-    return (
-      <Col>
-        <div className="text-center text-muted">No posts available.</div>
-      </Col>
-    );
-  }
-
+  const handleChange = (value) => {
+    setSelectedType(value);
+  };
   return (
-    <Row className="g-4">
-      {posts.map((post, index) => (
-        <Col xs={12} sm={6} md={4} key={index}>
-          <PostCard post={post} />
-        </Col>
-      ))}
-    </Row>
+    <div>
+      <div className="flex justify-end items-center gap-2">
+      <div className="w-[170px]">
+        <Select
+          value={selectedPlatform}
+            onChange={handleChangePlatforms}
+            className="w-full"
+            disabled={posts.length === 0}
+          dropdownRender={() => (
+            <div className="!p-2 border !border-[var(--border)] !rounded">
+              <Radio.Group
+                onChange={(e) => handleChangePlatforms(e.target.value)}
+                value={selectedPlatform}
+                className="flex flex-col !text-[var(--text)] "
+              >
+                {platforms.map((platform) => (
+                  <Radio className="hover:bg-[var(--hover)] p-1 rounded !w-full !text-[var(--text)]" key={platform} value={platform}>
+                    {platform}
+                  </Radio>
+                ))}
+              </Radio.Group>
+            </div>
+          )}
+        >
+          {platforms.map((platform) => (
+            <Option key={platform} value={platform}>
+              {platform}
+            </Option>
+          ))}
+        </Select>
+      </div>
+        <div className="w-[200px]">
+          <Select
+            value={selectedType}
+            onChange={handleChange}
+            className="w-full"
+            disabled={posts.length === 0}
+            dropdownRender={() => (
+              <div className="!p-2 border !border-[var(--border)] !rounded">
+                <Radio.Group
+                  onChange={(e) => handleChange(e.target.value)}
+                  value={selectedType}
+                  className="flex flex-col !text-[var(--text)] "
+                >
+                  {options.map((opt) => (
+                    <Radio className="hover:bg-[var(--hover)] p-1 rounded !w-full !text-[var(--text)]" key={opt} value={opt}>
+                      {opt}
+                    </Radio>
+                  ))}
+                </Radio.Group>
+              </div>
+            )}
+          >
+            {options.map((opt) => (
+              <Option key={opt} value={opt}>
+                {opt}
+              </Option>
+            ))}
+          </Select>
+        </div>
+      </div>
+    
+      {(posts.length === 0) ?
+        <Col>
+          <div className="text-center !text-[var(--text)] flex justify-center items-center h-62">No posts available.</div>
+        </Col> :
+      
+      
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-3">
+          {posts.map((post, index) => (
+            <div key={index}>
+              <PostCard post={post} />
+            </div>
+          ))}
+        </div>}
+    </div>
   );
 };
 

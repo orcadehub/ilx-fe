@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Card, Button, Tabs, Tab, Form, ListGroup, Badge } from 'react-bootstrap';
-import { Plus, ArrowUpRight, ArrowDownLeft, Gift, ArrowRepeat, Wallet as WalletIcon } from 'react-bootstrap-icons';
+import { ArrowUpRight, ArrowDownLeft, ArrowRepeat, Wallet as WalletIcon } from 'react-bootstrap-icons';
+import TabsButton from '../components/TabsButton';
+import { Dropdown } from 'antd';
+import { ChevronDown, Funnel, Plus, Gift, RefreshCcw, ArrowUp, ArrowDown } from 'lucide-react';
 
 function Wallet() {
   const [amount, setAmount] = useState('');
+  const [activeKey, setActiveKey] = useState('summary');
   const [activeFilter, setActiveFilter] = useState('all');
   const [transactions, setTransactions] = useState([
     { id: 1, type: 'deposit', amount: 5000, description: 'Wallet top-up', date: '2023-06-15', time: '10:30 AM', status: 'completed' },
@@ -36,74 +40,155 @@ function Wallet() {
 
   const getIcon = type => {
     switch (type) {
-      case 'deposit': return <Plus className="text-success" />;
-      case 'payment': return <ArrowUpRight className="text-danger" />;
-      case 'refund': return <ArrowRepeat className="text-warning" />;
-      case 'bonus': return <Gift className="text-info" />;
-      default: return <WalletIcon className="text-primary" />;
+      case 'payment': return <ArrowDown  className="text-danger" />;
+      // case 'refund': return <RefreshCcw size={18} className="text-warning" />;
+      // case 'bonus': return <Gift size={20} className="text-info" />;
+      default: return <ArrowUp className="text-green-500" />;
     }
   };
 
   const currentBalance = transactions.filter(tx => tx.status === 'completed').reduce((sum, tx) => sum + tx.amount, 0);
   const totalSpent = transactions.filter(tx => tx.type === 'payment' && tx.status === 'completed').reduce((sum, tx) => sum + tx.amount, 0);
   const totalWithdrawn = Math.abs(transactions.filter(tx => tx.type === 'refund' && tx.status === 'completed').reduce((sum, tx) => sum + tx.amount, 0));
-
+  const data = [
+    {
+    label: "All",
+      key: "all"
+  },
+  {
+    label: "Deposit",
+    key: "deposit"
+    },
+    {
+      label: "Payment",
+      key: "payment"
+    },
+    {
+      label: "Refund",
+      key: "refund"
+    },
+    {
+      label: "Bonus",
+      key: "bonus"
+    },
+  ];
+  
+  const items = [
+    {
+      key: '1',
+      label: (
+        <a target="_blank" rel="noopener noreferrer" href="https://www.antgroup.com">
+          1st menu item
+        </a>
+      ),
+    },
+    {
+      key: '2',
+      label: (
+        <a target="_blank" rel="noopener noreferrer" href="https://www.aliyun.com">
+          2nd menu item
+        </a>
+      ),
+    },
+    {
+      key: '3',
+      label: (
+        <a target="_blank" rel="noopener noreferrer" href="https://www.luohanacademy.com">
+          3rd menu item
+        </a>
+      ),
+    },
+  ];
+  
   return (
-    <Container fluid style={{ backgroundColor: '#f1f5f9', minHeight: '100vh' }} className="p-0">
+    <Container fluid
+      // style={{ backgroundColor: 'var(--bg)', minHeight: '100vh' }}
+      className="p-1 md:p-4   !bg-[var(--bgPage2)] min-h-[100vh] text-[var(--text)]">
       {/* Header */}
-      <div
-        style={{
-          background: 'linear-gradient(to right, #605cff, #4a00e0)',
-          color: '#fff',
-          padding: '20px 0',
-          borderBottomLeftRadius: 20,
-          borderBottomRightRadius: 20,
-        }}
+      <div className=''
+        // style={{
+        //   background: 'linear-gradient(to right, #605cff, #4a00e0)',
+        //   color: '#fff',
+        //   padding: '20px 0',
+        //   borderBottomLeftRadius: 20,
+        //   borderBottomRightRadius: 20,
+        // }}
       >
-        <Container>
+        <Container >
           <Row className="align-items-center">
             <Col>
-              <h5 className="mb-0">Wallet & Transactions</h5>
-              <small>Manage your balance and payments</small>
+              <h5 className="mb-0 !font-bold">My Wallet </h5>
+              {/* <small>Manage your balance and payments</small> */}
             </Col>
           </Row>
         </Container>
       </div>
 
-      <Container className="mt-4">
-        <Row>
+      <Container className="mt-4 xl:p-0">
+        <div>
           {/* Left Side - Add Funds */}
-          <Col lg={3} md={12} className="mb-4">
-            <Card className="shadow-sm border-0">
-              <Card.Header className="bg-white d-flex justify-content-between align-items-center border-bottom">
-                <h6 className="mb-0">Add Funds</h6>
-              </Card.Header>
-              <Card.Body>
+          <div className="grid grid-cols-1 md:grid-cols-4 xl:grid-cols-3 xl:gap-4 mb-5 gap-2 ">
+            {/* 1st Card - full width on mobile */}
+            <Card className="border !border-[var(--border)] !bg-[var(--card)] p-3 !text-[var(--text)] col-span-1 md:col-span-2 xl:col-span-1">
+              <div>
+                <p className='mb-0'>Current Balance</p>
+                <div className='text-[28px] !font-bold'>₹{currentBalance.toLocaleString('en-IN')}</div>
+
                 <Form>
-                  <Form.Group className="mb-3" controlId="formAmount">
-                    <Form.Label>Amount</Form.Label>
-                    <Form.Control
-                      type="number"
-                      min="1"
-                      value={amount}
-                      onChange={e => setAmount(e.target.value)}
-                      placeholder="Enter amount"
-                    />
+                  <Form.Group controlId="formAmount">
+                    <div className='flex justify-center items-center gap-2 mt-3'>
+                      <Form.Control
+                        type="number"
+                        min="1"
+                        value={amount}
+                        className='!py-[10px]'
+                        onChange={e => setAmount(e.target.value)}
+                        placeholder="Enter amount"
+                      />
+                      <button
+                        className="w-30 p-2 rounded text-12 flex justify-center items-center bg-[var(--primary)] text-white"
+                        disabled={!amount}
+                        onClick={handleAddFunds}
+                      >
+                        Add Funds
+                      </button>
+                    </div>
                   </Form.Group>
-                  <Button variant="primary" className="w-100" disabled={!amount} onClick={handleAddFunds}>
-                    <Plus className="me-1" /> Add Funds
-                  </Button>
                 </Form>
-              </Card.Body>
+              </div>
             </Card>
-          </Col>
+
+            {/* 2nd and 3rd cards share row on mobile */}
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-2 md:gap-4 col-span-1 md:col-span-2">
+              <Card className="border !border-[var(--border)] !bg-[var(--card)] p-3 !text-[var(--text)]">
+                <p className='mb-0'>Total Spent</p>
+                <div className='text-[25px] md:text-[28px] !font-bold'>
+                  ₹{Math.abs(totalSpent).toLocaleString('en-IN')}
+                </div>
+                <div className='text-[10px] md:!text-[12px] mt-4'>From order payments and services</div>
+              </Card>
+
+              <Card className="border !border-[var(--border)] !bg-[var(--card)] p-3 !text-[var(--text">
+                <p className='mb-0'>Total Withdrawn</p>
+                <div className='text-[25px] md:text-[28px] !font-bold'>
+                  ₹{Math.abs(totalSpent).toLocaleString('en-IN')}
+                </div>
+                <div className='text-[10px]  md:!text-[12px] mt-4'>Including refunds and adjustments</div>
+              </Card>
+            </div>
+          </div>
+
 
           {/* Right Side - Tabs */}
-          <Col lg={9} md={12}>
-            <Card className="shadow-sm border-0 rounded" style={{ backgroundColor: '#f8f9fa' }}>
-              <Tabs defaultActiveKey="summary" justify variant="underline" className="pt-3 px-3">
-                <Tab eventKey="summary" title="Summary">
-                  <Row className="g-4 px-4 py-3">
+          <div>
+            <Card className=" border-0 rounded"
+              style={{ backgroundColor: 'var(--card)' }}>
+              {/* <TabsButton activeKey={activeKey} data={data} setActiveKey={setActiveKey} /> */}
+              {/* <Tabs defaultActiveKey="summary" justify variant="underline" */}
+              {/* > */}
+                {/* <Tab eventKey="summary" title="Summary"> */}
+              {/* {activeKey == 'summary' &&
+                <Row className="g-4 px-4 py-3">
                     <Col md={4}>
                       <Card className="h-100 border-0 shadow-sm">
                         <Card.Body className="text-center">
@@ -128,41 +213,60 @@ function Wallet() {
                         </Card.Body>
                       </Card>
                     </Col>
-                  </Row>
-                </Tab>
+                  </Row>} */}
+                {/* </Tab> */}
 
-                <Tab eventKey="transactions" title="Transactions">
-                  <ListGroup variant="flush" className="px-3 py-3" style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                    <div className="d-flex justify-content-end mb-3 gap-2 flex-wrap">
-                      {['all', 'deposit', 'payment', 'refund', 'bonus'].map(filter => (
-                        <Button
-                          key={filter}
-                          variant={activeFilter === filter ? 'dark' : 'outline-dark'}
-                          size="sm"
-                          onClick={() => setActiveFilter(filter)}
-                          aria-pressed={activeFilter === filter}
-                          className="text-capitalize"
-                        >
-                          {filter}
-                        </Button>
-                      ))}
-                    </div>
+                {/* <Tab eventKey="transactions" title="Transactions"> */}
+                  {/* <Tab eventKey="transactions" title="Transactions"> */}
+                
+                <ListGroup variant="flush" className="p-1 md:px-3 md:py-3 !border-0"
+                  // style={{ maxHeight: '500px', overflowY: 'auto' }}
+                >
+                <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-3 mb-3">
+                  {/* Tabs Section */}
+                  <div className="w-full sm:w-auto">
+                    <TabsButton
+                      activeKey={activeFilter}
+                      data={data}
+                      setActiveKey={setActiveFilter}
+                      wfit="true"
+                    />
+                  </div>
+
+                  {/* Filter Section */}
+                  <div className="w-full sm:w-auto flex justify-end">
+                    <Dropdown
+                      className="!text-[var(--text)] !bg-[var(--bgPage2)]"
+                      menu={{ items }}
+                      placement="bottom"
+                      arrow={{ pointAtCenter: true }}
+                    >
+                      <button className="flex justify-between items-center gap-2 border !border-[var(--border)] h-fit rounded p-1 px-3 !text-[var(--text)] hover:text-[var(--primary)]">
+                        <Funnel className="!text-[var(--text)]" size={16} /> Filter
+                        <ChevronDown className="!text-[var(--text)]" size={16} />
+                      </button>
+                    </Dropdown>
+                  </div>
+                </div>
+
                     {filteredTransactions.length ? (
                       filteredTransactions.map(tx => (
-                        <ListGroup.Item key={tx.id} className="d-flex justify-content-between align-items-center">
+                        <ListGroup.Item key={tx.id} className="d-flex justify-content-between align-items-center !text-[var(--text)] border !border-[var(--border)] !bg-[var(--card)]">
                           <div className="d-flex align-items-center gap-3">
+                            <span className='!bg-[var(--hover2)] p-2 rounded-full'>
                             {getIcon(tx.type)}
+                            </span>
                             <div>
-                              <h6 className="mb-1 fw-semibold">{tx.description}</h6>
-                              <small className="text-muted">{tx.date} • {tx.time}</small>
+                              <h6 className="mb-0 font-medium">{tx.description}</h6>
+                              <small className="text-[var(--mutedText)] text-12">{tx.date} • {tx.time}</small>
                             </div>
                           </div>
                           <div className="text-end d-flex align-items-center gap-2">
-                            <span className={`fw-bold ${tx.amount > 0 ? 'text-success' : 'text-danger'}`}>
+                            <span className={`fw-bold text-14 ${tx.amount > 0 ? 'text-success' : 'text-danger'}`}>
                               {tx.amount > 0 ? '+' : ''}{tx.amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
                             </span>
                             {tx.status === 'pending' && (
-                              <Badge bg="warning" text="dark" pill>Pending</Badge>
+                              <Badge className='!font-normal' bg="warning" text="dark" pill>Pending</Badge>
                             )}
                           </div>
                         </ListGroup.Item>
@@ -171,11 +275,11 @@ function Wallet() {
                       <div className="text-center text-secondary py-5 fw-semibold">No transactions found</div>
                     )}
                   </ListGroup>
-                </Tab>
-              </Tabs>
+                {/* </Tab> */}
+              {/* </Tabs> */}
             </Card>
-          </Col>
-        </Row>
+          </div>
+        </div>
       </Container>
     </Container>
   );

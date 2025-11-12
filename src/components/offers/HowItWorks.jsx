@@ -19,7 +19,7 @@ const HowItWorks = ({ onViewPromotions }) => {
           <Col md={4} key={i}>
             <div className="bg-light rounded-3 p-4 shadow-sm border border-1">
               <div
-                className="badge bg-primary rounded-circle mb-3"
+                className="rounded-circle mb-3 !bg-[var(--primary)]"
                 style={{ width: 36, height: 36, lineHeight: "36px" }}
               >
                 {i + 1}

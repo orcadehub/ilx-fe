@@ -1,20 +1,16 @@
 // src/components/Services.js
 import React, { useState } from "react";
 import {
-  Container,
-  Row,
-  Col,
-  Card,
   Form,
   Button,
   Image,
-  Modal,
   Alert,
   Spinner,
 } from "react-bootstrap";
 import { motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
 import config from "../config";
+import NotifyMe from "../components/NotifyMe";
 
 const baseURL =
   import.meta.env.MODE === "development"
@@ -53,7 +49,7 @@ const servicesData = {
 
 const Services = () => {
   const [selectedService, setSelectedService] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showMobileForm, setShowMobileForm] = useState(false); // Mobile form visibility state
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -65,12 +61,16 @@ const Services = () => {
   const [formStatus, setFormStatus] = useState(null); // { type: 'success'|'error', message: string }
   const [isLoading, setIsLoading] = useState(false); // Loading state
 
-  const handleOpenModal = () => setShowModal(true);
-  const handleCloseModal = () => setShowModal(false);
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleBackToServices = () => {
+    setShowMobileForm(false);
+    setSelectedService(null);
   };
 
   const handleSubmit = async (e) => {
@@ -123,14 +123,10 @@ const Services = () => {
   const renderForm = () => {
     return !selectedService ? (
       <div
-        className="text-center py-5"
+        className="text-center py-5 rounded-xl !border !border-[var(--border)] !bg-[var(--bg)] !text-[var(--text)] !h-full flex justify-center items-center"
         style={{
-          color: "#888",
-          fontSize: "2.1rem",
+          fontSize: "1.5rem",
           fontWeight: 500,
-          background: "hsl(214.3, 31.8%, 98%)",
-          borderRadius: "1rem",
-          boxShadow: "0 0 12px rgba(0,0,0,0.06)",
         }}
       >
         Please select a service to continue
@@ -150,7 +146,7 @@ const Services = () => {
               left: 0,
               right: 0,
               bottom: 0,
-              background: "rgba(255, 255, 255, 0.8)",
+              background: "rgba(0, 0, 0, 0.1)",
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
@@ -159,144 +155,153 @@ const Services = () => {
             }}
           >
             <Spinner animation="border" variant="primary" />
-            <span className="ms-2">Submitting...</span>
+            <span className="ms-2" style={{ color: "var(--text)" }}>Submitting...</span>
           </div>
         )}
-        <Card
-          className="p-4 shadow-sm border-0 rounded-4"
-          style={{
-            background: "hsl(214.3, 31.8%, 98%)",
-            opacity: isLoading ? 0.5 : 1,
-          }}
-        >
-          <h5 className="mb-4" style={{ color: "#1a237e" }}>
-            Request {selectedService.title} Service
-          </h5>
-          {formStatus && (
-            <Alert
-              variant={formStatus.type === "success" ? "success" : "danger"}
-              onClose={() => setFormStatus(null)}
-              dismissible
-            >
-              {formStatus.message}
-            </Alert>
-          )}
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>Full Name</Form.Label>
-              <Form.Control
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleInputChange}
-                placeholder="Enter your full name"
-                required
-                disabled={isLoading}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Email</Form.Label>
-              <Form.Control
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Enter your email"
-                required
-                disabled={isLoading}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Phone Number</Form.Label>
-              <Form.Control
-                type="text"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                placeholder="Enter your phone number"
-                required
-                disabled={isLoading}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Project Description</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={4}
-                name="projectDescription"
-                value={formData.projectDescription}
-                onChange={handleInputChange}
-                placeholder="Describe your requirements"
-                required
-                disabled={isLoading}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Budget Range</Form.Label>
-              <Form.Select
-                name="budget"
-                value={formData.budget}
-                onChange={handleInputChange}
-                required
+        {console.log('--->', selectedService)}
+        {(selectedService.id == "amazon" || selectedService.id == "zeetv" || selectedService.id == "hotstar") ?
+          <NotifyMe /> :
+          <div
+            className="p-4 rounded-xl !border !border-[var(--border)] !bg-[var(--card)]"
+            style={{
+              opacity: isLoading ? 0.5 : 1,
+            }}
+          >
+            <h5 className="mb-4 text-[var(--text)]">
+              Request {selectedService.title} Service
+            </h5>
+            {formStatus && (
+              <Alert
+                variant={formStatus.type === "success" ? "success" : "danger"}
+                onClose={() => setFormStatus(null)}
+                dismissible
+              >
+                {formStatus.message}
+              </Alert>
+            )}
+            <Form className="text-[14px] " onSubmit={handleSubmit}>
+              <Form.Group className="mb-3 ">
+                <Form.Label className="text-[var(--text)]">Full Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  placeholder="Enter your full name"
+                  required
+                  disabled={isLoading}
+                  className="!bg-[var(--bgPage)] !border !border-[var(--border)] !text-[var(--text)] placeholder:!text-[var(--text)] !text-[12px]"
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label className="text-[var(--text)]">Email</Form.Label>
+                <Form.Control
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="Enter your email"
+                  required
+                  disabled={isLoading}
+                  className="!bg-[var(--bgPage)] !border !border-[var(--border)] !text-[var(--text)] placeholder:!text-[var(--text)] !text-[12px]"
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label className=" !text-[var(--text)]">Phone Number</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleInputChange}
+                  placeholder="Enter your phone number"
+                  required
+                  disabled={isLoading}
+                  className="!bg-[var(--bgPage)] !border !border-[var(--border)] !text-[var(--text)] placeholder:!text-[var(--text)] !text-[12px]"
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label className="text-[var(--text)]">Project Description</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={4}
+                  name="projectDescription"
+                  value={formData.projectDescription}
+                  onChange={handleInputChange}
+                  placeholder="Describe your requirements"
+                  required
+                  disabled={isLoading}
+                  className="!bg-[var(--bgPage)] !min-h-[230px] !overflow-y-auto !border !border-[var(--border)] !text-[var(--text)] placeholder:!text-[var(--text)] !text-[12px]"
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label className="text-[var(--text)]">Budget Range</Form.Label>
+                <Form.Select
+                  name="budget"
+                  value={formData.budget}
+                  onChange={handleInputChange}
+                  required
+                  disabled={isLoading}
+                  className="!bg-[var(--bgPage)] !border !border-[var(--border)] !text-[var(--text)] !text-[12px]"
+                >
+                  <option value="">Select Budget</option>
+                  <option value="0-5000">₹0 - ₹5,000</option>
+                  <option value="5000-10000">₹5,000 - ₹10,000</option>
+                  <option value="10000-25000">₹10,000 - ₹25,000</option>
+                  <option value="25000+">₹25,000+</option>
+                </Form.Select>
+              </Form.Group>
+              <Form.Group className="mb-4">
+                <Form.Label className="text-[var(--text)]">Timeline</Form.Label>
+                <Form.Select
+                  name="timeline"
+                  value={formData.timeline}
+                  onChange={handleInputChange}
+                  required
+                  disabled={isLoading}
+                  className="!bg-[var(--bgPage)] !border !border-[var(--border)] !text-[var(--text)] !text-[12px]"
+                >
+                  <option value="">Select Timeline</option>
+                  <option value="1week">1 Week</option>
+                  <option value="2weeks">2 Weeks</option>
+                  <option value="1month">1 Month</option>
+                  <option value="flexible">Flexible</option>
+                </Form.Select>
+              </Form.Group>
+              <Button
+                style={{
+                  backgroundColor: "var(--primary)",
+                  border: "none",
+                  borderRadius: "10px",
+                }}
+                className="w-100 font-medium text-white"
+                type="submit"
                 disabled={isLoading}
               >
-                <option value="">Select Budget</option>
-                <option value="0-5000">₹0 - ₹5,000</option>
-                <option value="5000-10000">₹5,000 - ₹10,000</option>
-                <option value="10000-25000">₹10,000 - ₹25,000</option>
-                <option value="25000+">₹25,000+</option>
-              </Form.Select>
-            </Form.Group>
-            <Form.Group className="mb-4">
-              <Form.Label>Timeline</Form.Label>
-              <Form.Select
-                name="timeline"
-                value={formData.timeline}
-                onChange={handleInputChange}
-                required
-                disabled={isLoading}
-              >
-                <option value="">Select Timeline</option>
-                <option value="1week">1 Week</option>
-                <option value="2weeks">2 Weeks</option>
-                <option value="1month">1 Month</option>
-                <option value="flexible">Flexible</option>
-              </Form.Select>
-            </Form.Group>
-            <Button
-              style={{
-                background: "linear-gradient(135deg, #1976d2, rgb(87, 52, 226))",
-                border: "none",
-                borderRadius: "30px",
-              }}
-              className="w-100 fw-bold"
-              type="submit"
-              disabled={isLoading}
-            >
-              Submit Request
-            </Button>
-          </Form>
-        </Card>
+                Submit Request
+              </Button>
+            </Form>
+          </div>}
       </motion.div>
     );
   };
 
   const renderServiceCards = () => (
-    <div className="px-2">
+    <div className="p-2 sm:p-3 md:p-4">
       {Object.entries(servicesData).map(([category, services]) => (
-        <div key={category} className="mb-4">
+        <div key={category} className="mb-4 sm:mb-6">
           <h6
             className="fw-semibold mb-3"
             style={{
-              borderLeft: "4px solid #6a11cb",
+              borderLeft: "4px solid var(--primary)",
               paddingLeft: "10px",
-              color: "#444",
+              color: "var(--text)",
             }}
           >
             {category}
+            {category == "OTT Campaigns" && <span className="p-1 ml-1 font-normal text-12 text-yellow-500 bg-amber-100 rounded-xl">Comming Soon</span>}
           </h6>
           <motion.div
-            className="d-flex flex-wrap gap-3 justify-content-center"
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-2 sm:gap-3 md:gap-4 "
             initial="hidden"
             animate="visible"
             variants={{
@@ -315,40 +320,37 @@ const Services = () => {
                   visible: { opacity: 1, y: 0 },
                 }}
               >
-                <Card
+                <div
                   onClick={() => {
                     setSelectedService(service);
-                    handleCloseModal();
+                    setShowMobileForm(true); // Show form on mobile when service is selected
                   }}
-                  className={`text-center d-flex flex-column justify-content-center align-items-center ${
-                    selectedService?.id === service.id
-                      ? "border-primary shadow"
-                      : ""
-                  }`}
+                  className={`
+                    text-center d-flex hover:shadow-xl flex-column justify-content-center align-items-center 
+                    rounded-xl !border w-full aspect-rectangle  p-2 !py-3 sm:!py-4
+                    !bg-[var(--bgPage2)] ${selectedService?.id === service.id
+                      ? "!border-[var(--primary)] shadow"
+                      : "!border-[var(--border)]"
+                    } !bg-[var(--bgPage)]
+                  `}
                   style={{
-                    width: "120px",
-                    height: "100px",
                     cursor: "pointer",
-                    border: "1px solid #ddd",
-                    borderRadius: "16px",
                     transition: "all 0.3s ease-in-out",
                     boxShadow:
                       selectedService?.id === service.id
-                        ? "0 0 10px rgba(106, 17, 203, 0.3)"
+                        ? "0 0 10px rgba(37, 99, 235, 0.3)"
                         : "",
                   }}
                 >
                   <Image
                     src={`/icons/${service.id}.png`}
                     alt={service.title}
-                    style={{
-                      width: "36px",
-                      height: "36px",
-                      marginBottom: "8px",
-                    }}
+                    className="mb-1 sm:mb-2 w-15 h-15 sm:w-8 sm:h-8 md:w-9 md:h-9 xl:h-12 xl:w-12 object-contain"
                   />
-                  <div style={{ fontSize: "13px" }}>{service.title}</div>
-                </Card>
+                  <div className="text-[var(--text)] text-center px-1 text-xs sm:text-sm leading-tight">
+                    {service.title}
+                  </div>
+                </div>
               </motion.div>
             ))}
           </motion.div>
@@ -358,63 +360,70 @@ const Services = () => {
   );
 
   return (
-    <Container
-      fluid
-      className="p-4"
-      style={{ background: "var(--primary-color)", minHeight: "100vh" }}
+    <div
+      className="p-2 sm:p-4 md:p-6"
+      style={{ backgroundColor: "var(--bgPage2)", minHeight: "100vh" }}
     >
-      <motion.h4
+      {!showMobileForm && <motion.h4
         className="mb-4 fw-bold"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        style={{ color: "#1a237e" }}
+        style={{ color: "var(--text)" }}
       >
         Services
-      </motion.h4>
-      <Row>
-        <Col md={6} className="d-none d-md-block">
+      </motion.h4>}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-4 md:gap-6">
+        {/* Services Section - Conditionally shown on mobile, always shown on desktop */}
+        <div className={`${showMobileForm ? 'hidden lg:block' : 'block'}`}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <Card
-              className="p-4 shadow-sm border-0 rounded-4"
-              style={{ backgroundColor: "var(--primary-color)" }}
+            <div
+              className="p-2 sm:p-4 md:p-6 rounded-xl !border !border-[var(--border)] !bg-[var(--card)]"
             >
               {renderServiceCards()}
-            </Card>
+            </div>
           </motion.div>
-        </Col>
-        <Col md={6}>
-          <div className="d-md-none mb-3">
-            <Button
-              onClick={handleOpenModal}
-              className="w-100 fw-bold text-white"
-              style={{
-                background: "linear-gradient(to right, #8e2de2, #4a00e0)",
-                border: "none",
-                borderRadius: "10px",
-              }}
-              disabled={isLoading}
-            >
-              Select Service
-            </Button>
-          </div>
-          {renderForm()}
-        </Col>
-      </Row>
+        </div>
 
-      <Modal show={showModal} onHide={handleCloseModal} fullscreen>
-        <Modal.Header closeButton>
-          <Modal.Title>Select a Service</Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="pb-2" style={{ backgroundColor: "var(--primary-color)" }}>
-          {renderServiceCards()}
-        </Modal.Body>
-      </Modal>
-    </Container>
+        {/* Form Section - Shown when service selected on mobile, always shown on desktop */}
+        <div className={`${showMobileForm ? 'block' : 'hidden lg:block'}`}>
+          {/* Back button for mobile */}
+          {showMobileForm && (
+
+            <div className="flex !items-center !justify-between relative w-full py-2">
+  {/* Back button - left aligned */}
+              <button onClick={handleBackToServices}
+                className="absolute left-0 top-3 flex items-center gap-1 !text-[var(--text)] hover:text-[var(--primary)]">
+  Back
+  </button>
+
+  {/* Title - centered */}
+              <h2 className="text-lg font-semibold mx-auto text-center w-full !text-[var(--text)]">
+    Services
+  </h2>
+</div>
+            // <div className="lg:hidden mb-4">
+            //   <button
+            //     onClick={handleBackToServices}
+            //     className="flex items-center gap-2 px-4 py-2 rounded-lg !bg-[var(--card)] !border !border-[var(--border)] !text-[var(--text)] hover:!bg-[var(--bgPage)] transition-colors"
+            //   >
+            //     <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            //       <path fillRule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
+            //     </svg>
+            //     Back
+            //   </button>
+            // </div>
+          )}
+          {renderForm()}
+        </div>
+      </div>
+
+
+    </div>
   );
 };
 

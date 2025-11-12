@@ -25,7 +25,7 @@ const iconComponents = {
   Twitter: <Twitter />,
 };
 
-const COLORS = ["#ff9f40", "#4bc0c0"];
+const COLORS = ["#3B82F6", "#4bc0c0"];
 
 const CustomizedAxisTick = ({ x, y, payload }) => {
   const platform = iconComponents[payload.value];
@@ -75,40 +75,57 @@ const DataTab = ({ platformData, pieData, monthlyOrdersData }) => (
           value: "90",
         },
       ].map((item, i) => (
-        <Col md={4} sm={6} key={i}>
-          <Card className="bg-white shadow-sm border-0 text-center">
+        <Col xs={6} xl={4} key={i}>
+          <Card className="!bg-[var(--bgPage2)] !text-[var(--text)] border !border-[var(--border)] text-center">
             <Card.Body>
-              <div className="mb-2" style={{ fontSize: "1.5rem" }}>
+              {/* <div className="mb-2" style={{ fontSize: "1.5rem" }}>
                 {item.icon}
-              </div>
-              <h6 className="mb-1">{item.title}</h6>
-              <h4 className="mb-0">{item.value}</h4>
+              </div> */}
+              <h4 className="mb-0 !text-[30px] !font-bold">{item.value}</h4>
+              <h6 className="mb-1 text-12">{item.title}</h6>
             </Card.Body>
           </Card>
         </Col>
       ))}
     </Row>
-    <Row className="g-4">
+    <Row className="g-4 mb-4">
       <Col md={6}>
-        <Card className="bg-white shadow-sm border-0">
+        <Card
+          className="!text-[var(--text)] !bg-[var(--bgPage2)] border !border-[var(--border)] shadow-sm "
+        >
           <Card.Body>
-            <h5 className="mb-3">Orders by Platform</h5>
+            <h5 className="mb-3 !text-[16px]">Orders by Platform</h5>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={platformData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" tick={<CustomizedAxisTick />} interval={0} />
+                <XAxis
+                  dataKey="name"
+                  interval={0}
+                  tick={({ x, y, payload }) => (
+                    <text
+                      x={x}
+                      y={y + 15}
+                      textAnchor="middle"
+                      fill="#555"
+                      fontSize={12}
+                    >
+                      {payload.value}
+                    </text>
+                  )}
+                />
                 <YAxis />
                 <Tooltip />
                 <Bar dataKey="orders" fill="#0d6efd" />
               </BarChart>
             </ResponsiveContainer>
           </Card.Body>
+
         </Card>
       </Col>
       <Col md={6}>
-        <Card className="bg-white shadow-sm border-0">
+        <Card className="!text-[var(--text)] !bg-[var(--bgPage2)] border !border-[var(--border)] shadow-sm ">
           <Card.Body>
-            <h5 className="mb-3">Links vs Clicks</h5>
+            <h5 className="mb-3 !text-[16px]">Links vs Clicks</h5>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie
@@ -119,12 +136,21 @@ const DataTab = ({ platformData, pieData, monthlyOrdersData }) => (
                   outerRadius={80}
                   innerRadius={60}
                   dataKey="value"
+                  padAngle={6}
                 >
                   {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell stroke="var(--bg)"     
+                      strokeWidth={6}
+                      key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip
+                  contentStyle={{
+                  backgroundColor: "#475569", 
+                  color: "#475569",
+                  borderRadius: "8px",
+                  border: "1px solid #475569",
+                }} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
@@ -132,9 +158,9 @@ const DataTab = ({ platformData, pieData, monthlyOrdersData }) => (
         </Card>
       </Col>
     </Row>
-    <Card className="bg-white shadow-sm border-0 mt-4">
+    <Card className="!text-[var(--text)] !bg-[var(--bgPage2)] border !border-[var(--border)] shadow-sm ">
       <Card.Body>
-        <h5 className="mb-3">Monthly Orders</h5>
+        <h5 className="mb-3 !text-[16px]">Monthly Orders</h5>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={monthlyOrdersData}>
             <CartesianGrid strokeDasharray="3 3" />

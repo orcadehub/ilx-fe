@@ -17,7 +17,7 @@ const MetricsSection = ({ metrics }) => {
   const navigate = useNavigate();
 
   return (
-    <Row className="g-4 px-3 mb-5">
+    <Row className="gap-4 px-3 mb-2">
       {metrics && metrics.length > 0 ? (
         metrics.map((card, index) => (
           <Col key={card.title} md={6} lg={3}>

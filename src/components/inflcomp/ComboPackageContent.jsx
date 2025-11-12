@@ -6,7 +6,7 @@ const ComboPackageContent = ({ selected, selectedCombos, handleComboChange }) =>
 
   return (
     <div className="combo-packages">
-      <p className="text-muted">
+      <p className="text-14">
         Choose a multi-platform promotion package designed by the influencer.
         These bundles include posts across 2 or more platforms at a fixed price.
         Content must be provided by the business.

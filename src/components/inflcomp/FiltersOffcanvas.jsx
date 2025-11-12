@@ -1,5 +1,6 @@
 import React from "react";
 import { Offcanvas } from "react-bootstrap";
+import { Button, Drawer } from 'antd';
 
 const FiltersOffcanvas = ({
   showFilters,
@@ -41,33 +42,42 @@ const FiltersOffcanvas = ({
   formatFollowers,
 }) => {
   return (
-    <Offcanvas
-      show={showFilters}
-      onHide={() => setShowFilters(false)}
-      placement="end"
-      backdrop={true}
-      style={{ zIndex: 1100 }}
-    >
-      <Offcanvas.Header className="d-flex justify-content-between align-items-center">
-        <Offcanvas.Title className="fw-bold">Filters</Offcanvas.Title>
-        <div>
-          <button
-            className="btn btn-outline-secondary btn-sm me-2"
-            onClick={resetFilters}
-          >
-            Reset Filters
-          </button>
-          <button
-            type="button"
-            className="btn-close"
-            onClick={() => setShowFilters(false)}
-            aria-label="Close"
-          ></button>
-        </div>
-      </Offcanvas.Header>
 
-      <Offcanvas.Body className="px-4 py-3 bg-light">
-        {/* Custom Styles */}
+    <Drawer
+      title={<div>
+        <div className="flex items-center justify-between gap-1">
+        <span className='text-[16px] font-bold'>
+          Filters</span>
+        <button
+          className="btn !border-[var(--border)] !text-[var(--text)] btn-sm "
+          onClick={resetFilters}
+        >
+          Reset Filters
+        </button>
+      
+      </div></div>}
+      closable={{ 'aria-label': 'Close Button' }}
+      onClose={() => setShowFilters(false)}
+      open={showFilters}
+      zIndex={1300}
+      className='!bg-[var(--bgPage2)] border !border-[var(--border)] text-[var(--text)]'
+      footer={<div className="d-flex justify-content-between position-sticky bottom-0 !bg-[var(--bgPage2)] text-[var(--text)] p-2">
+        <button
+          className=" px-3 !py-1 border !border-[var(--border)] !rounded-xl"
+          onClick={() => setShowFilters(false)}
+        >
+          Cancel
+        </button>
+        <button
+          className="px-3 !py-1 border !border-[var(--border)] !rounded-xl bg-[var(--primary)] text-white"
+          onClick={handleUpdate}
+        >
+          Update
+        </button>
+      </div>}
+    >
+      <Offcanvas.Body className="px-1 pb-3 bg-[var(--bgPage2)] text-[var(--text)] locationInputs">
+        {/* Custom Styles
         <style>
           {`
           .form-select {
@@ -86,14 +96,14 @@ const FiltersOffcanvas = ({
             box-shadow: 0 0 8px rgba(0, 123, 255, 0.3) !important;
           }
         `}
-        </style>
+        </style> */}
 
         {/* Location Section */}
-        <div className="mb-3">
-          <label className="form-label fw-semibold text-dark">Location</label>
+        <div className="mb-3 text-12">
+          <label className="form-label font-medium text-14">Location</label>
           <div className="mb-2">
             <select
-              className="form-select border-2 shadow-sm"
+              className="form-select"
               value={countryCode}
               onChange={(e) => setCountryCode(e.target.value)}
             >
@@ -140,7 +150,7 @@ const FiltersOffcanvas = ({
         {/* Niche & Content Type */}
         <div className="d-flex gap-2 mb-3">
           <div className="w-50">
-            <label className="form-label fw-semibold text-dark">Niche</label>
+            <label className="form-label font-medium text-14">Niche</label>
             <select
               className="form-select border-2 shadow-sm"
               value={niche}
@@ -176,7 +186,7 @@ const FiltersOffcanvas = ({
 
         {/* Engagement Rate */}
         <div className="mb-3">
-          <label className="form-label fw-semibold text-dark">
+          <label className="form-label font-medium text-14">
             Engagement Rate:{" "}
             <span className="text-primary">{engagementRate}%</span>
           </label>
@@ -197,7 +207,7 @@ const FiltersOffcanvas = ({
 
         {/* Follower Count */}
         <div className="mb-3">
-          <label className="form-label fw-semibold text-dark">
+          <label className="form-label font-medium text-14">
             Follower Count:{" "}
             <span className="text-primary">{formatFollowers(followers)}</span>
           </label>
@@ -218,7 +228,7 @@ const FiltersOffcanvas = ({
 
         {/* Platform */}
         <div className="mb-3">
-          <label className="form-label fw-semibold text-dark">Platform</label>
+          <label className="form-label font-medium text-14">Platform</label>
           <select
             className="form-select border-2 shadow-sm"
             value={platform}
@@ -235,13 +245,13 @@ const FiltersOffcanvas = ({
 
         {/* Price Range */}
         <div className="mb-3">
-          <label className="form-label fw-semibold text-dark">
+          <label className="form-label font-medium text-14">
             Price Range
           </label>
           <div className="d-flex gap-2">
             <input
               type="number"
-              className="form-control border-2 shadow-sm"
+              className="form-control h-7"
               value={priceRange.min}
               onChange={(e) =>
                 setPriceRange({
@@ -253,7 +263,7 @@ const FiltersOffcanvas = ({
             />
             <input
               type="number"
-              className="form-control border-2 shadow-sm"
+              className="form-control h-7"
               value={priceRange.max}
               onChange={(e) =>
                 setPriceRange({
@@ -268,10 +278,10 @@ const FiltersOffcanvas = ({
 
         {/* Hashtags */}
         <div className="mb-3">
-          <label className="form-label fw-semibold text-dark">Hashtags</label>
+          <label className="form-label font-medium text-14">Hashtags</label>
           <input
             type="text"
-            className="form-control border-2 shadow-sm"
+            className="form-control h-7"
             value={hashtags}
             onChange={(e) => setHashtags(e.target.value)}
             placeholder="Enter hashtags"
@@ -280,7 +290,7 @@ const FiltersOffcanvas = ({
             {["#travel", "#food"].map((tag, idx) => (
               <span
                 key={idx}
-                className="badge bg-secondary bg-opacity-10 text-dark border border-secondary px-2 py-1"
+                className="badge bg-secondary bg-opacity-10 !text-[var(--text)] border !border-[var(--border)] px-2 py-1"
                 style={{ fontSize: "0.85rem", cursor: "pointer" }}
                 onClick={() =>
                   setHashtags(hashtags ? `${hashtags}, ${tag}` : tag)
@@ -295,7 +305,7 @@ const FiltersOffcanvas = ({
         {/* Age & Gender */}
         <div className="d-flex gap-2 mb-3">
           <div className="w-50">
-            <label className="form-label fw-semibold text-dark">Age</label>
+            <label className="form-label font-medium text-14">Age</label>
             <select
               className="form-select border-2 shadow-sm"
               value={age}
@@ -328,7 +338,7 @@ const FiltersOffcanvas = ({
 
         {/* Top Audience Country */}
         <div className="mb-3">
-          <label className="form-label fw-semibold text-dark">
+          <label className="form-label font-medium text-14">
             Top Audience Countries
           </label>
           <select
@@ -347,7 +357,7 @@ const FiltersOffcanvas = ({
 
         {/* Top Audience Language */}
         <div className="mb-3">
-          <label className="form-label fw-semibold text-dark">
+          <label className="form-label font-medium text-14">
             Top Audience Languages
           </label>
           <select
@@ -363,24 +373,17 @@ const FiltersOffcanvas = ({
             ))}
           </select>
         </div>
-
-        {/* Buttons */}
-        <div className="d-flex justify-content-between position-sticky bottom-0 bg-light py-2">
-          <button
-            className="btn btn-outline-secondary px-4 py-2"
-            onClick={() => setShowFilters(false)}
-          >
-            Cancel
-          </button>
-          <button
-            className="btn btn-primary px-4 py-2"
-            onClick={handleUpdate}
-          >
-            Update
-          </button>
-        </div>
       </Offcanvas.Body>
-    </Offcanvas>
+    </Drawer>
+    // <Offcanvas
+    //   show={showFilters}
+    //   onHide={() => setShowFilters(false)}
+    //   placement="end"
+    //   backdrop={true}
+    //   style={{ zIndex: 1100 }}
+    // >
+     
+    // </Offcanvas>
   );
 };
 

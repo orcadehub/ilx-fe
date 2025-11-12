@@ -16,36 +16,54 @@ const PricesTab = ({
   handlePlatformChange,
   handleComboChange,
   handleProceed,
+  convertPrice,
 }) => {
   return (
-    <div className="border rounded-4 p-4 bg-light shadow-sm">
+    <div className="px-3">
       {/* Tab Options */}
-      <div className="mb-3 d-flex gap-3">
-        {["Platform Based", "Combo Package", "Custom Package"].map(
+      <div className="mb-3 d-flex gap-3 !bg-[var(--hover2)] p-1 rounded-xl">
+        {["Platform Based",
+          // "Combo Package",
+          "Custom Package"].map(
           (tab) => (
-            <div
+            <button
               key={tab}
+              className={`btn w-100 text-center !font-medium text-14 py-1 border-0 !text-[var(--text)] ${selectedService === tab
+                  ? " border-bottom border-2 border-primary !bg-[var(--bg)]"
+                  : ""
+                }`}
               onClick={() => {
-                setSelectedService(tab);
-                setSelectedPlatformServices({});
-                setSelectedCombos([]);
-                setExpandedPlatform("instagram");
-              }}
-              style={{
-                cursor: "pointer",
-                paddingBottom: "5px",
-                borderBottom:
-                  selectedService === tab
-                    ? "2px solid blue"
-                    : "2px solid transparent",
-                fontWeight:
-                  selectedService === tab ? "bold" : "normal",
-                color: selectedService === tab ? "blue" : "#000",
-                transition: "all 0.2s ease-in-out",
-              }}
+                  setSelectedService(tab);
+                  setSelectedPlatformServices({});
+                  setSelectedCombos([]);
+                  setExpandedPlatform("instagram");
+                }}
             >
-              {tab}
-            </div>
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+            // <div
+            //   key={tab}
+            //   onClick={() => {
+            //     setSelectedService(tab);
+            //     setSelectedPlatformServices({});
+            //     setSelectedCombos([]);
+            //     setExpandedPlatform("instagram");
+            //   }}
+            //   style={{
+            //     cursor: "pointer",
+            //     paddingBottom: "5px",
+            //     borderBottom:
+            //       selectedService === tab
+            //         ? "2px solid blue"
+            //         : "2px solid transparent",
+            //     fontWeight:
+            //       selectedService === tab ? "bold" : "normal",
+            //     color: selectedService === tab ? "blue" : "#000",
+            //     transition: "all 0.2s ease-in-out",
+            //   }}
+            // >
+            //   {tab}
+            // </div>
           )
         )}
       </div>
@@ -58,6 +76,7 @@ const PricesTab = ({
           setExpandedPlatform={setExpandedPlatform}
           selectedPlatformServices={selectedPlatformServices}
           handlePlatformChange={handlePlatformChange}
+          convertPrice={convertPrice}
         />
       )}
 
@@ -72,13 +91,13 @@ const PricesTab = ({
 
       {/* Custom Package Content */}
       {selectedService === "Custom Package" && (
-        <CustomPackageContent selected={selected} />
+        <CustomPackageContent selected={selected} convertPrice={convertPrice} />
       )}
 
       {/* Book Button */}
       <div className="text-end mt-3">
         <button
-          className="btn btn-success rounded-pill px-4 shadow-sm"
+          className="btn !bg-[var(--primary)] rounded-xl text-white px-4"
           onClick={handleProceed}
         >
           Book

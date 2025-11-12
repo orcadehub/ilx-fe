@@ -1,4 +1,29 @@
-.custom-orders-wrapper {
+/* Custom modal width and responsiveness */
+.custom-orders-modal {
+  width: 70vw !important;
+  max-width: 70vw !important;
+  height: 80vh !important;
+}
+.modal .modal-content{
+width: auto !important;
+background-color: var(--bg);
+}
+@media (max-width: 1280px) {
+  .custom-orders-modal {
+  width: 90vw !important;
+  max-width: 90vw !important;
+  height: 80vh !important;
+}
+}
+
+@media (max-width: 768px) {
+  .custom-orders-modal {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: auto !important;
+    padding: 0 !important;
+  }
+}.custom-orders-wrapper {
   width: 100%;
   /* background: #f6f5f3; */
   min-height: 100vh;

@@ -103,9 +103,9 @@ const CurrentOffers = ({ campaigns, promotions, isLoading, onGenerateUrl, onShow
                     </Alert>
                   ) : (
                     <Button
-                      variant="dark"
+                      // variant="dark"
                       size="sm"
-                      className="text-capitalize"
+                        className="text-capitalize !bg-[var(--primary)]"
                       aria-label="Generate unique URL"
                       onClick={() => handleGenerateUrl(campaign.id)}
                       disabled={isLoading}

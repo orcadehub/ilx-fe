@@ -11,8 +11,10 @@ import {
   Spinner,
   Form,
 } from "react-bootstrap";
-import { FaTwitter, FaYoutube, FaInstagram, FaFacebook } from "react-icons/fa";
+import { FaTwitter, FaYoutube, FaInstagram, FaFacebook, FaSearch } from "react-icons/fa";
 import config from "../config";
+import { Heart, Search } from "lucide-react";
+import toast from "react-hot-toast";
 
 const baseURL =
   import.meta.env.MODE === "development"
@@ -55,13 +57,13 @@ function Wishlist() {
   const renderPlatformIcon = (platform) => {
     switch (platform) {
       case "twitter":
-        return <FaTwitter className="text-primary" size={20} />;
+        return <FaTwitter className="text-primary" size={14} />;
       case "youtube":
-        return <FaYoutube className="text-danger" size={20} />;
+        return <FaYoutube className="text-danger" size={14} />;
       case "instagram":
-        return <FaInstagram className="text-pink-500" size={20} />;
+        return <FaInstagram className="text-pink-500" size={14} />;
       case "facebook":
-        return <FaFacebook className="text-primary" size={20} />;
+        return <FaFacebook className="text-primary" size={14} />;
       default:
         return null;
     }
@@ -82,7 +84,24 @@ function Wishlist() {
   };
 
   const handleProfileClick = (infId) => {
-    navigate(`/profile/${infId}`);
+    navigate(`/dashboard/influencers/${infId}`);
+  };
+
+  const handleRemoveFromWishlist = async (e, influencerId) => {
+    e.stopPropagation();
+    try {
+      const response = await axios.post(`${baseURL}/api/wishlist`, 
+        { influencerId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      if (response.data.success) {
+        toast.success(response.data.message);
+        setWishlist(prev => prev.filter(inf => inf.id !== influencerId));
+      }
+    } catch (error) {
+      toast.error('Failed to remove from wishlist');
+    }
   };
 
   // Filter and sort wishlist based on search term
@@ -95,37 +114,49 @@ function Wishlist() {
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <Container fluid className="bg-light min-vh-100">
+    <Container fluid className="bg-[var(--bgPage2)] text-[var(--text)] min-vh-100">
+      <div className="md:flex justify-between items-center">
       <div
-        style={{
-          background: "linear-gradient(to right, #605cff, #4a00e0)",
-          color: "#fff",
-          padding: "20px 0",
-          borderBottomLeftRadius: 20,
-          borderBottomRightRadius: 20,
-          marginBottom: "2rem",
-        }}
+        className="py-4 md:p-4 "
+        // style={{
+        //   background: "linear-gradient(to right, #605cff, #4a00e0)",
+        //   color: "#fff",
+        //   padding: "20px 0",
+        //   marginBottom: "2rem",
+        // }}
       >
         <Container>
           <Row className="align-items-center">
             <Col>
               <h4 className="mb-0 fw-bold">My Wishlist</h4>
-              <small>Explore your favorite influencers</small>
+                <small className="text-[var(--mutedText)]">{filteredWishlist.length} of {wishlist.length} influencers</small>
             </Col>
           </Row>
         </Container>
       </div>
 
-      <Container style={{ maxWidth: "800px" }}>
-        <Form.Group className="mb-4">
+        <Form.Group className="mb-4 position-relative px-3 md:px-0 ">
+          <Search
+            size={14}
+            className="position-absolute left-[10%] md:!left-[8%] !bg-[var(--card)]"
+            style={{
+              top: "50%",
+              // left: "10%",
+              transform: "translateY(-50%)",
+              pointerEvents: "none",
+            }}
+          />
           <Form.Control
             type="text"
             placeholder="Search by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="rounded-pill shadow-sm"
+            className="rounded py-2 !pl-10 md:!pl-6 !w-62"
           />
         </Form.Group>
+        
+     </div>
+      <div className="!px-1 md:!px-">
 
         {error && (
           <Alert
@@ -144,21 +175,20 @@ function Wishlist() {
             <Spinner animation="border" variant="primary" />
           </div>
         ) : filteredWishlist.length === 0 && !error ? (
-          <Alert
-            variant="info"
-            className="mx-auto mb-4"
+          <div
+            className="mx-auto mb-4 !bg-[var(--card-bg)] !text-[var(--text)] h-[100%] md:mt-20 w-full d-flex justify-content-center align-items-center text-center p-4"
             style={{ maxWidth: "600px" }}
           >
             {searchTerm
               ? "No influencers match your search."
               : "Your wishlist is empty. Add some influencers to get started!"}
-          </Alert>
+          </div>
         ) : (
-          <Row xs={1} className="g-4">
+              <Row xs={2} sm={2} md={3} lg={4} xl={4} className="g-1 md:g-4 !w-full">
             {filteredWishlist.map((inf) => (
               <Col key={inf.id}>
                 <Card
-                  className="border-0 shadow-sm transition-transform transform-hover"
+                  className="border !border-[var(--border)] !bg-[var(--card)] !text-[var(--text)] shadow-sm transition-transform transform-hover !h-full"
                   style={{ borderRadius: "15px", cursor: "pointer" }}
                   onClick={() => handleProfileClick(inf.id)}
                   role="button"
@@ -167,32 +197,36 @@ function Wishlist() {
                     e.key === "Enter" && handleProfileClick(inf.id)
                   }
                 >
-                  <Card.Body className="d-flex flex-column p-3">
+                  <Card.Body className="d-flex flex-column items-center p-3 relative">
                     {/* Profile Section */}
-                    <div className="d-flex align-items-center mb-3">
+                    <div className="d-flex align-items-center flex-col mb-3 gap-2">
                       <img
                         src={
                           inf.profilePic ||
                           "https://via.placeholder.com/64?text=User"
                         }
                         alt={inf.name}
-                        className="rounded-circle me-3 border border-light"
+                        className="rounded-circle me-3 "
                         style={{
                           width: "60px",
                           height: "60px",
                           objectFit: "cover",
                         }}
                       />
-                      <div className="flex-grow-1">
+                      <div className="flex-grow-1 justify-center text-center !min-w-0">
                         <Card.Title
-                          className="mb-1 text-dark fw-bold"
-                          style={{ fontSize: "1.5rem" }}
+                          className="mb-1 fw-bold text-14"
                         >
                           {inf.name}
                         </Card.Title>
                         <Card.Text
-                          className="text-muted small text-truncate"
-                          style={{ maxWidth: "250px" }}
+                          className="text-[var(--mutedText)] text-12 !whitespace-normal !break-words mx-auto"
+                          style={{
+                            whiteSpace: "normal",       
+                            wordBreak: "break-word",  
+                            overflowWrap: "anywhere",   
+                          }}
+                          // style={{ maxWidth: "250px" }}
                         >
                           {inf.email || "No email provided"}
                         </Card.Text>
@@ -200,32 +234,41 @@ function Wishlist() {
                     </div>
 
                     {/* Platforms Section */}
-                    <div className="d-flex flex-wrap gap-3">
+                    <div className="grid grid-cols-2 xl:grid-cols-4 flex-wrap gap-3 justify-center">
                       {Object.entries(inf.data || {}).map(
                         ([platform, pdata]) => (
-                          <Badge
+                          <span
                             key={platform}
                             bg="light"
                             text="dark"
-                            className="d-flex align-items-center gap-2 py-2 px-3 border"
+                            className="flex !align-center gap-2"
                             style={{ borderRadius: "12px", fontSize: "0.9rem" }}
                           >
                             {renderPlatformIcon(platform)}
-                            <span className="fw-medium">
+                            <span className="text-[10px]">
                               {formatFollowers(pdata?.total_followers || 0)}{" "}
-                              followers
+                              {/* followers */}
                             </span>
-                          </Badge>
+                          </span>
                         )
                       )}
                     </div>
+                    <span 
+                      className="absolute right-[5%] top-[5%] cursor-pointer" 
+                      onClick={(e) => handleRemoveFromWishlist(e, inf.id)}
+                      title="Remove from wishlist"
+                    > 
+                      <Heart size={18}
+                        className="text-red-500 fill-red-400 hover:fill-none transition-all"
+                      />
+                    </span>
                   </Card.Body>
                 </Card>
               </Col>
             ))}
           </Row>
         )}
-      </Container>
+      </div>
       <style jsx>{`
         .transform-hover:hover {
           transform: translateY(-5px);

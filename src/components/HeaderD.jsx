@@ -33,6 +33,8 @@ import { useNavigate } from "react-router-dom";
 const user = JSON.parse(localStorage.getItem("user"));
 const role = user?.role || "business"; // default to business
 import config from "../config";
+import { Bell, Gift, Heart, Wallet } from "lucide-react";
+import { Badge } from "antd";
 
 const baseURL =
   import.meta.env.MODE === "development"
@@ -61,29 +63,37 @@ const HeaderD = ({ handleDrawerToggle }) => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.removeItem("loggedInUser");
     handleMenuClose();
     navigate("/login");
   };
 
   useEffect(() => {
     const fetchAndUpdateUser = async () => {
-      const data = JSON.parse(localStorage.getItem("user"));
-      if (!data?.email) return;
+      const userData = JSON.parse(localStorage.getItem("loggedInUser"));
+      const token = localStorage.getItem("token");
+      
+      if (!userData || !token) return;
 
-      setUser(data); // Set initial user from localStorage
+      setUser(userData); // Set initial user from localStorage
 
       try {
-        const response = await fetch(
-          `${baseURL}/api/user-details/${data.email}`
-        );
+        const response = await fetch(`${baseURL}/api/profile`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
         if (!response.ok) throw new Error("Failed to fetch user data");
 
-        const updatedUser = await response.json();
-
-        // Update localStorage and state
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-        setUser(updatedUser);
+        const result = await response.json();
+        
+        if (result.success) {
+          // Update localStorage and state
+          localStorage.setItem("loggedInUser", JSON.stringify(result.user));
+          setUser(result.user);
+        }
       } catch (err) {
         console.error("Error fetching user details:", err);
       }
@@ -98,52 +108,76 @@ const HeaderD = ({ handleDrawerToggle }) => {
         position: "fixed",
         width: "100%",
         ml: { sm: `240px` },
-        bgcolor: "var(--primary-color)",
-        color: "black",
+        bgcolor: "var(--bgPage2)",
+        color: "var(--text)",
         backdropFilter: "blur(20px)", // apply blur to the background behind it
         WebkitBackdropFilter: "blur(10px)", // for Safari support
         boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
         // borderBottom: "1px solid #e0e0e0",
       }}
     >
-      <Toolbar sx={{ justifyContent: "space-between", px: 1 }}>
+      <Toolbar sx={{ justifyContent: "space-between", px: 1, borderBottom: "1px solid var(--border)", }}>
         {/* Mobile Drawer Toggle */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <IconButton
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: "none" }, color: "black" }}
+            sx={{ mr: 2, display: { sm: "none" }, color: "var(--text)" }}
           >
             <MenuIcon />
           </IconButton>
         </Box>
 
         {/* Right Section */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           {/* Offers */}
           {role !== "admin" && (
-            <Box
-              sx={{
-                px: 2,
-                py: 0.8,
-                bgcolor: "#fff8e1",
-                borderRadius: 3,
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                cursor: "pointer",
-                border: "1px solid #ffe0b2",
-                "&:hover": { boxShadow: "0 0 5px #ffd54f" },
-              }}
-              onClick={() => navigate("/dashboard/offers")}
-            >
-              <CardGiftcard sx={{ color: "#ff9800" }} />
-              {!isMobile && (
-                <Typography variant="body2" fontWeight={500} color="black">
-                  3 Offers
-                </Typography>
-              )}
-            </Box>
+             <Tooltip title="Offers">
+              <IconButton
+                onClick={() => navigate("/dashboard/offers")}
+                sx={{ color: "var(--primary)" }}
+              >
+            <Badge size="small" count={5}>
+              <Gift size={18} className='text-[var(--primary)]' />
+            </Badge>
+              </IconButton>
+            </Tooltip>
+            // <Box
+            //   sx={{
+            //     px: 2,
+            //     py: 0.8,
+            //     bgcolor: "#fff8e1",
+            //     borderRadius: 3,
+            //     display: "flex",
+            //     alignItems: "center",
+            //     gap: 1,
+            //     cursor: "pointer",
+            //     border: "1px solid #ffe0b2",
+            //     "&:hover": { boxShadow: "0 0 5px #ffd54f" },
+            //   }}
+            //   onClick={() => navigate("/dashboard/offers")}
+            // >
+            //   <Badge count={5}>
+            //   <Gift className='text-[var(--primary)]' />
+            //   </Badge>
+            //   {!isMobile && (
+            //     <Typography variant="body2" fontWeight={500} color="black">
+            //       3 Offers
+            //     </Typography>
+            //   )}
+            // </Box>
+          )}
+
+          {/* Wishlist */}
+          {role !== "admin" && (
+            <Tooltip title="My Wishlist">
+              <IconButton
+                onClick={() => navigate("/dashboard/mywishlist")}
+                sx={{ color: "var(--primary)" }}
+              >
+                <Heart size={18} />
+              </IconButton>
+            </Tooltip>
           )}
 
           {/* Wallet */}
@@ -151,9 +185,9 @@ const HeaderD = ({ handleDrawerToggle }) => {
             <Tooltip title="Wallet">
               <IconButton
                 onClick={() => navigate("/dashboard/wallet")}
-                sx={{ color: "black" }}
+                sx={{ color: "var(--primary)" }}
               >
-                <AccountBalanceWallet />
+                <Wallet size={18} />
               </IconButton>
             </Tooltip>
           )}
@@ -162,23 +196,14 @@ const HeaderD = ({ handleDrawerToggle }) => {
           <Tooltip title="Notifications">
             <IconButton
               onClick={() => navigate("/dashboard/notifications")}
-              sx={{ color: "black" }}
+              className="!text-gray-500 !bg-gray-100 "
             >
-              <Notifications />
+              <Badge size="small" count={2}>
+              <Bell size={18} />
+              </Badge>
             </IconButton>
           </Tooltip>
 
-          {/* Wishlist */}
-          {role !== "admin" && (
-            <Tooltip title="My Wishlist">
-              <IconButton
-                onClick={() => navigate("/dashboard/mywishlist")}
-                sx={{ color: "black" }}
-              >
-                <Favorite />
-              </IconButton>
-            </Tooltip>
-          )}
 
           {/* Profile with name and email */}
           <Box
@@ -190,7 +215,7 @@ const HeaderD = ({ handleDrawerToggle }) => {
               px: 1,
               py: 0.5,
               borderRadius: 3,
-              "&:hover": { backgroundColor: "#e5e9ed" },
+              "&:hover": { backgroundColor: "var(--hover)" },
             }}
             onClick={handleMenuOpen}
           >
@@ -211,14 +236,14 @@ const HeaderD = ({ handleDrawerToggle }) => {
             {!isMobile && (
               <>
                 <Box sx={{ textAlign: "left" }}>
-                  <Typography variant="body2" fontWeight="bold" color="black">
+                  <Typography variant="body2" fontWeight="bold" color="var(--text)">
                     {user.fullname}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography variant="caption" className="text-gray-500">
                     {user.email}
                   </Typography>
                 </Box>
-                <KeyboardArrowDown sx={{ color: "black" }} />
+                <KeyboardArrowDown sx={{ color: "var(--text)" }} />
               </>
             )}
           </Box>

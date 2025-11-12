@@ -85,7 +85,7 @@ const ServicesTab = () => {
         <Row className="g-3">
           {posts.map((post) => (
             <Col md={4} key={post.id}>
-              <Card className="border-0 shadow-sm rounded">
+              <Card className="border border-[var(--border)] !bg-[var(--bg)] rounded">
                 <div className="position-relative">
                   <Card.Img variant="top" src={post.media_url} />
                   <div className="position-absolute top-0 end-0 p-1">
@@ -93,13 +93,13 @@ const ServicesTab = () => {
                       {iconComponents[post.platform.toLowerCase()]}
                     </span>
                     {post.permalink && (
-                      <span className="bg-light rounded-circle p-1">
+                      <span className=" !bg-[var(--bg)] rounded-circle p-1">
                         <LinkIcon />
                       </span>
                     )}
                   </div>
                 </div>
-                <Card.Footer className="d-flex justify-content-around bg-white">
+                <Card.Footer className="d-flex justify-content-around  !bg-[var(--bg)]">
                   <span>
                     <Heart fill="red" /> {post.likes}
                   </span>

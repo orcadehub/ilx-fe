@@ -2,20 +2,14 @@ import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate, Link } from "react-router-dom";
-import { Container, Row, Col, Card, Spinner } from "react-bootstrap";
+import { Layout, Card, Typography } from "antd";
 import config from "../config";
 import RoleSelect from "../components/signup/RoleSelect";
 import AccountForm from "../components/signup/AccountForm";
 import OtpVerify from "../components/signup/OtpVerify";
 
-const palette = {
-  page: "#f7f9fc",
-  card: "#ffffff",
-  ink: "#0b1220",
-  muted: "#667085",
-  brand: "#5357eb",
-  border: "rgba(12, 35, 64, 0.08)",
-};
+const { Content } = Layout;
+const { Title } = Typography;
 
 export default function Signup() {
   const [step, setStep] = useState(1); // 1 role, 2 account, 3 otp
@@ -85,10 +79,13 @@ export default function Signup() {
         role: userType,
       });
 
-      const user = signupRes.data.user || { fullname: username, email, role: userType };
-      toast.success("✅ Signup successful!");
-      localStorage.setItem("loggedInUser", JSON.stringify(user));
-      navigate("/login");
+      if (signupRes.data.success) {
+        const { user, token } = signupRes.data;
+        toast.success("✅ Signup successful!");
+        localStorage.setItem("loggedInUser", JSON.stringify(user));
+        localStorage.setItem("token", token);
+        navigate("/dashboard");
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || "❌ OTP verification or signup failed");
     } finally {
@@ -111,58 +108,67 @@ export default function Signup() {
     }
   };
 
-  const loginWithFacebook = (type) => {
-    window.location.href = `${baseURL}/api/auth/facebook?userType=${type}`;
+  const loginWithFacebook = () => {
+    window.location.href = `${baseURL}/api/auth/facebook?userType=${userType}`;
   };
-  const loginWithGoogle = (type) => {
-    window.location.href = `${baseURL}/api/auth/google?userType=${type}`;
+  
+  const loginWithGoogle = () => {
+    window.location.href = `${baseURL}/api/auth/google?userType=${userType}`;
   };
 
   return (
-    <Container fluid className="py-5 d-flex align-items-center justify-content-center" >
-      <Row className="w-100 justify-content-center">
-        <Col xs={11} sm={9} md={7} lg={5} xl={4}>
-          <Card className="p-4 rounded-4 shadow-lg" style={{ background: palette.card, border: `1px solid ${palette.border}` }}>
-            <h2 className="text-center fw-bold mb-4" style={{ color: palette.ink }}>
-              {step === 1 ? "" : step === 2 ? "Create Account" : "Verify OTP"}
-            </h2>
+    <Layout style={{ minHeight: '100vh', backgroundColor: '#f7f9fc' }}>
+      <Content style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 16px' }}>
+        <Card 
+          style={{ 
+            width: '100%', 
+            maxWidth: 480, 
+            borderRadius: 16,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
+          }}
+          bodyStyle={{ padding: 32 }}
+        >
+          {step > 1 && (
+            <Title level={2} style={{ textAlign: 'center', marginBottom: 32, color: '#0b1220' }}>
+              {step === 2 ? "Create Account" : "Verify OTP"}
+            </Title>
+          )}
 
-            {step === 1 && <RoleSelect onSelect={(t) => { setUserType(t); setStep(2); }} />}
+          {step === 1 && <RoleSelect onSelect={(t) => { setUserType(t); setStep(2); }} />}
 
-            {step === 2 && (
-              <AccountForm
-                formData={formData}
-                onChange={onChange}
-                onSubmit={handleSendOtp}
-                loading={loading}
-                onFacebook={() => loginWithFacebook(userType)}
-                onGoogle={() => loginWithGoogle(userType)}
-              />
-            )}
+          {step === 2 && (
+            <AccountForm
+              formData={formData}
+              onChange={onChange}
+              onSubmit={handleSendOtp}
+              loading={loading}
+              onFacebook={loginWithFacebook}
+              onGoogle={loginWithGoogle}
+            />
+          )}
 
-            {step === 3 && (
-              <OtpVerify
-                otp={otp}
-                setOtp={setOtp}
-                seconds={timer}
-                canResend={canResend}
-                onResend={resendOtp}
-                onVerify={handleVerifyOtp}
-                loading={loading}
-              />
-            )}
+          {step === 3 && (
+            <OtpVerify
+              otp={otp}
+              setOtp={setOtp}
+              seconds={timer}
+              canResend={canResend}
+              onResend={resendOtp}
+              onVerify={handleVerifyOtp}
+              loading={loading}
+            />
+          )}
 
-            {step > 1 && (
-              <div className="text-center mt-3" style={{ fontSize: "0.9rem", color: palette.muted }}>
-                Already have an account?{" "}
-                <Link to="/login" style={{ color: palette.brand, fontWeight: 700 }}>
-                  Login
-                </Link>
-              </div>
-            )}
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+          {step > 1 && (
+            <div style={{ textAlign: 'center', marginTop: 24, color: '#667085' }}>
+              Already have an account?{" "}
+              <Link to="/login" style={{ color: '#5357eb', fontWeight: 600 }}>
+                Login
+              </Link>
+            </div>
+          )}
+        </Card>
+      </Content>
+    </Layout>
   );
 }

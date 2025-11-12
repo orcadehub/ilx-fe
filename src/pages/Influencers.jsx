@@ -4,7 +4,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { Offcanvas, Dropdown } from "react-bootstrap";
 import { Country, State, City } from "country-state-city";
 import ISO6391 from "iso-639-1";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import {
   FaInstagram,
@@ -41,6 +41,8 @@ import ServicesTab from "../components/inflcomp/ServicesTab";
 import PricesTab from "../components/inflcomp/PricesTab";
 import DataTab from "../components/inflcomp/DataTab";
 import FiltersOffcanvas from "../components/inflcomp/FiltersOffcanvas";
+import NotificationToast from "../components/NotificationToast";
+import { detectCurrency, convertPrice } from "../utils/currency";
 
 const baseURL =
   import.meta.env.MODE === "development"
@@ -51,23 +53,59 @@ function Influencers() {
   const [data, setData] = useState([]);
   const [selected, setSelected] = useState(null);
   const [isWishlisted, setIsWishlisted] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [currency, setCurrency] = useState('₹'); // Default to rupee
+  const [exchangeRate, setExchangeRate] = useState(60); // 1 USD = 60 INR
+  const { id } = useParams();
+
+  // Auto-detect location based on IP and set currency
+  useEffect(() => {
+    const initCurrency = async () => {
+      const detectedCurrency = await detectCurrency();
+      setCurrency(detectedCurrency);
+    };
+    initCurrency();
+  }, []);
 
   useEffect(() => {
     const loadInfluencers = async () => {
-      const InfluencersData = await getInfluencersData();
-      setData(InfluencersData);
-      console.log(InfluencersData);
-      // Initialize isWishlisted state from fetched data
-      const wishlistState = InfluencersData.reduce((acc, influencer) => {
-        acc[influencer.id] = influencer.wishlist || false;
-        return acc;
-      }, {});
-      setIsWishlisted(wishlistState);
-      setSelected(InfluencersData[0]); // Set selected after data is available
+      try {
+        setLoading(true);
+        const InfluencersData = await getInfluencersData();
+        setData(InfluencersData);
+        
+        // Initialize isWishlisted state from fetched data
+        const wishlistState = InfluencersData.reduce((acc, influencer) => {
+          acc[influencer.id] = influencer.wishlist || false;
+          return acc;
+        }, {});
+        setIsWishlisted(wishlistState);
+        
+        // Set selected influencer based on URL parameter or default to first
+        console.log('URL ID:', id);
+        console.log('Available influencers:', InfluencersData.map(inf => ({ id: inf.id, name: inf.name })));
+        
+        if (id) {
+          const specificInfluencer = InfluencersData.find(inf => inf.id.toString() === id.toString());
+          console.log('Found specific influencer:', specificInfluencer);
+          setSelected(specificInfluencer || InfluencersData[0]);
+        } else {
+          setSelected(InfluencersData[0]);
+        }
+      } catch (error) {
+        console.error('Error loading influencers:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadInfluencers();
-  }, []);
+  }, [id]);
+
+  // Convert price based on currency
+  const convertPriceLocal = (priceInRupees) => {
+    return convertPrice(priceInRupees, currency, exchangeRate);
+  };
 
   const [showFilters, setShowFilters] = useState(false);
   const [activeTab, setActiveTab] = useState("services");
@@ -89,7 +127,7 @@ function Influencers() {
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
-  const [expandedPlatform, setExpandedPlatform] = useState("instagram");
+  const [expandedPlatform, setExpandedPlatform] = useState("ChoosePlatform");
 
   const [niche, setNiche] = useState("");
   const [contentType, setContentType] = useState("");
@@ -144,6 +182,8 @@ function Influencers() {
   const handleUpdate = () => {
     console.log("Selected Filters:", getSelectedFilters());
     setShowFilters(false);
+    // Force re-render by updating a dummy state
+    setActiveTab(prev => prev);
   };
 
   useEffect(() => {
@@ -168,6 +208,20 @@ function Influencers() {
 
   const [languages, setLanguages] = useState([]);
   const [selectedLang, setSelectedLang] = useState("");
+  const [toast, setToast] = useState({ open: false });
+
+  const showNotification = ({type, message}) => {
+    setToast({
+      open: true,
+      type,
+      message: message,
+      // description: `This is a ${type} message displayed at bottom right.`,
+    });
+
+    // reset state so it can trigger again later
+    setTimeout(() => setToast({ open: false }), 200);
+  };
+
 
   useEffect(() => {
     const allNames = ISO6391.getAllNames(); // English names
@@ -229,42 +283,106 @@ function Influencers() {
     });
   };
 
-  const toggleWishlist = async (itemId) => {
-    const newState = !isWishlisted[itemId];
-    try {
-      const token = localStorage.getItem("token");
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      };
-
-      setIsWishlisted({ ...isWishlisted, [itemId]: newState });
-
-      const response = await fetch(`${baseURL}/api/wishlist`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ itemId }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update wishlist");
-      }
-
-      const { message } = await response.json();
-      toast(
-        message === "Added to wishlist"
-          ? "❤️ Added to Wishlist"
-          : "❌ Removed from Wishlist"
-      );
-    } catch (error) {
-      console.error("Wishlist error:", error);
-      setIsWishlisted({ ...isWishlisted, [itemId]: !newState });
-      toast.error("⚠️ Failed to update wishlist");
+  const toggleWishlist = (itemId) => {
+    setData(prevData => 
+      prevData.map(influencer => 
+        influencer.id === itemId 
+          ? { ...influencer, wishlist: !influencer.wishlist }
+          : influencer
+      )
+    );
+    
+    if (selected && selected.id === itemId) {
+      setSelected(prev => ({
+        ...prev,
+        wishlist: !prev.wishlist
+      }));
     }
   };
 
   return (
-    <div className="d-flex flex-column flex-md-row h-100">
+    <div className="h-[calc(100vh-70px)] overflow-auto !bg-[var(--bgPage2)] text-[var(--text)] p-3 md:p-4">
+      {/* header section  */}
+      <div >
+        <div className="d-flex justify-content-between align-items-center mb-1 ">
+          <h6 className="fw-semibold fs-4" style={{ color: "var(--text)" }}>
+            Influencers
+          </h6>
+          <button
+            className="btn btn-sm text-white !rounded-xl text-14 !bg-[var(--primary)] px-3 py-2 shadow-lg"
+            // style={{
+            // background: "linear-gradient(135deg, rgb(87, 52, 226), #1976d2)",
+            // border: "none",
+            // color: "#fff",
+            // borderRadius: "50px",
+            // padding: "0.6rem 1.5rem",
+            // fontWeight: 600,
+            // fontSize: "0.95rem",
+            // boxShadow: "0 4px 14px rgba(125, 104, 195, 0.25)",
+            // }}
+            onClick={() => setShowFilters(true)}
+          >
+            Filters
+          </button>
+        </div>
+
+        {/* Selected Filters Badges */}
+        <div className="d-flex flex-wrap gap-2 mb-3">
+          {countryCode && (
+            <span className="badge bg-primary text-white">
+              Country: {countryCode}
+            </span>
+          )}
+          {stateCode && (
+            <span className="badge bg-primary text-white">
+              State: {stateCode}
+            </span>
+          )}
+          {selectedCity && (
+            <span className="badge bg-primary text-white">
+              City: {selectedCity}
+            </span>
+          )}
+          {niche && (
+            <span className="badge bg-success text-white">Niche: {niche}</span>
+          )}
+          {contentType && (
+            <span className="badge bg-info text-dark">
+              Content: {contentType}
+            </span>
+          )}
+          {platform && (
+            <span className="badge bg-warning text-dark">
+              Platform: {platform}
+            </span>
+          )}
+          {engagementRate > 0 && (
+            <span className="badge bg-dark text-white">
+              Engagement: {engagementRate}%
+            </span>
+          )}
+          {followers > 0 && (
+            <span className="badge bg-secondary text-white">
+              Followers: {formatFollowers(followers)}
+            </span>
+          )}
+          {selectedLang && (
+            <span className="badge bg-light text-dark border">
+              Lang: {selectedLang}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* content section  */}
+      {loading ? (
+        <div className="d-flex justify-content-center align-items-center" style={{ height: "50vh" }}>
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      ) : (
+      <div className="flex flex-column flex-xl-row !h-fit">
       <LeftPanel
         data={data}
         selected={selected}
@@ -284,36 +402,26 @@ function Influencers() {
         formatFollowers={formatFollowers}
       />
 
-      <div
-        className="right-panel p-4 overflow-auto"
-        style={{
-          borderRadius: "1rem",
-          backgroundColor: "var(--primary-color)",
-          minHeight: "100%",
-        }}
+      <div className="right-panel py-2 px-0 md:p-3 !pb-0"
+        // style={{
+          // borderRadius: "1rem",
+          // backgroundColor: "var(--primary-color)",
+          // minHeight: "100%",
+        // }}
       >
         {selected && (
           <>
-            <div className="d-flex justify-content-between align-items-center mb-4">
+
+            <div className="!border !border-[var(--border)] !h-[calc(100vh-195px)] rounded-xl bg-[var(--card)] p-2 md:p-4">
+            <div className="d-flex justify-content-between align-items-center mb-1 !pb-2">
               <h4 className="fw-bold mb-0">Profile</h4>
               <button
-                className="btn"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #1976d2),rgb(87, 52, 226)",
-                  border: "none",
-                  color: "#fff",
-                  borderRadius: "50px",
-                  padding: "0.6rem 1.5rem",
-                  fontWeight: 600,
-                  fontSize: "0.95rem",
-                  boxShadow: "0 4px 14px rgba(125, 104, 195, 0.25)",
-                }}
+                className="btn btn-sm text-white !rounded-lg text-14 !bg-[var(--primary)] px-4 py-2 shadow-lg"
+                onClick={() => navigate('/dashboard/make-order', { state: { selected } })}
               >
-                Book
+                Book Now
               </button>
             </div>
-
             <ProfileHeader
               selected={selected}
               isWishlisted={isWishlisted}
@@ -321,8 +429,9 @@ function Influencers() {
               navigate={navigate}
             />
 
-            <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
-
+              <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
+              
+              <div className=' !h-[calc(100vh-425px)] overflow-y-auto'>
             {activeTab === "services" && <ServicesTab selected={selected} />}
 
             {activeTab === "prices" && (
@@ -339,13 +448,21 @@ function Influencers() {
                 handlePlatformChange={handlePlatformChange}
                 handleComboChange={handleComboChange}
                 handleProceed={handleProceed}
+                convertPrice={convertPriceLocal}
               />
             )}
 
             {activeTab === "data" && <DataTab selected={selected} />}
+
+              </div>
+
+
+            </div>
           </>
         )}
       </div>
+      </div>
+      )}
 
       <FiltersOffcanvas
         showFilters={showFilters}
@@ -385,6 +502,12 @@ function Influencers() {
         setSelectedLang={setSelectedLang}
         languages={languages}
         formatFollowers={formatFollowers}
+      />
+      <NotificationToast
+        open={toast.open}
+        type={toast.type}
+        message={toast.message}
+        description={toast.description}
       />
     </div>
   );

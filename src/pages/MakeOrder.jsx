@@ -19,6 +19,13 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import config from "../config";
+import axios from "axios";
+import { ArrowUp, BadgeCheck, Check, Dot, Facebook, FileText, Heart, Instagram, Twitter, Upload, Youtube } from "lucide-react";
+import TabsButton from "../components/TabsButton";
+import { DatePicker, Select } from "antd";
+import VisitPromoteContentDetails from "../components/makeorder/VisitPromoteContentDetails";
+import PollContentBuilder from "../components/makeorder/PollContentBuilder";
+import { detectCurrency, convertPrice, formatCurrency } from "../utils/currency";
 
 const baseURL =
   import.meta.env.MODE === "development"
@@ -51,12 +58,27 @@ const MakeOrder = () => {
   const [couponCode, setCouponCode] = useState("");
   const [postDateTime, setPostDateTime] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(selected?.wishlist || false);
+  const [currency, setCurrency] = useState('₹');
+  const [exchangeRate, setExchangeRate] = useState(60);
 
   // Tabs: Upload vs Provide
   const [provisionMethod, setProvisionMethod] = useState("Upload Files");
+  // For poll builder (expand as needed)
+  const [polls, setPolls] = useState([]);
 
   // Selected services with dynamic pricing from selected.prices
   const [selectedServices, setSelectedServices] = useState([]);
+  const [activeTab, setActiveTab] = useState('uploadFiles');
+
+  // Auto-detect currency on component mount
+  useEffect(() => {
+    const initCurrency = async () => {
+      const detectedCurrency = await detectCurrency();
+      setCurrency(detectedCurrency);
+    };
+    initCurrency();
+  }, []);
 
   useEffect(() => {
     let price = 0;
@@ -75,8 +97,7 @@ const MakeOrder = () => {
         "Visit and Promote": "Visit and Promote at Your Business",
       };
       const contentKey = contentKeyMap[contentType] || contentType;
-      price =
-        selected?.prices?.[platformKey]?.[contentKey] || 0;
+      price = selected?.prices?.[platformKey]?.[contentKey] || 0;
     } else if (orderType === "Combo Package") {
       // Find combo by name or services
       const combo = selected?.prices?.combos?.find(
@@ -87,12 +108,12 @@ const MakeOrder = () => {
       price = combo?.price || 0;
       serviceName = combo?.name || contentType;
     } else if (orderType === "Custom Package") {
-      // Find custom service by name
-      const custom = selected?.prices?.custom?.find(
+      // Find combo package by name
+      const combo = selected?.prices?.combos?.find(
         (c) => c.name === contentType
       );
-      price = custom?.price || 0;
-      serviceName = custom?.name || contentType;
+      price = combo?.price || 0;
+      serviceName = combo?.name || contentType;
     }
 
     setSelectedServices([
@@ -103,7 +124,7 @@ const MakeOrder = () => {
         price,
       },
     ]);
-  }, [orderType, contentType, platform, selected]);
+  }, [orderType, contentType, platform, selected, currency]);
 
   const totalPrice = selectedServices.reduce(
     (sum, s) => sum + Number(s.price || 0),
@@ -131,6 +152,23 @@ const MakeOrder = () => {
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     setFile(selectedFile || null);
+  };
+
+  const handleWishlist = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${baseURL}/api/wishlist`, 
+        { influencerId: selected.id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      if (response.data.success) {
+        toast.success(response.data.message);
+        setIsWishlisted(!isWishlisted);
+      }
+    } catch (error) {
+      toast.error('Failed to update wishlist');
+    }
   };
 
   const handleMakeOrder = async () => {
@@ -214,7 +252,6 @@ const MakeOrder = () => {
       "In Video Promotion <10min",
       "Promotion >10min",
       "Polls",
-      "Visit and Promote",
     ],
     "Combo Package": [
       "Combo Post Image/Video",
@@ -225,36 +262,411 @@ const MakeOrder = () => {
       "Combo Polls",
       "Combo Visit and Promote",
     ],
-    "Custom Package": ["In Video Promotion", "Promotion", "Visit and Promote"],
+    "Custom Package": selected?.prices?.combos?.map(combo => combo.name) || [],
+  };
+
+  const uploadFile = () => (
+    <div>
+      {/* Description */}
+      <Form.Group>
+        <Form.Label
+          className="font-bold"
+        // style={{ fontWeight: 600, color: palette.label, fontSize: 13 }}
+        >
+          Description
+        </Form.Label>
+        <Form.Control
+          as="textarea"
+          rows={6}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          maxLength={500}
+          placeholder="Add any specific instructions or details about your request..."
+          // style={{
+          //   background: "#FAFBFC",
+          //   border: `1px solid #DEDEDE`,
+          //   borderRadius: 10,
+          //   fontSize: 14.5,
+          //   padding: "12px 12px",
+          // }}
+          className="!bg-[var(--card)] border !border-[var(--border)] !rounded-xl"
+        />
+        <div
+          style={{
+            textAlign: "right",
+            color: "#B0B0B0",
+            fontSize: 12,
+            marginTop: 6,
+          }}
+        >
+          {description.length}/500 characters
+        </div>
+      </Form.Group>
+
+      {/* Upload / Reference Files */}
+      <div style={{ marginTop: 14 }}>
+        <Form.Label
+          // style={{ fontWeight: 600, color: palette.label, fontSize: 13 }}
+          className="mb-2"
+        >
+          Upload Files
+        </Form.Label>
+        <div
+          onClick={handleFileUploadClick}
+          // style={{
+          //   background: palette.inputBg,
+          //   borderRadius: 12,
+          //   border: `1.7px dashed ${palette.inputBorder}`,
+          //   textAlign: "center",
+          //   padding: "34px 0",
+          //   position: "relative",
+          //   cursor: "pointer",
+          // }}
+          className="bg-[var(--card)] py-10 flex justify-center items-center flex-col rounded-xl border-2 !border-dashed !border-[var(--border)]"
+        >
+          <Upload size={35} className="text-[var(--primary)]"
+          // style={{ fontSize: 18, color: "#6153CC", marginBottom: 6 }}
+          />
+          <div
+            className="text-14 mt- text-center"
+          // style={{ color: palette.light, fontSize: 16, lineHeight: 1.5 }}
+          >
+            Drag & drop files here
+            <br />
+            <span className="text-12 text-[var(--mutedText)]" >or click to browse</span>
+          </div>
+          <input
+            id="fileInput"
+            type="file"
+            onChange={handleFileChange}
+            style={{ display: "none" }}
+          />
+        </div>
+
+        {file instanceof File && (
+          <div style={{ marginTop: 10, fontSize: 14, color: "#333" }}>
+            {file.type.startsWith("image/") ? (
+              <img
+                src={URL.createObjectURL(file)}
+                alt="Preview"
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: 150,
+                  borderRadius: 8,
+                }}
+              />
+            ) : file.type.startsWith("video/") ? (
+              <video
+                width="100%"
+                height={150}
+                controls
+                src={URL.createObjectURL(file)}
+                style={{ borderRadius: 8 }}
+              />
+            ) : (
+              <div>
+                <strong>Selected File:</strong> {file.name}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Description */}
+      <Form.Group>
+        <Form.Label
+          className=" mt-4"
+        // style={{ fontWeight: 600, color: palette.label, fontSize: 13 }}
+        >
+          Notes (Optional)
+        </Form.Label>
+        <Form.Control
+          as="textarea"
+          rows={3}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          maxLength={300}
+          placeholder="Add any additional instructions or notes for the influcer... "
+          // style={{
+          //   background: "#FAFBFC",
+          //   border: `1px solid #DEDEDE`,
+          //   borderRadius: 10,
+          //   fontSize: 14.5,
+          //   padding: "12px 12px",
+          // }}
+          className="!bg-[var(--card)] border !border-[var(--border)] !rounded-xl text-14"
+        />
+        <div
+          style={{
+            textAlign: "right",
+            color: "#B0B0B0",
+            fontSize: 12,
+            marginTop: 6,
+          }}
+        >
+          {description.length}/300 characters
+        </div>
+      </Form.Group>
+
+    </div>
+  )
+
+  const provideContent = () => (
+    <div>
+      {/* Description */}
+      <Form.Group>
+        <Form.Label
+          className=""
+        // style={{ fontWeight: 600, color: palette.label, fontSize: 13 }}
+        >
+          Content Description
+        </Form.Label>
+        <Form.Control
+          as="textarea"
+          rows={6}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          maxLength={500}
+          placeholder="Add any specific instructions or details about your request..."
+          // style={{
+          //   background: "#FAFBFC",
+          //   border: `1px solid #DEDEDE`,
+          //   borderRadius: 10,
+          //   fontSize: 14.5,
+          //   padding: "12px 12px",
+          // }}
+          className="!bg-[var(--card)] border !border-[var(--border)] !rounded-xl"
+        />
+        <div
+          style={{
+            textAlign: "right",
+            color: "#B0B0B0",
+            fontSize: 12,
+            marginTop: 6,
+          }}
+        >
+          {description.length}/500 characters
+        </div>
+      </Form.Group>
+
+      {/* Upload / Reference Files */}
+      <div style={{ marginTop: 14 }}>
+        <Form.Label
+          // style={{ fontWeight: 600, color: palette.label, fontSize: 13 }}
+          className="mb-2"
+        >
+          Upload Files
+        </Form.Label>
+        <div
+          onClick={handleFileUploadClick}
+          // style={{
+          //   background: palette.inputBg,
+          //   borderRadius: 12,
+          //   border: `1.7px dashed ${palette.inputBorder}`,
+          //   textAlign: "center",
+          //   padding: "34px 0",
+          //   position: "relative",
+          //   cursor: "pointer",
+          // }}
+          className="bg-[var(--card)] py-10 flex justify-center items-center flex-col rounded-xl border-2 !border-dashed !border-[var(--border)]"
+        >
+          <Upload size={35} className="text-[var(--primary)]"
+          // style={{ fontSize: 18, color: "#6153CC", marginBottom: 6 }}
+          />
+          <div
+            className="text-14 mt- text-center"
+          // style={{ color: palette.light, fontSize: 16, lineHeight: 1.5 }}
+          >
+            Upload reference files
+            <br />
+            <span className="text-12 text-[var(--mutedText)]" >Add images, documents, or examples to help guide content creation</span>
+          </div>
+          <input
+            id="fileInput"
+            type="file"
+            onChange={handleFileChange}
+            style={{ display: "none" }}
+          />
+        </div>
+
+        {file instanceof File && (
+          <div style={{ marginTop: 10, fontSize: 14, color: "#333" }}>
+            {file.type.startsWith("image/") ? (
+              <img
+                src={URL.createObjectURL(file)}
+                alt="Preview"
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: 150,
+                  borderRadius: 8,
+                }}
+              />
+            ) : file.type.startsWith("video/") ? (
+              <video
+                width="100%"
+                height={150}
+                controls
+                src={URL.createObjectURL(file)}
+                style={{ borderRadius: 8 }}
+              />
+            ) : (
+              <div>
+                <strong>Selected File:</strong> {file.name}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+
+    </div>
+  )
+
+  {/* Description */ }
+  // <Form.Group>
+  //   <Form.Label
+  //     style={{ fontWeight: 600, color: palette.label, fontSize: 13 }}
+  //   >
+  //     {provisionMethod === "Provide Content"
+  //       ? "Content Description"
+  //       : "Description"}
+  //   </Form.Label>
+  //   <Form.Control
+  //     as="textarea"
+  //     rows={3}
+  //     value={description}
+  //     onChange={(e) => setDescription(e.target.value)}
+  //     maxLength={500}
+  //     placeholder="Add any specific instructions or details about your request..."
+  //     style={{
+  //       background: "#FAFBFC",
+  //       border: `1px solid #DEDEDE`,
+  //       borderRadius: 10,
+  //       fontSize: 14.5,
+  //       padding: "12px 12px",
+  //     }}
+  //   />
+  //   <div
+  //     style={{
+  //       textAlign: "right",
+  //       color: "#B0B0B0",
+  //       fontSize: 12,
+  //       marginTop: 6,
+  //     }}
+  //   >
+  //     {description.length}/500 characters
+  //   </div>
+  // </Form.Group>
+
+  {/* Upload / Reference Files */ }
+  // <div style={{ marginTop: 14 }}>
+  //   <Form.Label
+  //     style={{ fontWeight: 600, color: palette.label, fontSize: 13 }}
+  //   >
+  //     {provisionMethod === "Provide Content"
+  //       ? "Reference Files Upload"
+  //       : "Upload Files"}
+  //   </Form.Label>
+  //   <div
+  //     onClick={handleFileUploadClick}
+  //     style={{
+  //       background: palette.inputBg,
+  //       borderRadius: 12,
+  //       border: `1.7px dashed ${palette.inputBorder}`,
+  //       textAlign: "center",
+  //       padding: "34px 0",
+  //       position: "relative",
+  //       cursor: "pointer",
+  //     }}
+  //   >
+  //     <FaArrowUp
+  //       style={{ fontSize: 18, color: "#6153CC", marginBottom: 6 }}
+  //     />
+  //     <div
+  //       style={{ color: palette.light, fontSize: 14, lineHeight: 1.5 }}
+  //     >
+  //       Drag & drop files here
+  //       <br />
+  //       or <span style={{ color: palette.brand }}>click to browse</span>
+  //     </div>
+  //     <input
+  //       id="fileInput"
+  //       type="file"
+  //       onChange={handleFileChange}
+  //       style={{ display: "none" }}
+  //     />
+  //   </div>
+
+  //   {file instanceof File && (
+  //     <div style={{ marginTop: 10, fontSize: 14, color: "#333" }}>
+  //       {file.type.startsWith("image/") ? (
+  //         <img
+  //           src={URL.createObjectURL(file)}
+  //           alt="Preview"
+  //           style={{
+  //             maxWidth: "100%",
+  //             maxHeight: 150,
+  //             borderRadius: 8,
+  //           }}
+  //         />
+  //       ) : file.type.startsWith("video/") ? (
+  //         <video
+  //           width="100%"
+  //           height={150}
+  //           controls
+  //           src={URL.createObjectURL(file)}
+  //           style={{ borderRadius: 8 }}
+  //         />
+  //       ) : (
+  //         <div>
+  //           <strong>Selected File:</strong> {file.name}
+  //         </div>
+  //       )}
+  //     </div>
+  //   )}
+  // </div>
+  const data = [
+    {
+      label: "Upload Files",
+      key: "uploadFiles"
+    },
+    {
+      label: "Provide Content",
+      key: "provideContent"
+    },
+  ];
+  const onOk = value => {
+    console.log('onOk: ', value);
   };
 
   return (
     <Container
       fluid
       style={{
-        background: palette.bg,
+        background: "var(--bgPage2)",
         minHeight: "100vh",
         padding: "24px 28px",
       }}
     >
       <ToastContainer position="top-right" autoClose={2500} />
-      <Row style={{ maxWidth: 1180, margin: "0 auto", gap: 24 }}>
+      <Row className="!text-[var(--text)] md:!flex gap-3 xl:px-15" >
         {/* Left column */}
-        <Col lg={7} style={{ padding: 0 }}>
+        <div className="xl:flex-1" style={{ padding: 0 }}>
           {/* Gradient Profile Banner */}
-          <div
-            style={{
-              background: gradient,
-              borderRadius: 14,
-              padding: "18px 22px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-start",
-              marginBottom: 18,
-              boxShadow: "0 6px 24px rgba(64,57,131,0.12)",
-            }}
+          <div className="!rounded-xl !bg-[var(--card)] border !border-[var(--border)] overflow-hidden"
+          // style={{
+          //   background: gradient,
+          //   borderRadius: 14,
+          //   padding: "18px 22px",
+          //   display: "flex",
+          //   alignItems: "center",
+          //   justifyContent: "flex-start",
+          //   marginBottom: 18,
+          //   boxShadow: "0 6px 24px rgba(64,57,131,0.12)",
+          // }}
           >
-            <div style={{ display: "flex", alignItems: "center" }}>
+            <div className="bg-gradient-to-r from-[#3b82f6] to-[#2563eb] p-4"
+              style={{ display: "flex", alignItems: "center" }}>
               <img
                 src={selected.profilePic || "https://via.placeholder.com/64"}
                 alt="Profile"
@@ -269,352 +681,294 @@ const MakeOrder = () => {
               <div style={{ marginLeft: 14 }}>
                 <div
                   style={{
-                    color: "#fff",
                     fontWeight: 700,
                     fontSize: 16.5,
                     letterSpacing: 0.1,
                   }}
+                  className="text-white !text-[22px] flex items-center gap-2"
                 >
-                  {selected.name || "Gary Vaynerchuk"}
+                  {selected.name || "Influencer Name"}
+                  <BadgeCheck className="text-white" size={20} />
+                  <Heart 
+                    className={`cursor-pointer ${isWishlisted ? "text-red-500 fill-red-400" : "text-white"}`}
+                    size={20}
+                    onClick={handleWishlist}
+                    title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                  />
                 </div>
-                <div style={{ color: "rgba(255,255,255,0.9)", fontSize: 13.5 }}>
-                  {selected.email || "garyv@example.com"}
+                <div className="flex items-center text-14 text-white" >
+                  {selected.category || "Category"} <Dot /> {selected.location_city || "Location"}
                 </div>
               </div>
             </div>
-            <div style={{ marginLeft: "auto", display: "flex", gap: 12 }}>
-              {selected?.data?.instagram?.total_followers ? (
-                <div style={{ textAlign: "center", minWidth: 72 }}>
-                  <FaInstagram size={20} color="#FFF" />
-                  <div
-                    style={{
-                      color: "#fff",
-                      fontWeight: 600,
-                      fontSize: 14,
-                      marginTop: 4,
-                    }}
-                  >
-                    {formatFollowers(selected.data.instagram.total_followers)}
-                  </div>
-                  <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 11 }}>
-                    Instagram
-                  </div>
+
+            {/* social icons */}
+            <div className="!text-[var(--text)] p-2 shadow-xl" style={{ marginLeft: "auto", display: "flex", gap: 12 }}>
+              <div className='flex-1 flex flex-col !justify-center items-center  p-2 border-r !border-[var(--border)]'>
+                <Instagram size={20} className="text-pink-500" />
+                <div className="font-bold">
+                  {formatFollowers(selected?.data?.instagram?.total_followers || 0)}
                 </div>
-              ) : null}
-              {selected?.data?.facebook?.total_followers ? (
-                <div style={{ textAlign: "center", minWidth: 72 }}>
-                  <FaFacebookF size={18} color="#FFF" />
-                  <div
-                    style={{
-                      color: "#fff",
-                      fontWeight: 600,
-                      fontSize: 14,
-                      marginTop: 4,
-                    }}
-                  >
-                    {formatFollowers(selected.data.facebook.total_followers)}
-                  </div>
-                  <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 11 }}>
-                    Facebook
-                  </div>
+                <div className="text-12">
+                  Instagram
                 </div>
-              ) : null}
-              {selected?.data?.youtube?.total_followers ? (
-                <div style={{ textAlign: "center", minWidth: 72 }}>
-                  <FaYoutube size={20} color="#FFF" />
-                  <div
-                    style={{
-                      color: "#fff",
-                      fontWeight: 600,
-                      fontSize: 14,
-                      marginTop: 4,
-                    }}
-                  >
-                    {formatFollowers(selected.data.youtube.total_followers)}
-                  </div>
-                  <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 11 }}>
-                    YouTube
-                  </div>
+              </div>
+              
+              <div className='flex-1 flex flex-col !justify-center items-center  p-2 border-r !border-[var(--border)]'>
+                <Facebook size={20} className="text-blue-500" />
+                <div className="font-bold">
+                  {formatFollowers(selected?.data?.facebook?.total_followers || 0)}
                 </div>
-              ) : null}
-              {selected?.data?.twitter?.total_followers ? (
-                <div style={{ textAlign: "center", minWidth: 72 }}>
-                  <FaTwitter size={20} color="#FFF" />
-                  <div
-                    style={{
-                      color: "#fff",
-                      fontWeight: 600,
-                      fontSize: 14,
-                      marginTop: 4,
-                    }}
-                  >
-                    {formatFollowers(selected.data.twitter.total_followers)}
-                  </div>
-                  <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 11 }}>
-                    Twitter
-                  </div>
+                <div className="text-12">
+                  Facebook
                 </div>
-              ) : null}
+              </div>
+              
+              <div className='flex-1 flex flex-col !justify-center items-center  p-2 border-r !border-[var(--border)]'>
+                <Youtube size={20} className="text-red-500" />
+                <div className="font-bold">
+                  {formatFollowers(selected?.data?.youtube?.total_followers || 0)}
+                </div>
+                <div className="text-12">
+                  YouTube
+                </div>
+              </div>
+              
+              <div className='flex-1 flex flex-col !justify-center items-center  p-2'>
+                <Twitter size={20} className="text-blue-400" />
+                <div className="font-bold">
+                  {formatFollowers(selected?.data?.twitter?.total_followers || 0)}
+                </div>
+                <div className="text-12">
+                  Twitter
+                </div>
+              </div>
+              {/* {selected?.data?.twitter?.total_followers ? (
+              ) : null} */}
             </div>
           </div>
 
           {/* Selector Row */}
-          <div style={{ display: "flex", gap: 16, marginBottom: 12 }}>
+          <div className="flex my-4 text-[var(--text)]"
+          // style={{ display: "flex", gap: 16, marginBottom: 12 }}
+          >
             <Form.Group style={{ flex: 1, minWidth: 220 }}>
               <Form.Label
-                style={{ fontWeight: 600, color: palette.label, fontSize: 13 }}
+                className="!flex !items-center gap-2"
+              // style={{ fontWeight: 600, color: palette.label, fontSize: 13 }}
               >
-                Selected Order
+                <Check size={18} />   Selected Order
               </Form.Label>
-              <div style={{ display: "flex", gap: 12 }}>
-                <Form.Select
-                  value={orderType}
-                  onChange={(e) => setOrderType(e.target.value)}
-                  style={{
-                    background: palette.card,
-                    border: `1px solid ${palette.inputBorder}`,
-                    borderRadius: 8,
-                    padding: "10px 12px",
-                    fontSize: 14,
-                  }}
-                >
-                  <option>Platform Based</option>
-                  <option>Combo Package</option>
-                  <option>Custom Package</option>
-                </Form.Select>
-                <Form.Select
-                  value={contentType}
-                  onChange={(e) => setContentType(e.target.value)}
-                  style={{
-                    background: palette.card,
-                    border: `1px solid ${palette.inputBorder}`,
-                    borderRadius: 8,
-                    padding: "10px 12px",
-                    fontSize: 14,
-                  }}
-                >
-                  {contentOptions[orderType].map((opt) => (
-                    <option key={opt}>{opt}</option>
-                  ))}
-                </Form.Select>
-                <Form.Select
-                  value={platform}
-                  onChange={(e) => setPlatform(e.target.value)}
-                  style={{
-                    background: palette.card,
-                    border: `1px solid ${palette.inputBorder}`,
-                    borderRadius: 8,
-                    padding: "10px 12px",
-                    fontSize: 14,
-                    maxWidth: 180,
-                  }}
-                >
-                  <option>Instagram</option>
-                  <option>Facebook</option>
-                  <option>YouTube</option>
-                  <option>Twitter</option>
-                </Form.Select>
+              <div
+                className="md:!flex !space-y-4 gap-2 !bg-[var(--card)] border !border-[var(--border)] p-3 rounded"
+              // style={{ display: "flex", gap: 12 }}
+              >
+                <div className="!w-full">
+                  <div>Order Type</div>
+                  <Select
+                    value={orderType}
+                    onChange={setOrderType}
+                    className="w-full"
+                    dropdownStyle={{ background: 'var(--bgPage2)', color: 'var(--text)', border: '1px solid var(--border)' }}
+                    popupClassName="custom-ant-select-dropdown"
+                    style={{
+                      background: 'var(--bgPage2)',
+                      color: 'var(--text)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 8,
+                      padding: '0',
+                      fontSize: 14,
+                    }}
+                  >
+                    <Select.Option value="Platform Based">Platform Based</Select.Option>
+                    {/* <Select.Option value="Combo Package">Combo Package</Select.Option> */}
+                    <Select.Option value="Custom Package">Custom Package</Select.Option>
+                  </Select>
+                </div>
+
+                <div className="!w-full">
+                  <div>Content</div>
+                  <Select
+                    value={contentType}
+                    onChange={setContentType}
+                    className="w-full"
+                    dropdownStyle={{ background: 'var(--bgPage2)', color: 'var(--text)', border: '1px solid var(--border)' }}
+                    popupClassName="custom-ant-select-dropdown"
+                    style={{
+                      background: 'var(--bgPage2)',
+                      color: 'var(--text)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 8,
+                      padding: '0',
+                      fontSize: 14,
+                    }}
+                  >
+                    {contentOptions[orderType].map((opt) => (
+                      <Select.Option key={opt} value={opt}>{opt}</Select.Option>
+                    ))}
+                  </Select>
+                </div>
+                {orderType !== "Custom Package" && (
+                  <div className="!w-full">
+                    <div>Platform</div>
+                    <Select
+                      value={platform}
+                      onChange={setPlatform}
+                      className="w-full"
+                      dropdownStyle={{ background: 'var(--bgPage2)', color: 'var(--text)', border: '1px solid var(--border)' }}
+                      popupClassName="custom-ant-select-dropdown"
+                      style={{
+                        background: 'var(--bgPage2)',
+                        color: 'var(--text)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 8,
+                        padding: '0',
+                        fontSize: 14,
+                      }}
+                      disabled={orderType !== "Platform Based"}
+                    >
+                      <Select.Option value="Instagram">Instagram</Select.Option>
+                      <Select.Option value="Facebook">Facebook</Select.Option>
+                      <Select.Option value="YouTube">YouTube</Select.Option>
+                      <Select.Option value="Twitter">Twitter</Select.Option>
+                    </Select>
+                  </div>
+                )}
+                {/* Custom AntD Select Option Hover and Border Styling */}
+                <style>{`
+        .custom-ant-select-dropdown .ant-select-item-option {
+          background: var(--bgPage2) !important;
+          color: var(--text) !important;
+        }
+        .custom-ant-select-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+          background: var(--hover) !important;
+          color: var(--text) !important;
+        }
+        .custom-ant-select-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+          background: var(--hover) !important;
+          color: var(--text) !important;
+        }
+        .custom-ant-select-dropdown {
+          border: 1px solid var(--border) !important;
+        }
+      `}</style>
               </div>
             </Form.Group>
           </div>
 
-          <hr
+          {/* <hr
             style={{
               border: "none",
-              borderBottom: `1px solid ${palette.hairline}`,
+              borderBottom: `1px solid var(--border)`,
               margin: "18px 0 14px",
             }}
-          />
+          /> */}
 
           {/* Provide content toggle */}
-          <div
-            style={{
-              fontWeight: 700,
-              fontSize: 15,
-              color: palette.brandDeep,
-              marginBottom: 10,
-            }}
+          <div className="text-14 md:text-[18px] font-semibold flex items-center gap-2"
+          // style={{
+          //   fontWeight: 700,
+          //   fontSize: 15,
+          //   color: palette.brandDeep,
+          //   marginBottom: 10,
+          // }}
           >
-            How would you like to provide the content?
-          </div>
-          <div style={{ display: "flex", gap: 16, marginBottom: 18 }}>
-            {["Upload Files", "Provide Content"].map((tab) => {
-              const active = provisionMethod === tab;
-              return (
-                <button
-                  key={tab}
-                  onClick={() => setProvisionMethod(tab)}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    color: active ? palette.brand : palette.light,
-                    fontWeight: 600,
-                    fontSize: 14,
-                    padding: 0,
-                    borderBottom: active
-                      ? `3px solid ${palette.brand}`
-                      : "3px solid transparent",
-                    width: 160,
-                    textAlign: "left",
-                    cursor: "pointer",
-                  }}
-                >
-                  {tab}
-                </button>
-              );
-            })}
+            <FileText size={18} />  How would you like to provide the content?
           </div>
 
-          {/* Description */}
-          <Form.Group>
-            <Form.Label
-              style={{ fontWeight: 600, color: palette.label, fontSize: 13 }}
-            >
-              {provisionMethod === "Provide Content"
-                ? "Content Description"
-                : "Description"}
-            </Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              maxLength={500}
-              placeholder="Add any specific instructions or details about your request..."
-              style={{
-                background: "#FAFBFC",
-                border: `1px solid #DEDEDE`,
-                borderRadius: 10,
-                fontSize: 14.5,
-                padding: "12px 12px",
-              }}
-            />
-            <div
-              style={{
-                textAlign: "right",
-                color: "#B0B0B0",
-                fontSize: 12,
-                marginTop: 6,
-              }}
-            >
-              {description.length}/500 characters
-            </div>
-          </Form.Group>
-
-          {/* Upload / Reference Files */}
-          <div style={{ marginTop: 14 }}>
-            <Form.Label
-              style={{ fontWeight: 600, color: palette.label, fontSize: 13 }}
-            >
-              {provisionMethod === "Provide Content"
-                ? "Reference Files Upload"
-                : "Upload Files"}
-            </Form.Label>
-            <div
-              onClick={handleFileUploadClick}
-              style={{
-                background: palette.inputBg,
-                borderRadius: 12,
-                border: `1.7px dashed ${palette.inputBorder}`,
-                textAlign: "center",
-                padding: "34px 0",
-                position: "relative",
-                cursor: "pointer",
-              }}
-            >
-              <FaArrowUp
-                style={{ fontSize: 18, color: "#6153CC", marginBottom: 6 }}
-              />
-              <div
-                style={{ color: palette.light, fontSize: 14, lineHeight: 1.5 }}
-              >
-                Drag & drop files here
-                <br />
-                or <span style={{ color: palette.brand }}>click to browse</span>
-              </div>
-              <input
-                id="fileInput"
-                type="file"
-                onChange={handleFileChange}
-                style={{ display: "none" }}
-              />
-            </div>
-
-            {file instanceof File && (
-              <div style={{ marginTop: 10, fontSize: 14, color: "#333" }}>
-                {file.type.startsWith("image/") ? (
-                  <img
-                    src={URL.createObjectURL(file)}
-                    alt="Preview"
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: 150,
-                      borderRadius: 8,
-                    }}
-                  />
-                ) : file.type.startsWith("video/") ? (
-                  <video
-                    width="100%"
-                    height={150}
-                    controls
-                    src={URL.createObjectURL(file)}
-                    style={{ borderRadius: 8 }}
-                  />
-                ) : (
-                  <div>
-                    <strong>Selected File:</strong> {file.name}
+          <div className="!w-full mt-3"
+          // style={{ display: "flex", gap: 16, marginBottom: 18 }}
+          >
+            <TabsButton activeKey={activeTab} data={data} setActiveKey={setActiveTab} wfit={false} />
+            {/* Platform Based Content Switcher */}
+            {console.log('contentType', contentType)}
+            {orderType === "Platform Based" && (
+              <>
+                {contentType === "Visit and Promote" && <VisitPromoteContentDetails />}
+                {contentType === "Polls" && <PollContentBuilder polls={polls} setPolls={setPolls} />}
+                {contentType !== "Visit and Promote" && contentType !== "Polls" && (
+                  <div >
+                    {provideContent()}
                   </div>
                 )}
-              </div>
+              </>
             )}
+            {/* Custom Package Content Switcher */}
+            {orderType === "Custom Package" && (
+              <>
+                {contentType && contentType.toLowerCase().includes("visit") && <VisitPromoteContentDetails />}
+                {contentType && contentType.toLowerCase().includes("poll") && <PollContentBuilder polls={polls} setPolls={setPolls} />}
+                {contentType && !contentType.toLowerCase().includes("visit") && !contentType.toLowerCase().includes("poll") && (
+                  <div >
+                    {provideContent()}
+                  </div>
+                )}
+              </>
+            )}
+            {/* {activeTab == "provideContent" && provideContent()} */}
+            {/* {activeTab == "uploadFiles" &&  uploadFile()} */}
           </div>
-        </Col>
+
+
+        </div>
 
         {/* Right rail */}
-        <Col lg={4} style={{ padding: 0 }}>
+        <div className="xl:flex-1 !p-0">
           {/* Date & Time + Affiliate + Coupon */}
           <Card
-            style={{
-              background: palette.card,
-              border: "none",
-              borderRadius: 16,
-              padding: "22px 22px 18px",
-              boxShadow: "0 2px 12px rgba(143,143,143,0.07)",
-              marginBottom: 16,
-            }}
+            // style={{
+            //   background: palette.card,
+            //   border: "none",
+            //   borderRadius: 16,
+            //   padding: "22px 22px 18px",
+            //   boxShadow: "0 2px 12px rgba(143,143,143,0.07)",
+            //   marginBottom: 16,
+            // }}
+            className="!bg-[var(--card)] border !border-[var(--border)] p-3 !text-[var(--text)] xl:mb-10"
           >
             <div
-              style={{
-                fontWeight: 700,
-                color: palette.text,
-                fontSize: 16,
-                marginBottom: 12,
-              }}
+              // style={{
+              //   fontWeight: 700,
+              //   color: palette.text,
+              //   fontSize: 16,
+              //   marginBottom: 12,
+              // }}
+              className="mb-2"
             >
               Select Date & Time
             </div>
             <Form.Group className="mb-3">
-              <Form.Control
+              <DatePicker
+                showTime={{ format: 'HH:mm' }}
+                onChange={(value, dateString) => {
+                  setPostDateTime(dateString);
+                  console.log('Selected Time: ', dateString);
+                }}
+                className="!bg-[var(--bgPage2)] !text-[var(--text)] border !border-[var(--border)] py-2 !w-full"
+                placeholder="Select date and time"
+              />
+              {/* <Form.Control
                 type="datetime-local"
                 value={postDateTime}
                 onChange={(e) => setPostDateTime(e.target.value)}
-                style={{
-                  background: palette.inputBg,
-                  border: `1.7px solid ${palette.inputBorder}`,
-                  borderRadius: 8,
-                  padding: "10px 11px",
-                  fontSize: 14.5,
-                }}
-              />
+                // style={{
+                //   background: palette.inputBg,
+                //   border: `1.7px solid ${palette.inputBorder}`,
+                //   borderRadius: 8,
+                //   padding: "10px 11px",
+                //   fontSize: 14.5,
+                // }}
+              /> */}
             </Form.Group>
 
             <div
-              style={{
-                fontWeight: 700,
-                color: palette.text,
-                fontSize: 16,
-                marginBottom: 12,
-              }}
+              // style={{
+              //   fontWeight: 700,
+              //   color: palette.text,
+              //   fontSize: 16,
+              //   marginBottom: 12,
+              // }}
+              className="mb-2"
             >
               Affiliate Link (Optional)
             </div>
@@ -625,21 +979,22 @@ const MakeOrder = () => {
                 onChange={(e) => setLinkInput(e.target.value)}
                 onKeyDown={handleLinkInput}
                 placeholder="https://example.com/your-affiliate-link"
-                style={{
-                  background: palette.inputBg,
-                  border: `1.7px solid ${palette.inputBorder}`,
-                  borderRadius: 8,
-                  padding: "10px 11px",
-                  fontSize: 14.5,
-                }}
+                // style={{
+                //   background: palette.inputBg,
+                //   border: `1.7px solid ${palette.inputBorder}`,
+                //   borderRadius: 8,
+                //   padding: "10px 11px",
+                //   fontSize: 14.5,
+                // }}
+                className="py-2"
               />
               <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 6,
-                  marginTop: 8,
-                }}
+              // style={{
+              //   display: "flex",
+              //   flexWrap: "wrap",
+              //   gap: 6,
+              //   marginTop: 8,
+              // }}
               >
                 {affiliatedLinks.map((l, i) => (
                   <span
@@ -673,12 +1028,13 @@ const MakeOrder = () => {
             </Form.Group>
 
             <div
-              style={{
-                fontWeight: 700,
-                color: palette.text,
-                fontSize: 16,
-                marginBottom: 12,
-              }}
+              // style={{
+              //   fontWeight: 700,
+              //   color: palette.text,
+              //   fontSize: 16,
+              //   marginBottom: 12,
+              // }}
+              className="mb-2"
             >
               Coupon Code
             </div>
@@ -688,13 +1044,13 @@ const MakeOrder = () => {
                 value={couponCode}
                 onChange={(e) => setCouponCode(e.target.value)}
                 placeholder="Enter coupon code"
-                style={{
-                  background: palette.inputBg,
-                  border: `1.7px solid ${palette.inputBorder}`,
-                  borderRadius: 8,
-                  padding: "10px 11px",
-                  fontSize: 14.5,
-                }}
+              // style={{
+              //   background: palette.inputBg,
+              //   border: `1.7px solid ${palette.inputBorder}`,
+              //   borderRadius: 8,
+              //   padding: "10px 11px",
+              //   fontSize: 14.5,
+              // }}
               />
               <Button
                 style={{
@@ -714,32 +1070,35 @@ const MakeOrder = () => {
 
           {/* Summary */}
           <Card
-            style={{
-              background: palette.card,
-              border: "none",
-              borderRadius: 16,
-              padding: "22px 22px 20px",
-              boxShadow: "0 2px 12px rgba(143,143,143,0.07)",
-            }}
+            // style={{
+            //   background: palette.card,
+            //   border: "none",
+            //   borderRadius: 16,
+            //   padding: "22px 22px 20px",
+            //   boxShadow: "0 2px 12px rgba(143,143,143,0.07)",
+            // }}
+            className="!bg-[var(--card)] border !border-[var(--border)] p-3 !text-[var(--text)] mb-3 mt-3 md:0"
           >
             <div
-              style={{
-                fontWeight: 700,
-                color: palette.brandDeep,
-                fontSize: 16,
-                marginBottom: 14,
-              }}
+              // style={{
+              //   fontWeight: 700,
+              //   color: palette.brandDeep,
+              //   fontSize: 16,
+              //   marginBottom: 14,
+              // }}
+              className="font-bold !text-[18px]"
             >
               Order Summary
             </div>
 
             <div
-              style={{
-                color: palette.sub,
-                fontWeight: 600,
-                fontSize: 14,
-                marginBottom: 6,
-              }}
+              // style={{
+              //   color: palette.sub,
+              //   fontWeight: 600,
+              //   fontSize: 14,
+              //   marginBottom: 6,
+              // }}
+              className="text-[var(--mutedText)]"
             >
               Order Details
             </div>
@@ -753,16 +1112,16 @@ const MakeOrder = () => {
               }}
             >
               {selectedServices.map((service, index) => (
-                <div key={index}>
-                  Type: {service.type}
-                  <br />
-                  Content: {service.name}
-                  <br />
-                  Platform: {service.platform}
-                  <br />
-                  Price: ₹{service.price || "Not specified"}
-                  <br />
-                  <br />
+                <div className="!text-[var(--text)]" key={index}>
+                  <div className="flex justify-between items-center">
+                    <span className="!text-[16px] font-medium">Type:</span> <span className='text-[16px] !font-medium'>{service.type}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="!text-[16px] font-medium">Content:</span><span className='text-[16px] !font-medium'>{service.name}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="!text-[16px] font-medium"> Platform:</span><span className='text-[16px] !font-medium'>{service.platform}</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -775,30 +1134,50 @@ const MakeOrder = () => {
               }}
             />
 
-            <div
-              style={{
-                color: palette.sub,
-                fontWeight: 600,
-                fontSize: 14,
-                marginBottom: 6,
-              }}
-            >
-              Total
+            <div>
+              <div className="flex justify-between items-center">
+                <span className="!text-[16px] font-medium !text-[var(--text)]">Base Price:</span>
+                <span className='text-[16px] !font-medium'>{formatCurrency(totalPrice, currency)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="!text-[16px] font-medium !text-[var(--text)]"> Platform Fee:</span>
+                <span className='text-[16px] !font-medium'>{formatCurrency(Math.round(totalPrice * 0.1), currency)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="!text-[16px] font-medium !text-[var(--text)]"> Coupon Discount:</span>
+                <span className='text-[16px] !font-medium'>-{formatCurrency(0, currency)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="!text-[16px] font-medium !text-[var(--text)]"> GST (18%)</span>
+                <span className='text-[16px] !font-medium'>{formatCurrency(Math.round((totalPrice + totalPrice * 0.1) * 0.18), currency)}</span>
+              </div>
             </div>
-            <div
+
+            <hr
+              style={{
+                border: "none",
+                borderBottom: `1px solid ${palette.hairline}`,
+                margin: "8px 0 14px",
+              }}
+            />
+            <div className="flex justify-between items-center">
+              <span className="!text-[18px] !font-bold"> Total (Inclusive of taxes):</span>
+              <span className='!text-[18px] !font-bold'>{formatCurrency(Math.round(totalPrice + totalPrice * 0.1 + (totalPrice + totalPrice * 0.1) * 0.18), currency)}</span>
+            </div>
+            {/* <div
               style={{ color: palette.brand, fontWeight: 800, fontSize: 24 }}
             >
               ₹{totalPrice || "Not specified"}
-            </div>
+            </div> */}
 
             <Button
-              className="w-100"
+              className="w-100 !bg-[var(--primary)]"
               style={{
                 marginTop: 18,
-                background: ctaGradient,
+                // background: ctaGradient,
                 border: "none",
                 borderRadius: 10,
-                padding: "14px",
+                padding: "10px",
                 fontSize: 15.5,
                 fontWeight: 700,
                 boxShadow: "0 8px 22px rgba(98,73,230,0.25)",
@@ -813,7 +1192,7 @@ const MakeOrder = () => {
               )}
             </Button>
           </Card>
-        </Col>
+        </div>
       </Row>
     </Container>
   );

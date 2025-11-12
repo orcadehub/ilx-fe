@@ -13,6 +13,8 @@ import {
 import io from "socket.io-client";
 import { useParams } from "react-router-dom";
 import config from "../config";
+import { formatMessageTime } from "../helper/getMessageTime";
+import { Badge } from "antd";
 
 const baseURL =
   import.meta.env.MODE === "development"
@@ -244,7 +246,7 @@ function Chats() {
   return (
     <Container
       fluid
-      className="bg-light d-flex justify-content-center"
+      className="bg-[var(--bgPage2)] text-[var(--text)] border !border-[var(--border)] d-flex justify-content-center"
       style={{ height: "90vh" }}
     >
       <Row
@@ -253,14 +255,14 @@ function Chats() {
       >
         {/* Sidebar */}
         {(!isMobile || !showChat) && (
-          <Col xs={12} md={3} className="border-end px-0">
-            <div className="px-4 py-3 border-bottom">
+          <Col xs={12} md={3} className="border-r !border-[var(--border)] text-[var(--text)] px-0 ">
+            <div className="px-4 py-3">
               <h5 className="mb-0 fw-bold fs-4">Chats</h5>
             </div>
-            <div className="p-3 border-bottom">
+            <div className="p-3 ">
               <Form.Control
                 placeholder="Search..."
-                className="rounded-pill border border-dark shadow-sm"
+                className="rounded-xl border !border-[var(--border)] text-[var(--text)] placeholder:!text-[var(--text)] !bg-[var(--bgPage)]"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -269,6 +271,7 @@ function Chats() {
               variant="flush"
               style={{ overflowY: "auto", height: "calc(100vh - 250px)" }}
             >
+              {/* {console.log("contacts", contacts) } */}
               {contacts
                 .filter((c) =>
                   c.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -277,11 +280,11 @@ function Chats() {
                   <ListGroup.Item
                     key={c.id}
                     onClick={() => handleContactSelect(c)}
-                    className="d-flex align-items-center gap-3 px-3 py-3 border-0 border-bottom"
+                    className="d-flex align-items-center !w-full gap-3 px-3 py-2 !border-y !border-[var(--border)] text-[var(--text)] hover:!bg-[var(--hover2)] "
                     style={{
                       cursor: "pointer",
                       backgroundColor:
-                        active?.id === c.id ? "#EEF2FF" : "transparent",
+                        active?.id === c.id ? "var(--hover2)" : "transparent",
                     }}
                   >
                     <img
@@ -291,9 +294,13 @@ function Chats() {
                       width={40}
                       height={40}
                     />
-                    <div>
-                      <div className="fw-semibold text-dark">{c.name}</div>
-                      <div className="text-muted small">{c.preview}</div>
+                    <div className="w-full">
+                      <div className="fw-semibold text-[var(--text)]">{c.name}</div>
+                      <div className="text-gray-500 small flex justify-between"><span>
+                        {c.preview}
+                      </span>
+                        <span className="flex gap-2 items-center">{formatMessageTime(c.timestamp)} <Badge count={5} size={"small"} style={{ backgroundColor: '#52c41a' }} ></Badge></span>
+                      </div>
                     </div>
                   </ListGroup.Item>
                 ))}
@@ -303,10 +310,10 @@ function Chats() {
 
         {/* Chat Pane */}
         {(isMobile ? showChat : true) && (
-          <Col xs={12} md={9} className="d-flex flex-column">
+          <Col xs={12} md={9} className="d-flex flex-column p-0">
             {/* Chat Header */}
-            <div className="d-flex align-items-center justify-content-between border-bottom p-3 bg-white">
-              <div className="d-flex align-items-center">
+            <div className="d-flex align-items-center justify-content-between border-b !border-[var(--border)] text-[var(--text)]  p-3 bg-[var(--card)]">
+              <div className="d-flex align-items-center ">
                 {isMobile && (
                   <Button
                     variant="light"
@@ -326,12 +333,12 @@ function Chats() {
                       height={40}
                     />
                     <div>
-                      <div className="fw-semibold text-dark">{active.name}</div>
+                      <div className="font-medium">{active.name}</div>
                     </div>
                   </>
                 )}
               </div>
-              <Dropdown align="end">
+              {/* <Dropdown align="end">
                 <Dropdown.Toggle
                   as="span"
                   bsPrefix="p-0 border-0 bg-transparent"
@@ -347,14 +354,14 @@ function Chats() {
                   <Dropdown.Divider />
                   <Dropdown.Item>Logout</Dropdown.Item>
                 </Dropdown.Menu>
-              </Dropdown>
+              </Dropdown> */}
             </div>
 
             {/* Messages */}
             <div
               className="flex-grow-1 px-3 py-3"
               style={{
-                backgroundColor: "#F8FAFC",
+                backgroundColor: "var(--bgPage2)",
                 overflowY: "auto",
                 height: "calc(100vh - 250px)",
               }}
@@ -397,17 +404,17 @@ function Chats() {
                         style={{ marginBottom: "6px" }}
                       >
                         <div
-                          className={`rounded-4 shadow-sm d-inline-block ${
+                          className={`rounded-xl !h-fit text-14 ${
                             m.fromMe
                               ? "bg-primary text-white"
                               : "bg-white border"
                           }`}
-                          style={{ maxWidth: "70%", padding: "8px 12px" }}
+                          style={{ maxWidth: "70%", padding: "2px 15px" }}
                         >
                           <div>{m.text}</div>
                           <div
                             style={{
-                              fontSize: "0.7rem",
+                              fontSize: "10px",
                               color: m.fromMe ? "#e5e7eb" : "#6b7280",
                               textAlign: "right",
                               marginTop: "2px",
@@ -435,31 +442,31 @@ function Chats() {
             </div>
 
             {/* Message Input */}
-            <div className="border-top bg-white p-3">
-              <InputGroup className="rounded-pill border shadow-sm overflow-hidden">
+            <div className="border-t !border-[var(--border)] p-3">
+              <InputGroup className="rounded-xl border !border-[var(--border)] !text-[var(--text)] shadow-sm overflow-hidden">
                 <Button
-                  variant="light"
+                  variant=""
                   onClick={() => document.getElementById("fileInput").click()}
-                  className="px-3"
+                  className="pl-2 "
                 >
-                  <i className="bi bi-paperclip text-secondary"></i>
+                  <i className="bi bi-paperclip text-[var(--text)]"></i>
                 </Button>
                 <FormControl
                   placeholder="Type your message..."
-                  className="border-0"
+                  className="border-0 placeholder:!text-gray-500 focus:!outline-none"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                 />
-                <Button variant="light" className="px-3">
-                  <i className="bi bi-mic text-secondary"></i>
+                <Button variant="" className="px-3">
+                  <i className="bi bi-mic text-[var(--text)]"></i>
                 </Button>
                 <Button
                   variant="primary"
                   className="px-3"
                   onClick={sendMessage}
                 >
-                  <i className="bi bi-send text-white"></i>
+                  <i className="bi bi-send"></i>
                 </Button>
               </InputGroup>
               <input

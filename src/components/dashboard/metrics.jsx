@@ -1,5 +1,6 @@
 import { FaBullseye, FaRupeeSign, FaShoppingCart, FaChartPie, FaUserFriends, FaImage, FaVideo, FaFilm, FaUserTie, FaUsers, FaHeadset, FaHandshake, FaMoneyCheckAlt, FaHourglassHalf, FaTasks } from "react-icons/fa";
 import config from "../../config";
+import { ChartNoAxesColumn, ChartPie, FileText, Film, TrendingUp, Users, Video } from 'lucide-react';
 
 const baseURL =
   import.meta.env.MODE === "development"
@@ -73,8 +74,9 @@ const fetchMetrics = async (token) => {
         !isInfluencer && {
           title: "Campaign Impact Score",
           value: "10/100",
-          icon: <FaBullseye className="text-danger fs-3" style={{ color: "#dc2626" }} />,
+          icon: <TrendingUp className='text-blue' />,
           path: "/impact-score",
+          infoText: 'Impact Score = Engagement Rate (35%) + Reach (25%) + Consistency (15%) + Platform Diversity (10%) + Order Completion Rate (15%)'
         },
         isInfluencer && {
           title: "Earnings",
@@ -85,43 +87,43 @@ const fetchMetrics = async (token) => {
         {
           title: "Total Orders",
           value: "0",
-          icon: <FaShoppingCart className="text-primary fs-3" style={{ color: "#1e40af" }} />,
+          icon: <FileText className='text-blue' />,
           path: "/orders",
         },
         {
           title: "Active/Total Campaigns",
           value: "0/0",
-          icon: <FaChartPie className="text-success fs-3" style={{ color: "#059669" }} />,
+          icon: <ChartNoAxesColumn className='text-blue' />,
           path: "/campaigns",
         },
         {
           title: "Connected Influencers",
           value: "0",
-          icon: <FaUserFriends className="text-info fs-3" style={{ color: "#06b6d4" }} />,
+          icon: <Users assName='text-blue' />,
           path: "/influencers",
         },
         {
           title: "Total Posts",
           value: "0",
-          icon: <FaImage className="text-warning fs-3" style={{ color: "#d97706" }} />,
+          icon: <FileText className='text-blue' />,
           path: "/posts",
         },
         {
           title: "Reels",
           value: "0",
-          icon: <FaVideo className="text-secondary fs-3" style={{ color: "#475569" }} />,
+          icon: <Film className='text-blue' />,
           path: "/reels",
         },
         {
           title: "Videos",
           value: "0",
-          icon: <FaFilm className="text-primary fs-3" style={{ color: "#1e40af" }} />,
+          icon: <Video className='text-blue' />,
           path: "/videos",
         },
         {
           title: "Stories",
           value: "0",
-          icon: <FaVideo className="text-danger fs-3" style={{ color: "#dc2626" }} />,
+          icon: <ChartPie className='text-blue' />,
           path: "/shorts",
         },
       ].filter(Boolean);
@@ -200,8 +202,9 @@ const fetchMetrics = async (token) => {
         !isInfluencer && {
           title: "Campaign Impact Score",
           value: "10/100",
-          icon: <FaBullseye className="text-danger fs-3" style={{ color: "#dc2626" }} />,
+          icon: <TrendingUp className='text-blue' />,
           path: "/impact-score",
+          infoText: 'Impact Score = Engagement Rate (35%) + Reach (25%) + Consistency (15%) + Platform Diversity (10%) + Order Completion Rate (15%)'
         },
         isInfluencer && {
           title: "Earnings",
@@ -212,43 +215,43 @@ const fetchMetrics = async (token) => {
         {
           title: "Total Orders",
           value: data.total_orders || "0",
-          icon: <FaShoppingCart className="text-primary fs-3" style={{ color: "#1e40af" }} />,
+          icon: <FileText className='text-blue' />,
           path: "/orders",
         },
         {
           title: "Active/Total Campaigns",
           value: data.active_campaigns || "0/0",
-          icon: <FaChartPie className="text-success fs-3" style={{ color: "#059669" }} />,
+          icon: <ChartNoAxesColumn className='text-blue' />,
           path: "/campaigns",
         },
         {
           title: "Connected Influencers",
           value: data.connected_influencers || "0",
-          icon: <FaUserFriends className="text-info fs-3" style={{ color: "#06b6d4" }} />,
+          icon: <Users assName='text-blue' />,
           path: "/influencers",
         },
         {
           title: "Total Posts",
           value: data.total_posts || "0",
-          icon: <FaImage className="text-warning fs-3" style={{ color: "#d97706" }} />,
+          icon: <FileText className='text-blue' />,
           path: "/posts",
         },
         {
           title: "Reels",
           value: data.reels || "0",
-          icon: <FaVideo className="text-secondary fs-3" style={{ color: "#475569" }} />,
+          icon: <Film className='text-blue' />,
           path: "/reels",
         },
         {
           title: "Videos",
           value: data.videos || "0",
-          icon: <FaFilm className="text-primary fs-3" style={{ color: "#1e40af" }} />,
+          icon: <Video className='text-blue' />,
           path: "/videos",
         },
         {
           title: "Stories",
           value: data.stories || "0",
-          icon: <FaVideo className="text-danger fs-3" style={{ color: "#dc2626" }} />,
+          icon: <ChartPie className='text-blue' />,
           path: "/shorts",
         },
       ].filter(Boolean);
@@ -263,111 +266,112 @@ const fetchMetrics = async (token) => {
     const isInfluencer = role === "influencer";
     return role === "admin"
       ? [
-          {
-            title: "Total Influencers",
-            value: "0",
-            icon: <FaUserFriends className="text-info fs-3" style={{ color: "#06b6d4" }} />,
-            path: "/influencers",
-          },
-          {
-            title: "Business Users",
-            value: "0",
-            icon: <FaUserTie className="text-primary fs-3" style={{ color: "#1e40af" }} />,
-            path: "/business-users",
-          },
-          {
-            title: "Team Members",
-            value: "0",
-            icon: <FaUsers className="text-warning fs-3" style={{ color: "#d97706" }} />,
-            path: "/team",
-          },
-          {
-            title: "Active Support Tickets",
-            value: "0",
-            icon: <FaHeadset className="text-danger fs-3" style={{ color: "#dc2626" }} />,
-            path: "/support",
-          },
-          {
-            title: "Total Campaigns",
-            value: "0",
-            icon: <FaHandshake className="text-success fs-3" style={{ color: "#059669" }} />,
-            path: "/campaigns",
-          },
-          {
-            title: "Total Transactions",
-            value: "0",
-            icon: <FaMoneyCheckAlt className="text-secondary fs-3" style={{ color: "#475569" }} />,
-            path: "/transactions",
-          },
-          {
-            title: "Pending Withdrawals",
-            value: "0",
-            icon: <FaHourglassHalf className="text-danger fs-3" style={{ color: "#dc2626" }} />,
-            path: "/withdrawals",
-          },
-          {
-            title: "Service Orders",
-            value: "0",
-            icon: <FaTasks className="text-primary fs-3" style={{ color: "#1e40af" }} />,
-            path: "/service-orders",
-          },
-        ]
+        {
+          title: "Total Influencers",
+          value: "0",
+          icon: <FaUserFriends className="text-info fs-3" style={{ color: "#06b6d4" }} />,
+          path: "/influencers",
+        },
+        {
+          title: "Business Users",
+          value: "0",
+          icon: <FaUserTie className="text-primary fs-3" style={{ color: "#1e40af" }} />,
+          path: "/business-users",
+        },
+        {
+          title: "Team Members",
+          value: "0",
+          icon: <FaUsers className="text-warning fs-3" style={{ color: "#d97706" }} />,
+          path: "/team",
+        },
+        {
+          title: "Active Support Tickets",
+          value: "0",
+          icon: <FaHeadset className="text-danger fs-3" style={{ color: "#dc2626" }} />,
+          path: "/support",
+        },
+        {
+          title: "Total Campaigns",
+          value: "0",
+          icon: <FaHandshake className="text-success fs-3" style={{ color: "#059669" }} />,
+          path: "/campaigns",
+        },
+        {
+          title: "Total Transactions",
+          value: "0",
+          icon: <FaMoneyCheckAlt className="text-secondary fs-3" style={{ color: "#475569" }} />,
+          path: "/transactions",
+        },
+        {
+          title: "Pending Withdrawals",
+          value: "0",
+          icon: <FaHourglassHalf className="text-danger fs-3" style={{ color: "#dc2626" }} />,
+          path: "/withdrawals",
+        },
+        {
+          title: "Service Orders",
+          value: "0",
+          icon: <FaTasks className="text-primary fs-3" style={{ color: "#1e40af" }} />,
+          path: "/service-orders",
+        },
+      ]
       : [
-          !isInfluencer && {
-            title: "Campaign Impact Score",
-            value: "10/100",
-            icon: <FaBullseye className="text-danger fs-3" style={{ color: "#dc2626" }} />,
-            path: "/impact-score",
-          },
-          isInfluencer && {
-            title: "Earnings",
-            value: "₹0",
-            icon: <FaRupeeSign className="text-success fs-3" style={{ color: "#059669" }} />,
-            path: "/earnings",
-          },
-          {
-            title: "Total Orders",
-            value: "0",
-            icon: <FaShoppingCart className="text-primary fs-3" style={{ color: "#1e40af" }} />,
-            path: "/orders",
-          },
-          {
-            title: "Active/Total Campaigns",
-            value: "0/0",
-            icon: <FaChartPie className="text-success fs-3" style={{ color: "#059669" }} />,
-            path: "/campaigns",
-          },
-          {
-            title: "Connected Influencers",
-            value: "0",
-            icon: <FaUserFriends className="text-info fs-3" style={{ color: "#06b6d4" }} />,
-            path: "/influencers",
-          },
-          {
-            title: "Total Posts",
-            value: "0",
-            icon: <FaImage className="text-warning fs-3" style={{ color: "#d97706" }} />,
-            path: "/posts",
-          },
-          {
-            title: "Reels",
-            value: "0",
-            icon: <FaVideo className="text-secondary fs-3" style={{ color: "#475569" }} />,
-            path: "/reels",
-          },
-          {
-            title: "Videos",
-            value: "0",
-            icon: <FaFilm className="text-primary fs-3" style={{ color: "#1e40af" }} />,
-            path: "/videos",
-          },
-          {
-            title: "Stories",
-            value: "0",
-            icon: <FaVideo className="text-danger fs-3" style={{ color: "#dc2626" }} />,
-            path: "/shorts",
-          },
-        ].filter(Boolean);
+        !isInfluencer && {
+          title: "Campaign Impact Score",
+          value: "10/100",
+          icon: <TrendingUp className='text-blue' />,
+          path: "/impact-score",
+          infoText: 'Impact Score = Engagement Rate (35%) + Reach (25%) + Consistency (15%) + Platform Diversity (10%) + Order Completion Rate (15%)'
+        },
+        isInfluencer && {
+          title: "Earnings",
+          value: "₹0",
+          icon: <FaRupeeSign className="text-success fs-3" style={{ color: "#059669" }} />,
+          path: "/earnings",
+        },
+        {
+          title: "Total Orders",
+          value: "0",
+          icon: <FileText className='text-blue' />,
+          path: "/orders",
+        },
+        {
+          title: "Active/Total Campaigns",
+          value: "0/0",
+          icon: <ChartNoAxesColumn className='text-blue' />,
+          path: "/campaigns",
+        },
+        {
+          title: "Connected Influencers",
+          value: "0",
+          icon: <Users assName='text-blue' />,
+          path: "/influencers",
+        },
+        {
+          title: "Total Posts",
+          value: "0",
+          icon: <FileText className='text-blue' />,
+          path: "/posts",
+        },
+        {
+          title: "Reels",
+          value: "0",
+          icon: <Film className='text-blue' />,
+          path: "/reels",
+        },
+        {
+          title: "Videos",
+          value: "0",
+          icon: <Video className='text-blue' />,
+          path: "/videos",
+        },
+        {
+          title: "Stories",
+          value: "0",
+          icon: <ChartPie className='text-blue' />,
+          path: "/shorts",
+        },
+      ].filter(Boolean);
   }
 };
 

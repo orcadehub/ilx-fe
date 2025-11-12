@@ -10,8 +10,10 @@ import {
   InputGroup,
   Spinner,
 } from "react-bootstrap";
-import { Pencil, CurrencyRupee, Plus, Trash } from "react-bootstrap-icons";
+import { CurrencyRupee, Plus, Trash } from "react-bootstrap-icons";
 import config from "../../config";
+import { Select } from "antd";
+import { Pencil } from "lucide-react";
 
 // Base URL from config
 const baseURL =
@@ -368,7 +370,7 @@ const EditPricesModal = ({
               </Card>
             ))}
             {combos.length === 0 && (
-              <div className="text-muted small">No combos. Add one.</div>
+              <div className="!text-[var(--mutedText)] small">No combos. Add one.</div>
             )}
           </Card.Body>
         </Card>
@@ -446,7 +448,7 @@ const EditPricesModal = ({
               </Card>
             ))}
             {custom.length === 0 && (
-              <div className="text-muted small">No custom items. Add one.</div>
+              <div className="!text-[var(--mutedText)] small">No custom items. Add one.</div>
             )}
           </Card.Body>
         </Card>
@@ -472,10 +474,27 @@ const EditPricesModal = ({
 /* =========================
    Business Info (Parent)
    ========================= */
-const BusinessInfo = ({ user, setShowEdit }) => {
+const BusinessInfo = ({ user, setShowEdit, isOwnProfile = false }) => {
   const [showPriceModal, setShowPriceModal] = useState(false);
   const [initialPrices, setInitialPrices] = useState(null);
   const [saving, setSaving] = useState(false);
+
+  const handleAccountStatusChange = async (value) => {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`${baseURL}/api/dashboard/update-profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ account_status: value })
+      });
+      console.log('Account status updated to:', value);
+    } catch (error) {
+      console.error('Failed to update account status:', error);
+    }
+  };
 
   const canEditPrices = user?.role === "influencer";
 
@@ -534,74 +553,65 @@ const BusinessInfo = ({ user, setShowEdit }) => {
   return (
     <>
       {/* ===== Business Info Card ===== */}
-      <Card className="border-0 shadow-sm mb-4">
-        <Card.Header className="bg-white d-flex justify-content-between align-items-center border-bottom">
+      <Card className="mb-4 border !border-[var(--border)] !bg-[var(--card)] !text-[var(--text)]">
+        <Card.Header className=" d-flex justify-content-between align-items-center border-0 !bg-[var(--card)]">
           <h6 className="mb-0">Business Info</h6>
           <div className="d-flex align-items-center gap-2">
+            {isOwnProfile && (
             <Button
               size="sm"
               onClick={() => setShowEdit(true)}
               style={{
-                background: "linear-gradient(90deg, #4B0082 0%, #800080 100%)",
-                border: "none",
+                background: "var(--bgPage)",
+                border: "1px solid var(--border)",
                 borderRadius: "8px",
                 padding: "8px 16px",
                 fontWeight: "600",
                 fontSize: "14px",
                 letterSpacing: "0.5px",
-                color: "#FFFFFF",
+                color: "var(--text)",
                 display: "flex",
                 alignItems: "center",
                 gap: "6px",
                 transition: "all 0.3s ease",
               }}
-              onMouseEnter={(e) => {
-                e.target.style.transform = "scale(1.05)";
-                e.target.style.boxShadow = "0 4px 12px rgba(75, 0, 130, 0.3)";
-                e.target.style.background =
-                  "linear-gradient(90deg, #6A0DAD 0%, #9B30FF 100%)";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = "scale(1)";
-                e.target.style.boxShadow = "none";
-                e.target.style.background =
-                  "linear-gradient(90deg, #4B0082 0%, #800080 100%)";
-              }}
+              
             >
-              <Pencil size={14} color="#FFFFFF" /> Edit
+              <Pencil size={14} color="var(--text)" /> Edit
             </Button>
+            )}
           </div>
         </Card.Header>
 
         <Card.Body>
           {/* ===== Company Details ===== */}
           <section className="mb-3">
-            <header className="text-muted small mb-2">Company</header>
+            {/* <header className="!text-[var(--mutedText)] small mb-2">Company</header> */}
             <div className="mb-2">
-              <small className="text-muted">Business Name</small>
+              <small className="!text-[var(--mutedText)]">Business Name</small>
               <p className="mb-2">{user?.business_name || "ABC Company"}</p>
             </div>
             <div className="mb-2">
-              <small className="text-muted">Category</small>
+              <small className="!text-[var(--mutedText)]">Category</small>
               <p className="mb-2">{user?.category || "XYZ Products"}</p>
             </div>
             <div className="mb-2">
-              <small className="text-muted">Business Status</small>
+              <small className="!text-[var(--mutedText)]">Business Status</small>
               <p className="mb-2">
                 {user?.business_status || "Not Registered"}
               </p>
             </div>
             <div className="mb-2">
-              <small className="text-muted">Service Type</small>
+              <small className="!text-[var(--mutedText)]">Service Type</small>
               <p className="mb-2">{user?.service_type || "Online & Offline"}</p>
             </div>
           </section>
 
           {/* ===== Web/Location ===== */}
           <section className="mb-3">
-            <header className="text-muted small mb-2">Web & Location</header>
+            {/* <header className="!text-[var(--mutedText)] small mb-2">Web & Location</header> */}
             <div className="mb-2">
-              <small className="text-muted">Visit our site</small>
+              <small className="!text-[var(--mutedText)]">Visit our site</small>
               <p className="mb-2">
                 <a href={user?.website || "#"}>
                   {user?.website || "www.xyz.com"}
@@ -609,12 +619,26 @@ const BusinessInfo = ({ user, setShowEdit }) => {
               </p>
             </div>
             <div className="mb-2">
-              <small className="text-muted">Location</small>
+              <small className="!text-[var(--mutedText)]">Location</small>
               <p className="mb-2">{user?.location || "[Address]"}</p>
             </div>
-            <div className="mb-0">
-              <small className="text-muted">Price Range</small>
+            <div className="mb-2">
+              <small className="!text-[var(--mutedText)]">Price Range</small>
               <p className="mb-0">{user?.price_range || "₹5,000 - 50,000"}</p>
+            </div>
+            <div className="mb-0">
+              <p className="!text-[var(--text)] mb-1">Account Management</p>
+              <Select
+                style={{ width: 120 }}
+                value={user?.account_status || "Public"}
+                onChange={(value) => handleAccountStatusChange(value)}
+                options={[
+                  { value: 'Public', label: 'Public' },
+                  { value: 'Private', label: 'Private' },
+                  { value: 'Delete', label: 'Delete' },
+                  { value: 'Deactivate', label: 'Deactivate' },
+                ]}
+              />
             </div>
           </section>
 
@@ -623,43 +647,44 @@ const BusinessInfo = ({ user, setShowEdit }) => {
             <section className="mt-3 pt-3 border-top">
               <div className="d-flex justify-content-between align-items-center">
                 <div>
-                  <small className="text-muted">Pricing</small>
+                  <small className="!text-[var(--mutedText)]">Pricing</small>
                   <div className="fw-semibold">Influencer Service Prices</div>
                 </div>
+                {isOwnProfile && (
                 <Button
                   size="sm"
                   onClick={openEditPrices}
                   style={{
-                    background:
-                      "linear-gradient(90deg, #4B0082 0%, #800080 100%)",
-                    border: "none",
+                    background: "var(--bgPage)",
+                    border: "1px solid var(--border)",
                     borderRadius: "8px",
                     padding: "8px 16px",
                     fontWeight: "600",
                     fontSize: "14px",
                     letterSpacing: "0.5px",
-                    color: "#FFFFFF",
+                    color: "var(--text)",
                     display: "flex",
                     alignItems: "center",
                     gap: "6px",
                     transition: "all 0.3s ease",
                   }}
-                  onMouseEnter={(e) => {
-                    e.target.style.transform = "scale(1.05)";
-                    e.target.style.boxShadow =
-                      "0 4px 12px rgba(75, 0, 130, 0.3)";
-                    e.target.style.background =
-                      "linear-gradient(90deg, #6A0DAD 0%, #9B30FF 100%)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = "scale(1)";
-                    e.target.style.boxShadow = "none";
-                    e.target.style.background =
-                      "linear-gradient(90deg, #4B0082 0%, #800080 100%)";
-                  }}
+                  // onMouseEnter={(e) => {
+                  //   e.target.style.transform = "scale(1.05)";
+                  //   e.target.style.boxShadow =
+                  //     "0 4px 12px rgba(75, 0, 130, 0.3)";
+                  //   e.target.style.background =
+                  //     "linear-gradient(90deg, #6A0DAD 0%, #9B30FF 100%)";
+                  // }}
+                  // onMouseLeave={(e) => {
+                  //   e.target.style.transform = "scale(1)";
+                  //   e.target.style.boxShadow = "none";
+                  //   e.target.style.background =
+                  //     "linear-gradient(90deg, #4B0082 0%, #800080 100%)";
+                  // }}
                 >
-                  <Pencil size={14} color="#FFFFFF" /> Edit
+                  <Pencil size={14} color="var(--text)" /> Edit
                 </Button>
+                )}
               </div>
             </section>
           )}

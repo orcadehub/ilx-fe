@@ -2,29 +2,32 @@ import React, { useState, useEffect } from "react";
 import { Card, Container, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import "./Dash.css";
+import { Users } from "lucide-react";
+import { businessUsers } from "../data/topInflencersData";
+import TopCard from "./TopCard";
 
 const TopBusinessUsers = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchTopUsers = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("http://localhost:4000/api/top-users");
-        if (!response.ok) throw new Error("Failed to fetch top users");
-        const data = await response.json();
-        setUsers(data.businessUsers); // Use businessUsers array
-      } catch (err) {
-        console.error("Error fetching top business users:", err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchTopUsers = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const response = await fetch("http://localhost:4000/api/top-users");
+  //       if (!response.ok) throw new Error("Failed to fetch top users");
+  //       const data = await response.json();
+  //       setUsers(data.businessUsers); // Use businessUsers array
+  //     } catch (err) {
+  //       console.error("Error fetching top business users:", err.message);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-    fetchTopUsers();
-  }, []);
+  //   fetchTopUsers();
+  // }, []);
 
   // Slugify name for navigation (e.g., "Fashion Forward" -> "fashion-forward")
   const slugify = (text) =>
@@ -35,7 +38,7 @@ const TopBusinessUsers = () => {
 
   return (
     <Card
-      className="shadow-sm border-0 pending-orders-card"
+      className=" border !border-[var(--border)] pending-orders-card  !bg-[var(--card)] !text-[var(--text)]"
       style={{
         backgroundColor: "#fff",
         borderRadius: "1rem",
@@ -43,12 +46,12 @@ const TopBusinessUsers = () => {
       }}
     >
       <Card.Body>
-        <h5 className="fw-bold mb-4">
-          <i className="bi bi-people me-2" />
+        <h5 className="flex items-center mb-4 !text-[16px]">
+          <Users size={16} className="text-blue mr-1" />
           Top Business Users
         </h5>
 
-        {loading && users.length === 0 ? (
+        {loading && businessUsers.length === 0 ? (
           <Container
             className="d-flex justify-content-center align-items-center"
             style={{ minHeight: "300px" }}
@@ -56,32 +59,8 @@ const TopBusinessUsers = () => {
             <Spinner animation="border" variant="primary" />
             <span className="ms-3">Loading business users...</span>
           </Container>
-        ) : users.length > 0 ? (
-          users.map((user) => (
-            <div
-              key={user.name}
-              className="d-flex align-items-center justify-content-between mb-1 px-3 py-2 rounded cursor-pointer"
-              onClick={() => navigate(`/business/${slugify(user.name)}`)}
-              style={{
-                backgroundColor: "#fff",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
-              }}
-            >
-              <div className="d-flex align-items-center">
-                <img
-                  src={user.img}
-                  alt={user.name}
-                  className="rounded-circle me-3"
-                  width="40"
-                  height="40"
-                />
-                <div>
-                  <div className="fw-semibold">{user.name}</div>
-                </div>
-              </div>
-              <div className="fw-bold">{user.orders} orders</div>
-            </div>
-          ))
+        ) : businessUsers.length > 0 ? (
+            <TopCard topData={businessUsers} />
         ) : (
           <div className="text-muted text-center">No business users available</div>
         )}

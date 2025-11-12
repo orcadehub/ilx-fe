@@ -58,29 +58,29 @@ const PostCard = ({ post }) => {
           <Card.Img
             variant="top"
             src={post.image}
-            height="140"
-            className="rounded-top object-fit-cover"
+            className="rounded-top"
+            style={{ height: '140px', objectFit: 'cover', width: '100%' }}
           />
           <span
-            className="position-absolute top-0 end-0 m-1 rounded-circle p-1"
+            className="position-absolute top-0 end-0 rounded-circle p-1"
             style={{ fontSize: "1.2rem" }}
           >
             {getPlatformIcon(post.platform)}
           </span>
         </div>
       )}
-      <Card.Body className="p-3">
-        <div className="d-flex justify-content-around small text-muted">
-          <div>
+      <Card.Body className="p-1">
+        <div className="d-flex justify-content-around text-12 text-[var(--text-secondary)]">
+          <div className="flex flex-col items-center">
             <FaHeart className="text-danger" /> {formatNumber(post.likes)}
           </div>
-          <div>
+          <div className="flex flex-col items-center">
             <FaEye /> {formatNumber(post.views)}
           </div>
-          <div>
+          <div className="flex flex-col items-center">
             <FaComment /> {formatNumber(post.comments)}
           </div>
-          <div>
+          <div className="flex flex-col items-center">
             <FaShare /> {formatNumber(post.shares)}
           </div>
         </div>

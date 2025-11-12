@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { FaInstagram, FaFacebook, FaTwitter, FaYoutube } from "react-icons/fa";
+import { Collapse } from "antd";
+
+const { Panel } = Collapse;
 
 const LeftPanel = ({
   data,
@@ -20,6 +23,77 @@ const LeftPanel = ({
   formatFollowers,
 }) => {
   const [loading, setLoading] = useState(true);
+  const [accordionOpen, setAccordionOpen] = useState(['1']); // Default to open
+
+  // Calculate match percentage for each influencer
+  const getFilteredData = () => {
+    return data.map((inf) => {
+      let score = 0;
+      let totalCriteria = 0;
+      
+      // Search term matching
+      if (searchTerm) {
+        totalCriteria++;
+        if (inf.name?.toLowerCase().includes(searchTerm) || 
+            inf.username?.toLowerCase().includes(searchTerm) ||
+            inf.category?.toLowerCase().includes(searchTerm)) {
+          score++;
+        }
+      }
+      
+      // Location matching
+      if (selectedCity) {
+        totalCriteria++;
+        if (inf.location_city === selectedCity) score++;
+      }
+      if (stateCode) {
+        totalCriteria++;
+        if (inf.location_state === stateCode) score++;
+      }
+      
+      // Niche matching
+      if (niche) {
+        totalCriteria++;
+        if (inf.category === niche) score++;
+      }
+      
+      // Platform matching
+      if (platform) {
+        totalCriteria++;
+        if ((platform === 'Instagram' && inf.data?.instagram?.total_followers > 0) ||
+            (platform === 'Facebook' && inf.data?.facebook?.total_followers > 0) ||
+            (platform === 'YouTube' && inf.data?.youtube?.total_followers > 0) ||
+            (platform === 'Twitter' && inf.data?.twitter?.total_followers > 0)) {
+          score++;
+        }
+      }
+      
+      // Engagement rate matching
+      if (engagementRate > 0) {
+        totalCriteria++;
+        if (inf.engagement_rate >= engagementRate) score++;
+      }
+      
+      // Followers matching
+      if (followers > 0) {
+        totalCriteria++;
+        const totalFollowers = (inf.data?.instagram?.total_followers || 0) +
+                              (inf.data?.facebook?.total_followers || 0) +
+                              (inf.data?.youtube?.total_followers || 0) +
+                              (inf.data?.twitter?.total_followers || 0);
+        if (totalFollowers >= followers) score++;
+      }
+      
+      // Calculate match percentage
+      const matchPercentage = totalCriteria > 0 ? (score / totalCriteria) * 100 : 100;
+      
+      return { ...inf, matchPercentage };
+    })
+    .filter(inf => inf.matchPercentage > 0) // Show only influencers with some match
+    .sort((a, b) => b.matchPercentage - a.matchPercentage); // Sort by match percentage descending
+  };
+
+  const filteredData = getFilteredData();
 
   useEffect(() => {
     // Simulate loading delay (or set this false when API fetch completes)
@@ -29,39 +103,38 @@ const LeftPanel = ({
   }, [data]);
 
   return (
-    <div
-      className="p-3 col-12 col-lg-4"
-      style={{
-        backgroundColor: "var(--primary-color)",
-        borderRight: "1px solid #e0e0e0",
-        height: "calc(90vh)",
-        borderRadius: "16px",
-      }}
+    <div className=" xl:p-3 !pb-0 col-12 col-lg-4 xl:h-[calc(100vh-180px)] overflow-hidden rounded-xl"
+    // style={{
+    // backgroundColor: "var(--bg)",
+    // borderRight: "1px solid #e0e0e0",
+    // height: "calc(90vh-100px)",
+    // borderRadius: "16px",
+    // }}
     >
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h6 className="fw-semibold fs-4" style={{ color: "#1a237e" }}>
+      {/* <div className="d-flex justify-content-between align-items-center mb-3 ">
+        <h6 className="fw-semibold fs-4" style={{ color: "var(--primary)" }}>
           Influencers
         </h6>
         <button
-          className="btn btn-sm"
-          style={{
-            background: "linear-gradient(135deg, rgb(87, 52, 226), #1976d2)",
-            border: "none",
-            color: "#fff",
-            borderRadius: "50px",
-            padding: "0.6rem 1.5rem",
-            fontWeight: 600,
-            fontSize: "0.95rem",
-            boxShadow: "0 4px 14px rgba(125, 104, 195, 0.25)",
-          }}
+          className="btn btn-sm text-white rounded-pill text-14 !bg-[var(--primary)] px-3 shadow-lg"
+          // style={{
+            // background: "linear-gradient(135deg, rgb(87, 52, 226), #1976d2)",
+            // border: "none",
+            // color: "#fff",
+            // borderRadius: "50px",
+            // padding: "0.6rem 1.5rem",
+            // fontWeight: 600,
+            // fontSize: "0.95rem",
+            // boxShadow: "0 4px 14px rgba(125, 104, 195, 0.25)",
+          // }}
           onClick={() => setShowFilters(true)}
         >
           Filters
         </button>
-      </div>
+      </div> */}
 
       {/* Selected Filters Badges */}
-      <div className="d-flex flex-wrap gap-2 mb-3">
+      {/* <div className="d-flex flex-wrap gap-2 mb-3">
         {countryCode && (
           <span className="badge bg-primary text-white">
             Country: {countryCode}
@@ -105,30 +178,66 @@ const LeftPanel = ({
             Lang: {selectedLang}
           </span>
         )}
-      </div>
+      </div> */}
 
-      <input
-        className="form-control mb-3"
-        placeholder="Search..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
-        style={{
-          borderRadius: "12px",
-          fontSize: "0.85rem",
-          padding: "8px 12px",
-          border: "1px solid #dcdcdc",
-        }}
-      />
+      <div className="!border !border-[var(--border)] p-3 rounded-xl  md:!h-[100%] overflow-hidden bg-[var(--card)]">
+        <input
+          className="form-control mb-3 !border !border-[var(--border)] placeholder:!text-gray-500"
+          placeholder="Search..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
+          style={{
+            borderRadius: "12px",
+            fontSize: "0.85rem",
+            padding: "8px 12px",
+            // border: "1px solid #dcdcdc",
+          }}
+        />
 
-      <div
-        className="overflow-auto"
-        style={{
-          height: "calc(90vh - 120px)",
-          backgroundColor: "var(--primary-color)",
-        }}
-      >
-        {loading
-          ? // Skeleton loading
+        <div
+          className="overflow-auto xl:!h-[calc(100vh-260px)] "
+        // style={{
+        //   height: "calc(90vh - 120px)",
+        //   backgroundColor: "var(--bg)",
+        // }}
+        >
+          <style>{`
+          .ant-collapse {
+            background: var(--card) !important;
+            border: 1px solid var(--border) !important;
+          }
+          .ant-collapse > .ant-collapse-item {
+            border-bottom: 1px solid var(--border) !important;
+          }
+          .ant-collapse > .ant-collapse-item:last-child {
+            border-bottom: none !important;
+          }
+          .ant-collapse-header {
+            background: var(--card) !important;
+            color: var(--text) !important;
+            border-radius: 8px !important;
+          }
+          .ant-collapse-content {
+            background: var(--card) !important;
+            border-top: 1px solid var(--border) !important;
+          }
+          .ant-collapse-content-box {
+            padding: 0 !important;
+          }
+          @media (min-width: 1080px) {
+            .mobile-accordion {
+              display: none !important;
+            }
+          }
+          @media (max-width: 1080px) {
+            .desktop-cards {
+              display: none !important;
+            }
+          }
+        `}</style>
+
+          {loading ? (
+            // Skeleton loading
             Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
@@ -168,95 +277,196 @@ const LeftPanel = ({
                 </div>
               </div>
             ))
-          : data
-              .filter((inf) => inf.username[0].toLowerCase().includes(searchTerm))
-              .map((inf, index) => (
-                <div
-                  key={inf.id}
-                  className="d-flex align-items-start p-2 mb-2 rounded transition-all"
-                  onClick={() => setSelected(inf)}
-                  style={{
-                    backgroundColor: "#fff",
-                    cursor: index >= 5 ? "default" : "pointer",
-                    pointerEvents: index >= 5 ? "none" : "auto",
-                    opacity: index >= 5 ? 0.5 : 1,
-                    minHeight: "70px",
-                    filter: index >= 5 ? "blur(2px)" : "none",
-                    transition: "all 0.2s ease-in-out",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (index < 5) {
-                      e.currentTarget.style.boxShadow =
-                        "0 4px 12px rgba(0,0,0,0.05)";
-                      e.currentTarget.style.backgroundColor = "#e2e8f0";
-                      e.currentTarget.style.transform = "scale(1.015)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (index < 5) {
-                      e.currentTarget.style.boxShadow = "none";
-                      e.currentTarget.style.backgroundColor = "#fff";
-                      e.currentTarget.style.transform = "scale(1)";
-                    }
-                  }}
+          ) : (
+            <>
+              {/* Mobile Accordion View */}
+              <div className="mobile-accordion">
+                <Collapse
+                  activeKey={accordionOpen}
+                  onChange={setAccordionOpen}
+                  className="!bg-[var(--card)] !border-[var(--border)]"
+                  expandIconPosition="right"
                 >
-                  <img
-                    src={inf.profilePic}
-                    alt="profile"
-                    width="50"
-                    height="50"
-                    className="rounded-circle border"
-                    style={{
-                      borderColor: "#FFD700",
-                      borderWidth: "2px",
-                      borderStyle: "solid",
-                      marginTop: "4px",
-                    }}
-                  />
-                  <div className="ms-3 w-100">
+                  <Panel
+                    header={
+                      <span className="font-medium text-[var(--text)]">
+                        Influencers ({filteredData.length}) - Sorted by Match %
+                      </span>
+                    }
+                    key="1"
+                    className="!bg-[var(--card)]"
+                  >
+                    <div className="space-y-2">
+                      {filteredData
+                        .map((inf, index) => (
+                          <div
+                            key={inf.id}
+                            className="d-flex align-items-start p-2 mb-2 rounded transition-all hover:!bg-[var(--hover2)]"
+                            onClick={() => setSelected(inf)}
+                            style={{
+                              backgroundColor: "var(--card)",
+                              cursor: index >= 5 ? "default" : "pointer",
+                              pointerEvents: index >= 5 ? "none" : "auto",
+                              opacity: index >= 5 ? 0.5 : 1,
+                              minHeight: "70px",
+                              filter: index >= 5 ? "blur(2px)" : "none",
+                              transition: "all 0.2s ease-in-out",
+                            }}
+                          >
+                            <img
+                              src={inf.profilePic}
+                              alt="profile"
+                              width="50"
+                              height="50"
+                              className="rounded-circle border"
+                              style={{
+                                borderColor: "#FFD700",
+                                borderWidth: "2px",
+                                borderStyle: "solid",
+                                marginTop: "4px",
+                              }}
+                            />
+                            <div className="ms-3 w-100">
+                              <div
+                                className="fw-medium text-[var(--text)]"
+                                style={{ fontSize: "0.9rem" }}
+                              >
+                                {inf.username}
+                              </div>
+                              <div
+                                className="!text-gray-500 mb-1"
+                                style={{ fontSize: "0.75rem" }}
+                              >
+                                {inf.category}
+                              </div>
+                              <div className="d-flex !justify-between flex-wrap gap-3 text-[var(--text)]">
+                                <span className="d-flex align-items-center gap-1 text-[10px]">
+                                  <FaInstagram style={{ color: "#E1306C" }} size={14} />{" "}
+                                  <span>
+                                    {inf.data?.instagram?.total_followers !== undefined && inf.data?.instagram?.total_followers !== null
+                                      ? formatFollowers(inf.data.instagram.total_followers)
+                                      : "N/A"}
+                                  </span>
+                                </span>
+                                <span className="d-flex align-items-center gap-1 text-[10px]">
+                                  <FaFacebook style={{ color: "#1877F2" }} size={14} />{" "}
+                                  <span>
+                                    {inf.data?.facebook?.total_followers !== undefined && inf.data?.facebook?.total_followers !== null
+                                      ? formatFollowers(inf.data.facebook.total_followers)
+                                      : "N/A"}
+                                  </span>
+                                </span>
+                                <span className="d-flex align-items-center gap-1 text-[10px]">
+                                  <FaTwitter style={{ color: "#1DA1F2" }} size={14} />{" "}
+                                  <span>
+                                    {inf.data?.twitter?.total_followers !== undefined && inf.data?.twitter?.total_followers !== null
+                                      ? formatFollowers(inf.data.twitter.total_followers)
+                                      : "N/A"}
+                                  </span>
+                                </span>
+                                <span className="d-flex align-items-center gap-1 text-[10px]">
+                                  <FaYoutube style={{ color: "#FF0000" }} size={14} />{" "}
+                                  <span>
+                                    {inf.data?.youtube?.total_followers !== undefined && inf.data?.youtube?.total_followers !== null
+                                      ? formatFollowers(inf.data.youtube.total_followers)
+                                      : "N/A"}
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </Panel>
+                </Collapse>
+              </div>
+
+              {/* Desktop Cards View */}
+              <div className="desktop-cards">
+                {filteredData
+                  .map((inf, index) => (
                     <div
-                      className="fw-medium text-dark"
-                      style={{ fontSize: "0.9rem" }}
+                      key={inf.id}
+                      className="d-flex align-items-start p-2 mb-2 rounded transition-all hover:!bg-[var(--hover2)]"
+                      onClick={() => setSelected(inf)}
+                      style={{
+                        backgroundColor: "var(--card)",
+                        cursor: index >= 5 ? "default" : "pointer",
+                        pointerEvents: index >= 5 ? "none" : "auto",
+                        opacity: index >= 5 ? 0.5 : 1,
+                        minHeight: "70px",
+                        filter: index >= 5 ? "blur(2px)" : "none",
+                        transition: "all 0.2s ease-in-out",
+                      }}
                     >
-                      {inf.username}
+                      <img
+                        src={inf.profilePic}
+                        alt="profile"
+                        width="50"
+                        height="50"
+                        className="rounded-circle border"
+                        style={{
+                          borderColor: "#FFD700",
+                          borderWidth: "2px",
+                          borderStyle: "solid",
+                          marginTop: "4px",
+                        }}
+                      />
+                      <div className="ms-3 w-100">
+                        <div
+                          className="fw-medium text-[var(--text)]"
+                          style={{ fontSize: "0.9rem" }}
+                        >
+                          {inf.username}
+                        </div>
+                        <div
+                          className="!text-gray-500 mb-1"
+                          style={{ fontSize: "0.75rem" }}
+                        >
+                          {inf.category}
+                        </div>
+                        <div className="d-flex flex-wrap justify-between gap-3 text-[var(--text)]">
+                          <span className="d-flex align-items-center gap-1 text-[10px]">
+                            <FaInstagram style={{ color: "#E1306C" }} size={14} />{" "}
+                            <span>
+                              {inf.data?.instagram?.total_followers !== undefined && inf.data?.instagram?.total_followers !== null
+                                ? formatFollowers(inf.data.instagram.total_followers)
+                                : "N/A"}
+                            </span>
+                          </span>
+                          <span className="d-flex align-items-center gap-1 text-[10px]">
+                            <FaFacebook style={{ color: "#1877F2" }} size={14} />{" "}
+                            <span>
+                              {inf.data?.facebook?.total_followers !== undefined && inf.data?.facebook?.total_followers !== null
+                                ? formatFollowers(inf.data.facebook.total_followers)
+                                : "N/A"}
+                            </span>
+                          </span>
+                          <span className="d-flex align-items-center gap-1 text-[10px]">
+                            <FaTwitter style={{ color: "#1DA1F2" }} size={14} />{" "}
+                            <span>
+                              {inf.data?.twitter?.total_followers !== undefined && inf.data?.twitter?.total_followers !== null
+                                ? formatFollowers(inf.data.twitter.total_followers)
+                                : "N/A"}
+                            </span>
+                          </span>
+                          <span className="d-flex align-items-center gap-1 text-[10px]">
+                            <FaYoutube style={{ color: "#FF0000" }} size={14} />{" "}
+                            <span>
+                              {inf.data?.youtube?.total_followers !== undefined && inf.data?.youtube?.total_followers !== null
+                                ? formatFollowers(inf.data.youtube.total_followers)
+                                : "N/A"}
+                            </span>
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div
-                      className="text-muted mb-1"
-                      style={{ fontSize: "0.75rem" }}
-                    >
-                      {inf.category}
-                    </div>
-                    <div className="d-flex flex-wrap gap-3 small text-secondary">
-                      <span className="d-flex align-items-center gap-1">
-                        <FaInstagram style={{ color: "#E1306C" }} size={14} />{" "}
-                        <span>
-                          {formatFollowers(
-                            inf.data?.instagram?.total_followers
-                          )}
-                        </span>
-                      </span>
-                      <span className="d-flex align-items-center gap-1">
-                        <FaFacebook style={{ color: "#1877F2" }} size={14} />{" "}
-                        <span>
-                          {formatFollowers(inf.data?.facebook?.total_followers)}
-                        </span>
-                      </span>
-                      <span className="d-flex align-items-center gap-1">
-                        <FaTwitter style={{ color: "#1DA1F2" }} size={14} />{" "}
-                        <span>
-                          {formatFollowers(inf.data?.twitter?.total_followers)}
-                        </span>
-                      </span>
-                      <span className="d-flex align-items-center gap-1">
-                        <FaYoutube style={{ color: "#FF0000" }} size={14} />{" "}
-                        <span>
-                          {formatFollowers(inf.data?.youtube?.total_followers)}
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                  ))}
+              </div>
+            </>
+          )}
+        </div>
+
       </div>
     </div>
   );

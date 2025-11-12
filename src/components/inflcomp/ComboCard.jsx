@@ -1,3 +1,4 @@
+import { Tooltip } from "antd";
 import React from "react";
 
 const ComboCard = ({ combo, isSelected, handleComboChange }) => {
@@ -57,8 +58,8 @@ const ComboCard = ({ combo, isSelected, handleComboChange }) => {
 
   return (
     <div
-      className={`p-3 mb-3 rounded-4 border ${isSelected ? "border-primary border-2" : "border-light"}`}
-      style={{ cursor: "pointer", backgroundColor: "#fff" }}
+      className={`p-3 mb-3 rounded-4 hover:bg-[var(--hover2)] border !border-[var(--border)] ${isSelected ? "border-primary border-2" : "border-light"}`}
+      style={{ cursor: "pointer",}}
       onClick={() => handleComboChange(combo.name)}
     >
       {/* Top row: Checkbox + Title + Price */}
@@ -72,19 +73,22 @@ const ComboCard = ({ combo, isSelected, handleComboChange }) => {
             style={{ marginTop: "4px" }}
           />
           <div>
-            <h5 className="fw-bold m-0">
+            <h5 className="text-[16px] font-semibold m-0">
               {combo.name}{" "}
+              <Tooltip title="Includes one main feed post on Instagram and one 24-hour story on Facebook. Content must be provided by business.">
               <i
-                className="bi bi-info-circle text-muted"
+                className="bi bi-info-circle "
                 style={{ fontSize: "0.9rem" }}
               ></i>
+
+              </Tooltip>
             </h5>
-            <p className="text-muted small mb-2">
+            <p className="text-gray-500 text-12 mb-2">
               {combo.description || "A multi-platform promotion package."}
             </p>
           </div>
         </div>
-        <div className="fw-bold text-primary fs-5">
+        <div className="font-semibold  text-primary text-[16px]">
           {formatPrice(combo.price)}
         </div>
       </div>
@@ -94,7 +98,7 @@ const ComboCard = ({ combo, isSelected, handleComboChange }) => {
         {/* Platforms */}
         {platforms.length > 0 && (
           <div>
-            <div className="text-muted small fw-semibold mb-1">Platforms:</div>
+            <div className="text-gray-500 small fw-semibold mb-1">Platforms:</div>
             <div className="d-flex flex-wrap gap-2">
               {platforms.map((platform, i) => (
                 <React.Fragment key={i}>{getPlatformBadge(platform)}</React.Fragment>
@@ -106,7 +110,7 @@ const ComboCard = ({ combo, isSelected, handleComboChange }) => {
         {/* Includes */}
         {combo.services?.length > 0 && (
           <div>
-            <div className="text-muted small fw-semibold mb-1">Includes</div>
+            <div className="text-gray-500 small fw-semibold mb-1">Includes</div>
             <div className="d-flex flex-wrap gap-2">
               {combo.services.map((service, idx) => (
                 <span

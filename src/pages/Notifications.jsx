@@ -16,8 +16,9 @@ import {
   Bell,
   CheckCircle,
   ArrowRepeat,
-  X,
 } from "react-bootstrap-icons";
+import TabsButton from "../components/TabsButton";
+import { X } from "lucide-react";
 
 function Notifications() {
   const [activeTab, setActiveTab] = useState("unread");
@@ -126,40 +127,50 @@ function Notifications() {
       ? notifications.filter((n) => !n.read)
       : notifications;
 
+  const data = [
+    {
+      label: "Unread",
+      key: "unread"
+    },
+    {
+      label: "All",
+      key: "all"
+    },
+  ];
   return (
-    <Container fluid className="bg-light p-0">
-      <Card className="border-0 shadow-sm rounded-0">
+    <Container fluid className="p-0 !border-0">
+      <Card className="p-3 xl:!px-30 !bg-[var(--bgPage2)] !text-[var(--text)] !border-0">
         {/* Header */}
         <div
-          style={{
-            background: "linear-gradient(to right, #605cff, #4a00e0)",
-            color: "#fff",
-            padding: "20px 0",
-            borderBottomLeftRadius: 20,
-            borderBottomRightRadius: 20,
-          }}
+          // style={{
+          //   background: "linear-gradient(to right, #605cff, #4a00e0)",
+          //   color: "#fff",
+          //   padding: "20px 0",
+          //   borderBottomLeftRadius: 20,
+          //   borderBottomRightRadius: 20,
+          // }}
         >
           <Container>
-            <Row className="align-items-center justify-content-between">
+            <Row className="align-items-center justify-content-between mb-3">
               <Col>
-                <h5 className="fw-bold mb-1 d-flex align-items-center gap-2 text-light">
+                <h3 className="fw-bold mb-1 d-flex align-items-center gap-2 ">
                   Notifications
-                </h5>
-                <small
-                  className="mb-0 text-light opacity-75"
+                </h3>
+                {/* <small
+                  className="mb-0 opacity-75"
                   style={{ fontSize: "0.95rem" }}
                 >
                   Manage alerts and notification settings.
-                </small>
+                </small> */}
               </Col>
               <Col className="text-end">
                 <Button
                   size="sm"
                   variant="outline-light"
-                  className="rounded-pill px-3"
+                  className="rounded px-3 py-2 border !border-[var(--border)] !text-[var(--text)] hover:!bg-[var(--hover)]"
                   onClick={markAllAsRead}
                 >
-                  <ArrowRepeat size={14} className="me-1" />
+                  {/* <ArrowRepeat size={14} className="me-1" /> */}
                   Mark all as read
                 </Button>
               </Col>
@@ -167,7 +178,7 @@ function Notifications() {
           </Container>
         </div>
         {/* Tabs */}
-        <div className="d-flex border-bottom">
+        {/* <div className="d-flex border-bottom">
           <div
             className={`flex-fill text-center py-3 cursor-pointer ${
               activeTab === "unread"
@@ -191,42 +202,45 @@ function Notifications() {
           >
             All
           </div>
-        </div>
+        </div> */}
+
+        <TabsButton activeKey={activeTab} data={data} setActiveKey={setActiveTab} />
 
         {/* Notifications List */}
-        <ListGroup variant="flush" className="p-0">
+        <ListGroup variant="flush" className="p-0 !rounded-2xl">
           {filteredNotifications.length > 0 ? (
             filteredNotifications.map((n) => (
               <ListGroup.Item
                 key={n.id}
-                className={`d-flex align-items-start gap-3 px-4 py-3 border-0 ${
-                  !n.read ? "bg-light" : "bg-white"
+                className={`m-1 rounded-2xl !text-[var(--text)] xl:!flex align-items-start gap-3 px-4 py-3 !bg-[var(--card)]  ${
+                  !n.read ? "!border-l-4 !border-[var(--border)] !border-l-blue-500" : "border !border-[var(--border)]"
                 }`}
               >
+                <div className="flex items-center gap-3 mb-2 md:mb-0">
                 {getIcon(n.type)}
-                <div className="flex-grow-1">
-                  <h6 className="mb-1 fw-semibold text-dark">{n.title}</h6>
-                  <p className="mb-1 text-muted small">{n.description}</p>
-                  <small className="text-secondary">{n.time}</small>
+                  <h6 className="mb-1 fw-semibold">{n.title}</h6>
                 </div>
-                <div className="d-flex flex-column align-items-end gap-2">
+                <div className="flex-grow-1">
+                  <p className="mb-1 text-[var(--mutedText)] small">{n.description}</p>
+                  <small className="text-secondary">{n.time}</small>
+
+                </div>
+                <div className="d-flex justify-center align-items-end gap-2">
                   <Button
-                    size="sm"
-                    variant="outline-primary"
-                    className="rounded-pill px-3"
+                    // size="sm"
+                    // variant="outline-primary"
+                    className="p-2 rounded bg-transparent border-0 !text-[var(--text)] hover:!bg-[var(--hover)]"
                     onClick={() => handleAction(n.id, n.action)}
                   >
                     {n.action}
                   </Button>
                   {!n.read && (
-                    <Button
-                      size="sm"
-                      variant="outline-danger"
-                      className="rounded-pill px-3"
+                    <button
+                      className="p-2 rounded hover:bg-[var(--hover)]"
                       onClick={() => handleAction(n.id, "Dismiss")}
                     >
-                      <X size={14} className="me-1" /> Dismiss
-                    </Button>
+                      <X size={20} className="" />
+                    </button>
                   )}
                 </div>
               </ListGroup.Item>

@@ -21,6 +21,7 @@ import {
   FaClock,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { Download, FileText, Funnel } from "lucide-react";
 
 const reportData = [
   {
@@ -78,42 +79,43 @@ function Reports() {
   return (
     <div
       className="px-3"
-      style={{ backgroundColor: "var(--primary-color)", minHeight: "100vh" }}
+      style={{ backgroundColor: "var(--bgPage2)", minHeight: "100vh" ,color: "var(--text)"}}
     >
       <Container fluid className="py-4">
         {/* Header */}
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h4 className="fw-bold" style={{ color: "#1a237e" }}>
-            Business Reports
+          <h4 className="fw-bold" style={{ color: "var(--text)" }}>
+            Reports
           </h4>
-          <Button
-            variant="outline-secondary"
-            size="sm"
+          <button
+            // variant="outline-secondary"
+            // size="sm"
             onClick={() => setShowFilters(!showFilters)}
-            style={{
-              background: "linear-gradient(135deg, #1976d2, rgb(87, 52, 226))",
-              border: "none",
-              color: "#fff",
-              borderRadius: "50px",
-              padding: "0.6rem 1.5rem",
-              fontWeight: 600,
-              fontSize: "0.95rem",
-              boxShadow: "0 4px 14px rgba(125, 104, 195, 0.25)",
-            }}
+            className=" !bg-[var(--primary)] text-white flex justify-center items-center px-3 py-2 text-14 !rounded-xl "
+            // style={{
+            //   background: "linear-gradient(135deg, #1976d2, rgb(87, 52, 226))",
+            //   border: "none",
+            //   color: "#fff",
+            //   borderRadius: "50px",
+            //   padding: "0.6rem 1.5rem",
+            //   fontWeight: 600,
+            //   fontSize: "0.95rem",
+            //   boxShadow: "0 4px 14px rgba(125, 104, 195, 0.25)",
+            // }}
           >
-            <FaFilter className="me-2" /> Filters
-          </Button>
+            <Funnel size={14} className="me-2" /> Filters
+          </button>
         </div>
 
         {/* Filters Collapse */}
         <Collapse in={showFilters}>
           <div className="mb-4">
             <Card
-              className="p-4 shadow-sm border-0 rounded-3"
-              style={{ backgroundColor: "var(--primary-color)" }}
+              className="p-4 !font-medium border !border-[var(--border)] rounded-xl !text-[var(--text)]"
+              style={{ backgroundColor: "var(--card)" }}
             >
               <Row className="g-3 align-items-end">
-                <Col md={4}>
+                <Col md={4} xl={4}>
                   <Form.Label className="fw-semibold">
                     Search Order / ID
                   </Form.Label>
@@ -128,10 +130,11 @@ function Reports() {
                       onChange={(e) =>
                         setFilters({ ...filters, search: e.target.value })
                       }
+                      className='placeholder:!text-[var(--mutedText)]'
                     />
                   </InputGroup>
                 </Col>
-                <Col md={3}>
+                <Col md={4} xl={3}>
                   <Form.Label className="fw-semibold">From Date</Form.Label>
                   <Form.Control
                     type="date"
@@ -141,7 +144,7 @@ function Reports() {
                     }
                   />
                 </Col>
-                <Col md={3}>
+                <Col md={4} xl={3}>
                   <Form.Label className="fw-semibold">To Date</Form.Label>
                   <Form.Control
                     type="date"
@@ -152,17 +155,17 @@ function Reports() {
                     }
                   />
                 </Col>
-                <Col md={2} className="text-end d-flex gap-2">
+                <Col md={12} xl={2} className="text-end d-flex gap-2">
                   <Button
-                    variant="outline-secondary"
-                    className="w-50"
+                   
+                    className="w-50 bg-transparent border !border-[var(--border)] !text-[var(--text)] hover:!text-[var(--primary)] hover:!bg-[var(--hover)]"
                     onClick={() => setFilters({ search: "", from: "", to: "" })}
                   >
                     Clear
                   </Button>
                   <Button
-                    variant="primary"
-                    className="w-50"
+                    // variant="primary"
+                    className="w-50 !bg-[var(--primary)]"
                     onClick={() => setShowModal(true)}
                   >
                     Request
@@ -174,30 +177,32 @@ function Reports() {
         </Collapse>
 
         {/* Modal */}
-        <Modal show={showModal} onHide={() => setShowModal(false)} centered>
-          <Modal.Header closeButton>
-            <Modal.Title>
+        <Modal  show={showModal} onHide={() => setShowModal(false)} centered>
+          <Modal.Header className='bg-[var(--card)] border !border-[var(--border)] text-[var(--text)]' closeButton>
+            <Modal.Title className='flex items-center !text-[18px]'>
               <FaClipboardList className="me-2" />
               Request Report
             </Modal.Title>
           </Modal.Header>
-          <Modal.Body>
+          <Modal.Body className='bg-[var(--card)] border !border-[var(--border)] text-[var(--text)]'>
             <Form>
-              <Form.Group className="mb-3">
+              <Form.Group className="mb-3 text-14">
                 <Form.Label>Report Name</Form.Label>
                 <Form.Control
                   type="text"
                   placeholder="Enter report name"
+                  // className="!bg-[var(--bg)] placeholder:red-300"
                   value={reportRequest.name}
                   onChange={(e) =>
                     setReportRequest({ ...reportRequest, name: e.target.value })
                   }
                 />
               </Form.Group>
-              <Form.Group className="mb-3">
+              <Form.Group className="mb-3 text-14 !bg-[var(--card)] text-[var(--text)]">
                 <Form.Label>Report Type</Form.Label>
                 <Form.Select
                   value={reportRequest.type}
+                  className='!bg-[var(--card)] !text-[var(--text)] border !border-[var(--border)] text-14'
                   onChange={(e) =>
                     setReportRequest({ ...reportRequest, type: e.target.value })
                   }
@@ -265,31 +270,42 @@ function Reports() {
         </Modal>
 
         {/* Tab Filter */}
-        <div className="w-100 d-flex justify-content-between mb-3">
-          {["all", "completed", "pending"].map((key) => (
-            <Button
+        <div className="w-100 d-flex justify-content-between mb-3 bg-[var(--hover2)] p-1 rounded-xl">
+          {["all", "completed", "pending","requested"].map((key) => (
+            <button
               key={key}
-              variant="link"
-              className={`text-capitalize px-3 py-2 border-0 rounded-0 ${
-                activeTab === key
-                  ? "border-bottom border-primary fw-semibold"
-                  : "text-muted"
-              }`}
-              style={{
-                textDecoration: "none",
-                borderBottom:
-                  activeTab === key
-                    ? "3px solid #0d6efd"
-                    : "3px solid transparent",
-                transition: "border-color 0.3s",
-                borderRadius: "10px",
-                width: "33.3%",
-                textAlign: "center",
-              }}
+              className={`btn w-100 text-center !font-medium text-14 py-1 border-0 !text-[var(--text)] 
+                ${activeTab === key
+                  ? " border-bottom border-2 border-primary !bg-[var(--bg)]"
+                  : ""
+                }`}
               onClick={() => setTab(key)}
             >
-              {key}
-            </Button>
+              {key.charAt(0).toUpperCase() + key.slice(1)}
+            </button>
+            // <Button
+            //   key={key}
+            //   variant="link"
+            //   className={`text-capitalize px-3 py-2 border-0 rounded-0 ${
+            //     activeTab === key
+            //       ? "border-bottom border-primary fw-semibold"
+            //       : "text-muted"
+            //   }`}
+            //   style={{
+            //     textDecoration: "none",
+            //     borderBottom:
+            //       activeTab === key
+            //         ? "3px solid #0d6efd"
+            //         : "3px solid transparent",
+            //     transition: "border-color 0.3s",
+            //     borderRadius: "10px",
+            //     width: "33.3%",
+            //     textAlign: "center",
+            //   }}
+            //   onClick={() => setTab(key)}
+            // >
+            //   {key}
+            // </Button>
           ))}
         </div>
 
@@ -297,29 +313,34 @@ function Reports() {
         <Row className="g-4 mt-3">
           {filtered.length ? (
             filtered.map((r, i) => (
-              <Col key={i} md={6} lg={4} xl={3}>
+              <Col key={i} md={6} lg={4} xl={4}>
                 <Card
-                  className="border-0 shadow-lg h-100 rounded-4"
-                  style={{ backgroundColor: "#fff" }}
+                  className=" hover:shadow-lg h-100 rounded-4 !bg-[var(--card)] border !border-[var(--border)]"
+                  // style={{ backgroundColor: "var(--bg)" }}
                 >
-                  <Card.Body className="d-flex flex-column justify-content-between">
+                  <Card.Body className="d-flex flex-column justify-content-between !text-[var(--mutedText)]">
                     <div>
-                      <div className="d-flex align-items-center mb-3">
-                        <div className="bg-light p-2 rounded me-3">
-                          <FaFileExcel className="text-success fs-4" />
-                        </div>
+                      <div className="d-flex align-items-center justify-between mb-3">
                         <div>
-                          <h6 className="fw-semibold mb-0">{r.id}</h6>
-                          <small className="text-muted">{r.orderPlaced}</small>
+                          <h6 className="fw-semibold !text-[var(--text)] mb-0">{r.id}</h6>
+                        </div>
+                        <div className=" p-2 rounded me-3">
+                          <FileText className="text-success fs-4" />
                         </div>
                       </div>
-                      <div>
-                        <strong>Order:</strong> {r.orderName}
+                      <div className="flex items-center justify-between text-14">
+                        <span>Order Placed Date:</span> {r.orderPlaced}
                       </div>
-                      <div>
-                        <strong>Range:</strong> {r.dateRange}
+                      <div className="flex items-center justify-between text-14">
+                        <span>Order:</span> {r.orderName}
                       </div>
-                      <Badge
+                      <div className="flex items-center justify-between text-14">
+                        <spam>Range:</spam> {r.dateRange}
+                      </div>
+                      <div className={`flex items-center justify-between text-14`}>
+                        Payment Status: <span className={` ${r.paymentStatus === "Completed" ? "text-success" : ""}`}>{r.paymentStatus}</span> 
+                      </div>
+                      {/* <Badge
                         bg={
                           r.paymentStatus === "Completed"
                             ? "success"
@@ -333,15 +354,23 @@ function Reports() {
                           <FaClock className="me-1" />
                         )}
                         {r.paymentStatus}
-                      </Badge>
+                      </Badge> */}
                     </div>
-                    <Button
-                      variant="outline-primary"
-                      className="mt-3 rounded-pill"
+                    {r.paymentStatus === "Pending" ? <button
+                      // variant="outline-primary"
+                      className="mt-3 !rounded-lg py-2 !bg-[var(--primary)] !text-white flex justify-center items-center"
+                      // onClick={() => toast.info(`Downloading ${r.reportName}`)}
+                    >
+                      <Download className="mr-1" size={16} />  Pay & Download
+                    </button>
+                    :
+                    <button
+                      // variant="outline-primary"
+                      className="mt-3 !rounded-lg py-2 !bg-[var(--bgPage2)] !text-[var(--text)] border !border-[var(--border)] flex justify-center items-center hover:!bg-[var(--hover)]"
                       onClick={() => toast.info(`Downloading ${r.reportName}`)}
                     >
-                      <FaDownload className="me-2" /> Download
-                    </Button>
+                      <Download className="mr-1" size={16} /> Download
+                    </button>}
                   </Card.Body>
                 </Card>
               </Col>
@@ -352,7 +381,7 @@ function Reports() {
                 className="text-center py-5 border-0 shadow-sm rounded-4"
                 style={{ backgroundColor: "#f1f5f9" }}
               >
-                <Card.Body>
+                  <Card.Body className="flex justify-center items-center flex-column">
                   <FaFileExcel className="fs-1 text-muted mb-3" />
                   <h5>No Reports Found</h5>
                   <p className="text-muted">
